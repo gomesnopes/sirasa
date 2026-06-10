@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - KITA SEBAYA Edukasi</title>
+    <title>Admin Panel - SIRASA Edukasi</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,7 +28,7 @@
     
     <aside id="sidebar" class="w-64 md:w-0 bg-slate-900 text-slate-300 flex flex-col absolute md:relative z-50 h-full flex-shrink-0 overflow-hidden -translate-x-full md:translate-x-0 transition-all duration-300 shadow-xl md:shadow-none">
         <div class="h-16 flex items-center justify-between px-6 bg-slate-950 text-white font-bold text-xl tracking-wide border-b border-slate-800 min-w-[256px]">
-            <div><i class="fa-solid fa-ribbon text-rose-500 mr-2"></i> Admin KITA SEBAYA</div>
+            <div><i class="fa-solid fa-ribbon text-rose-500 mr-2"></i> Admin SIRASA</div>
             <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-w-[256px]">
@@ -44,7 +44,7 @@
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
         <header class="bg-white h-16 border-b border-slate-200 flex items-center px-6 shrink-0 z-10 shadow-sm">
             <button onclick="toggleSidebar()" class="text-slate-500 hover:text-rose-600 transition p-2 bg-slate-100 rounded-lg"><i class="fa-solid fa-bars text-xl"></i></button>
-            <h1 class="ml-4 font-bold text-slate-700 hidden sm:block">Panel Peneliti - KITA SEBAYA</h1>
+            <h1 class="ml-4 font-bold text-slate-700 hidden sm:block">Panel Peneliti - SIRASA</h1>
         </header>
 
         <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 w-full">
@@ -300,7 +300,7 @@
             if (passwordBaru) updates.password = passwordBaru;
             
             // GANTI URL INI DENGAN URL WEB APP GAS ANDA
-            const gasUrl = "https://script.google.com/macros/s/AKfycbyWaBvkDeM65f6zDYuffG7xKQy7gglni90LFjNicZGMqYejzR6_08Z7QAiKN_b8eW1M/exec";
+            const gasUrl = "https://script.google.com/macros/s/AKfycbx_BGTnjI7S_1UVos9EsSeioGuvVU21zAxx_3c06e_WPuFms-px4vHoTCNyw1O1SUsT/exec";
             
             const response = await fetch(gasUrl, {
                 method: "POST",
@@ -338,7 +338,7 @@
             wadah.innerHTML = '';
             
             let slides = [
-                {judul: "Pahami Virusnya, Jauhi Penyakitnya", desc: "Tinggalkan cara belajar yang membosankan. Platform KITA SEBAYA menyajikan materi dengan modul interaktif yang menyenangkan."},
+                {judul: "Pahami Virusnya, Jauhi Penyakitnya", desc: "Tinggalkan cara belajar yang membosankan. Platform SIRASA menyajikan materi dengan modul interaktif yang menyenangkan."},
                 {judul: "Kerjakan Pre-Test & Post-Test", desc: "Ukur seberapa jauh pemahaman Anda sebelum dan sesudah membaca modul yang disediakan."},
                 {judul: "Sistem Peringkat & Gamifikasi", desc: "Setiap evaluasi yang berhasil Anda kerjakan dengan baik akan diakumulasi menjadi poin. Raih peringkat teratas!"}
             ];
