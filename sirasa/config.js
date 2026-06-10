@@ -1,8 +1,8 @@
 // File: config.js
 const CONFIG = {
     // GANTI DENGAN URL PROJECT SUPABASE ANDA
-    SUPABASE_URL: "https://zqjgimorpkzynytrhyde.supabase.co", 
+    SUPABASE_URL: "https://rzzmpxeiducczixmwkpo.supabase.co", 
     
     // GANTI DENGAN ANON/PUBLIC KEY SUPABASE ANDA
-    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxamdpbW9ycGt6eW55dHJoeWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzkyOTUsImV4cCI6MjA5NDYxNTI5NX0.LAbAMRLiu9XxiAxFvoSX9FhraFgXoCp0GkEZUlUhHow" 
+    SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6em1weGVpZHVjY3ppeG13a3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzEwOTYsImV4cCI6MjA5NjY0NzA5Nn0.uoLGH53BbizJqAGvBZwaC3GAbEAj20o_xLheKlu3CFY" 
 };
