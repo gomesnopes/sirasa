@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Evaluasi - SIRASA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        body, html { background: #f8fafc; font-family: sans-serif; }
+        .quiz-enter { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Styling khusus saat radio button dipilih */
+        input[type="radio"]:checked + span { color: #e11d48; font-weight: bold; }
+        .radio-card:has(input[type="radio"]:checked) { border-color: #e11d48; background-color: #fff1f2; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <div class="bg-indigo-700 text-white shadow-md p-4 flex justify-between items-center z-50 sticky top-0">
+        <h1 class="font-black text-lg" id="header-judul"><i class="fa-solid fa-clipboard-check mr-2"></i> Ruang Evaluasi</h1>
+        <button onclick="keluarKeBeranda()" class="bg-indigo-800 hover:bg-indigo-900 px-4 py-2 rounded-lg text-sm font-bold transition">Tutup Ujian</button>
+    </div>
+
+    <div id="wadah-pretest" class="flex-1 flex flex-col items-center justify-center p-6 hidden">
+        <div class="bg-white p-8 rounded-3xl shadow-xl max-w-xl w-full text-center border border-slate-200 quiz-enter">
+            <div class="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <h2 id="judul-pretest" class="text-3xl font-black text-slate-800 mb-2">Memuat...</h2>
+            <p id="deskripsi-pretest" class="text-slate-500 mb-8 leading-relaxed">...</p>
+            
+            <div id="info-latihan" class="hidden mb-6 bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-circle-info text-amber-500"></i> Kamu sudah pernah menyelesaikan instrumen ini.
+            </div>
+            
+            <button onclick="mulaiKuis()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg">
+                Mulai Kuesioner Sekarang <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="wadah-ujian" class="flex-1 items-start justify-center p-4 md:p-8 hidden">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-4xl quiz-enter overflow-hidden flex flex-col">
+            <div class="p-6 md:p-8 flex-1">
+                <div id="quiz-content" class="space-y-6">
+                    <div class="text-center py-10">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-500 mb-4"></i>
+                        <p class="text-slate-500">Memuat instrumen...</p>
+                    </div>
+                </div>
+            </div>
+            <div id="quiz-footer" class="p-6 bg-slate-50 border-t border-slate-200"></div>
+        </div>
+    </div>
+
+    <div id="wadah-sukses" class="flex-1 items-center justify-center p-6 hidden"></div>
+
+    <script>
+        let supabaseClient; 
+        let loggedInUser = null; 
+        let dataBuku = null; 
+        let bookId = null;
+        let waktuMulaiMembaca = Date.now(); 
+        let currentQuizData = []; 
+        let dimGroups = {}; 
+        let sudahPernahSelesai = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof CONFIG === 'undefined') { alert("config.js tidak terbaca!"); return; }
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) { window.location.href = 'dashboard.html'; return; }
+            loggedInUser = session.user;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            bookId = urlParams.get('id');
+            if (!bookId) return keluarKeBeranda();
+
+            // 1. Tarik Data Identitas Kuis
+            const { data: bukuInfo } = await supabaseClient.from('buku').select('*').eq('id', bookId).single();
+            if (!bukuInfo) return keluarKeBeranda();
+            dataBuku = bukuInfo;
+
+            // 2. Cek Riwayat (Apakah sudah pernah mengerjakan?)
+            const { data: riwayat } = await supabaseClient.from('riwayat_kuis').select('id').eq('id_user', loggedInUser.id).eq('id_buku', bookId).limit(1).maybeSingle();
+            if (riwayat) sudahPernahSelesai = true;
+
+            // 3. Setup Cover Ujian
+            document.getElementById('header-judul').innerHTML = `<i class="fa-solid fa-pen-clip mr-2"></i> ${dataBuku.judul}`;
+            document.getElementById('judul-pretest').innerText = dataBuku.judul;
+            document.getElementById('deskripsi-pretest').innerText = dataBuku.deskripsi || "Jawablah seluruh pertanyaan dengan jujur dan teliti.";
+            
+            if(sudahPernahSelesai) document.getElementById('info-latihan').classList.remove('hidden');
+            
+            document.getElementById('wadah-pretest').classList.remove('hidden');
+            await tarikSoalDariDatabase();
+        });
+
+        function keluarKeBeranda() { 
+            window.location.href = 'dashboard.html'; 
+        }
+
+        async function tarikSoalDariDatabase() {
+            try {
+                // Tarik soal spesifik milik ID Kuis ini saja
+                const { data } = await supabaseClient.from('kuis').select('*').eq('id_buku', bookId).order('id', { ascending: true });
+                if (data) currentQuizData = data;
+            } catch (err) { console.error(err); }
+        }
+
+        function mulaiKuis() {
+            if (currentQuizData.length === 0) return alert("Kuesioner ini belum memiliki soal. Hubungi Admin.");
+            
+            document.getElementById('wadah-pretest').classList.add('hidden');
+            document.getElementById('wadah-ujian').classList.remove('hidden'); 
+            document.getElementById('wadah-ujian').classList.add('flex');
+            
+            waktuMulaiMembaca = Date.now();
+            renderSoalKeseluruhan();
+        }
+
+        function renderSoalKeseluruhan() {
+            const container = document.getElementById('quiz-content');
+            dimGroups = {};
+
+            // Mengelompokkan berdasarkan dimensi (Pengetahuan, Sikap, dll)
+            currentQuizData.forEach(q => {
+                const dim = q.dimensi || 'Umum';
+                if(!dimGroups[dim]) dimGroups[dim] = [];
+                dimGroups[dim].push(q);
+            });
+
+            let htmlKuis = `<form id="form-evaluasi" onsubmit="event.preventDefault(); prosesKirimEvaluasi();">`;
+            let nomorGlobal = 1;
+
+            Object.keys(dimGroups).forEach((namaDimensi) => {
+                htmlKuis += `
+                <div class="mb-8 border-2 border-slate-100 bg-white rounded-2xl shadow-sm overflow-hidden quiz-enter">
+                    <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex items-center gap-3">
+                        <i class="fa-solid fa-tags text-rose-500"></i>
+                        <h3 class="font-black text-slate-700 uppercase tracking-wide text-sm md:text-base">Dimensi: ${namaDimensi}</h3>
+                    </div>
+                    <div class="p-5 md:p-8 space-y-10">`;
+
+                dimGroups[namaDimensi].forEach(soal => {
+                    let htmlOpsi = '';
+                    if (soal.opsi_jawaban) {
+                        const keys = Object.keys(soal.opsi_jawaban);
+                        htmlOpsi = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">`;
+                        
+                        keys.forEach(k => {
+                            const opt = soal.opsi_jawaban[k];
+                            const teks = typeof opt === 'string' ? opt : opt.teks;
+                            // Ekstrak poin dengan benar
+                            const poinVal = typeof opt === 'string' ? (k === soal.jawaban_benar ? (soal.poin_reward||1) : 0) : parseInt(opt.poin || 0);
+                            
+                            htmlOpsi += `
+                                <label class="radio-card flex items-start gap-3 p-4 border-2 border-slate-100 rounded-xl cursor-pointer transition hover:bg-slate-50">
+                                    <input type="radio" name="jawaban_${soal.id}" value="${k}" data-poin="${poinVal}" class="mt-1 w-4 h-4 accent-rose-600 shrink-0" required>
+                                    <span class="text-slate-600 font-medium text-sm leading-snug">${teks}</span>
+                                </label>`;
+                        });
+                        htmlOpsi += `</div>`;
+                    }
+                    
+                    htmlKuis += `
+                    <div>
+                        <p class="font-bold text-slate-800 text-base md:text-lg leading-relaxed"><span class="text-rose-500 mr-2">${nomorGlobal}.</span>${soal.pertanyaan}</p>
+                        ${htmlOpsi}
+                    </div>`;
+                    
+                    nomorGlobal++;
+                });
+                htmlKuis += `</div></div>`;
+            });
+
+            htmlKuis += `</form>`;
+            container.innerHTML = htmlKuis;
+            
+            document.getElementById('quiz-footer').innerHTML = `<button type="submit" form="form-evaluasi" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg"><i class="fa-solid fa-paper-plane"></i> Kirim Semua Jawaban</button>`;
+        }
+
+        async function prosesKirimEvaluasi() {
+            const form = document.getElementById('form-evaluasi');
+            if(!form.checkValidity()) { form.reportValidity(); return; }
+            if(!confirm("Yakin ingin mengirim evaluasi? Pastikan semua jawaban telah diisi.")) return;
+
+            const btn = document.querySelector('#quiz-footer button');
+            btn.disabled = true; 
+            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menyimpan Data...";
+
+            const formData = new FormData(form);
+            let totalPoinDiDapat = 0;
+            const payloadRiwayat = [];
+
+            // Perekaman data berdasar dimensi (Sangat penting untuk Grafik SPSS Admin!)
+            Object.keys(dimGroups).forEach(namaDimensi => {
+                let skorDimensi = 0;
+                let rekamanJawaban = {}; 
+                
+                dimGroups[namaDimensi].forEach(q => {
+                    const jwbUser = formData.get(`jawaban_${q.id}`);
+                    
+                    if (q.opsi_jawaban && q.opsi_jawaban[jwbUser]) {
+                        const opt = q.opsi_jawaban[jwbUser];
+                        skorDimensi += (typeof opt === 'string' ? (jwbUser === q.jawaban_benar ? (q.poin_reward||1) : 0) : parseInt(opt.poin || 0));
+                        
+                        // PERBAIKAN KRITIS: Simpan abjad jawaban ('A', 'B', dll), bukan teksnya
+                        rekamanJawaban[q.id] = jwbUser; 
+                    }
+                });
+
+                totalPoinDiDapat += skorDimensi;
+                
+                // Merekam ke Database
+                payloadRiwayat.push({
+                    id_user: loggedInUser.id,
+                    id_buku: bookId, 
+                    poin_didapat: skorDimensi,
+                    durasi_baca_detik: Math.floor((Date.now() - waktuMulaiMembaca) / 1000),
+                    jenis_tes: dataBuku.tipe_konten === 'Evaluasi Global' ? `${dataBuku.judul} - ${namaDimensi}` : dataBuku.judul,
+                    dimensi: namaDimensi,
+                    detail_jawaban: rekamanJawaban
+                });
+            });
+
+            try {
+                if (!sudahPernahSelesai && totalPoinDiDapat > 0) {
+                    const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
+                    await supabaseClient.from('profiles').update({ total_poin: (profil.total_poin || 0) + totalPoinDiDapat }).eq('id', loggedInUser.id);
+                }
+                const { error: errRiwayat } = await supabaseClient.from('riwayat_kuis').insert(payloadRiwayat);
+                if (errRiwayat) throw errRiwayat;
+
+                document.getElementById('wadah-ujian').classList.add('hidden'); 
+                document.getElementById('wadah-sukses').classList.remove('hidden');
+                document.getElementById('wadah-sukses').classList.add('flex');
+                
+                document.getElementById('wadah-sukses').innerHTML = `
+                    <div class="text-center py-10 bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full quiz-enter border border-slate-200">
+                        <div class="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-trophy text-rose-500 text-5xl"></i></div>
+                        <h3 class="text-3xl font-black text-slate-800 mb-2">Ujian Selesai!</h3>
+                        <p class="text-slate-500 mb-6 text-sm">Terima kasih telah menyelesaikan evaluasi ini.</p>
+                        <div class="inline-block bg-rose-50 border-rose-200 border px-8 py-4 rounded-2xl mb-8 shadow-sm">
+                            <span class="text-rose-600 font-black text-xl">+ ${totalPoinDiDapat} Poin!</span>
+                        </div>
+                        <button onclick="keluarKeBeranda()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition shadow-md"><i class="fa-solid fa-house mr-2"></i> Kembali ke Menu Utama</button>
+                    </div>`;
+            } catch (err) { 
+                alert("Terjadi kesalahan jaringan."); 
+                btn.disabled = false; 
+                btn.innerHTML = `Coba Kirim Ulang`; 
+            }
+        }
+    </script>
+</body>
+</html>

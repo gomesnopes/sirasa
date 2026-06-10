@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlipStory - Digital Library & E-Learning</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .modal-enter { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Viewer Layar Penuh (Seperti Sebelumnya) */
+        #viewer-section { display: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: 50; background: #1e293b; }
+        
+        .auth-tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: bold; }
+        .auth-tab-inactive { color: #64748b; font-weight: medium; border-bottom: 2px solid transparent; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased m-0 p-0 h-screen overflow-hidden">
+
+    <div id="main-ui" class="h-full overflow-y-auto">
+        <nav class="bg-white shadow-sm border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-book-open-reader text-blue-600 text-2xl"></i>
+                <h1 class="text-xl font-bold text-slate-800">FlipStory <span class="text-blue-600">Pro</span></h1>
+            </div>
+            <div id="user-menu-container">
+                <button onclick="bukaModalAuth()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login / Daftar
+                </button>
+            </div>
+        </nav>
+
+        <div id="guest-hero" class="hidden bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-12 text-center relative overflow-hidden shadow-inner">
+            <div class="max-w-3xl mx-auto relative z-10">
+                <span class="bg-blue-500/30 text-blue-200 text-xs uppercase tracking-wider font-extrabold px-3 py-1 rounded-full border border-blue-400/30">🚀 Platform E-Learning Interaktif</span>
+                <h2 class="text-3xl md:text-4xl font-black mt-4 mb-3 leading-tight">Buka Kunci Ilmu Pengetahuan & Raih Skor XP</h2>
+                <p class="text-blue-100 text-sm md:text-md max-w-xl mx-auto mb-6">Pelajari ragam modul flipbook interaktif 3D, selesaikan tantangan kuis seru, dan kumpulkan poin prestasi.</p>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 py-10">
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Koleksi Rak Buku Digital</h3>
+            <p class="text-slate-500 mb-8 text-sm">Pilih salah satu materi di bawah ini untuk memulai pembelajaran.</p>
+            <div id="bookList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <p class="text-slate-500 font-medium col-span-full">Memuat modul...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer-section">
+        <a href="?" class="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-xs">
+            <i class="fa-solid fa-arrow-left"></i> Keluar Modul
+        </a>
+        
+        <div id="flipbook_container" class="w-full h-full"></div>
+    </div>
+
+    <div id="noticeModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md modal-enter p-6 text-center">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800">Selesai Membaca!</h3>
+            <p class="text-slate-500 text-sm mt-2 mb-6">Luar biasa, kamu telah menyelesaikan seluruh halaman modul ini. Apa yang ingin kamu lakukan selanjutnya?</p>
+            
+            <div class="flex flex-col gap-2.5">
+                <button onclick="lanjutKeSoalKuis()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> Jawab Tantangan Kuis
+                </button>
+                <button onclick="tutupNoticeMembacaLagi()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-book-open"></i> Baca Ulang / Membaca Lagi
+                </button>
+                <a href="?" class="w-full text-slate-400 hover:text-slate-600 font-semibold text-xs mt-2 transition">
+                    Kembali ke Galeri Utama
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="quizModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg modal-enter p-6 max-h-[90vh] overflow-y-auto">
+            <div class="text-center mb-6 border-b border-slate-100 pb-4">
+                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <h3 class="text-xl font-black text-slate-800">Evaluasi Mandiri</h3>
+                <p class="text-slate-500 text-xs mt-0.5">Selesaikan pertanyaan untuk mengklaim poin XP.</p>
+            </div>
+
+            <div id="quiz-content" class="space-y-4">
+                <p class="text-center text-slate-400 text-xs py-4">Memuat pertanyaan...</p>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
+                <button onclick="batalKuisKembaliKeNotice()" class="text-slate-400 hover:text-slate-600 font-medium text-xs">Kembali</button>
+                <button onclick="jawabKuis()" id="btn-submit-kuis" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm text-xs transition">
+                    Kirim Jawaban
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="authModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md modal-enter relative my-8 p-6">
+            <button onclick="tutupModalAuth()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <div id="auth-notice" class="hidden mb-4 bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-xs font-semibold flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation text-amber-500 text-base"></i>
+                <span>Silakan login terlebih dahulu untuk mengakses modul ini!</span>
+            </div>
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-graduation-cap text-blue-600 text-4xl mb-2"></i>
+                <h3 class="text-2xl font-bold text-slate-800">Mari Mulai Belajar</h3>
+            </div>
+            <div class="flex border-b border-slate-200 mb-6">
+                <button onclick="gantiTabAuth('login')" id="tab-login" class="flex-1 pb-3 text-center transition auth-tab-active">Masuk</button>
+                <button onclick="gantiTabAuth('daftar')" id="tab-daftar" class="flex-1 pb-3 text-center transition auth-tab-inactive">Daftar Baru</button>
+            </div>
+            <div id="form-login" class="space-y-4">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Email</label><input type="email" id="login-email" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Password</label><input type="password" id="login-password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <button onclick="prosesLogin()" id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg transition shadow-sm">Masuk</button>
+            </div>
+            <div id="form-daftar" class="hidden space-y-4 max-h-[50vh] overflow-y-auto pr-2">
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label><input type="text" id="reg-nama" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Jenis Kelamin</label><select id="reg-gender" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none bg-white"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
+                    <div><label class="block text-sm font-medium text-slate-700 mb-1">Status Anda</label><select id="reg-kategori" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none bg-white"><option value="Pelajar">Pelajar</option><option value="Mahasiswa">Mahasiswa</option><option value="Umum">Masyarakat Umum</option></select></div>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Lahir</label><input type="date" id="reg-tgl" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none"></div>
+                <div class="pt-2 border-t border-slate-100"><label class="block text-sm font-medium text-slate-700 mb-1">Email</label><input type="email" id="reg-email" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none"></div>
+                <div><label class="block text-sm font-medium text-slate-700 mb-1">Buat Password</label><input type="password" id="reg-password" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none"></div>
+                <button onclick="prosesDaftar()" id="btn-daftar" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition shadow-sm">Buat Akun Sekarang</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient; 
+        let loggedInUser = null; 
+        let currentQuizData = [];
+        let kuisSudahDipicu = false; // Pengunci ganda
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookUrl = urlParams.get('baca');
+        
+        try {
+            if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            validasiAksesHalaman();
+        } catch (err) { console.error(err); }
+
+        async function validasiAksesHalaman() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                loggedInUser = session.user;
+                const { data: profil } = await supabaseClient.from('profiles').select('*').eq('id', loggedInUser.id).single();
+                
+                if (profil) {
+                    document.getElementById('user-menu-container').innerHTML = `
+                        <div class="flex items-center gap-4">
+                            <div class="text-right hidden sm:block">
+                                <p class="text-sm font-bold text-slate-800 leading-tight">${profil.nama_lengkap}</p>
+                                <p class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-star text-amber-400"></i> ${profil.total_poin} XP</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg uppercase shadow-sm border border-blue-200">${profil.nama_lengkap.charAt(0)}</div>
+                            <button onclick="prosesLogout()" class="text-slate-400 hover:text-red-500 ml-1" title="Keluar"><i class="fa-solid fa-right-from-bracket"></i></button>
+                        </div>
+                    `;
+                    document.getElementById('guest-hero').classList.add('hidden');
+
+                    if (bookUrl) {
+                        renderModulInteraktif(decodeURIComponent(bookUrl));
+                    } else {
+                        fetchBooks();
+                    }
+                    return;
+                }
+            }
+
+            document.getElementById('guest-hero').classList.remove('hidden'); 
+            if (bookUrl) {
+                window.history.replaceState({}, document.title, window.location.pathname); 
+                bukaModalAuth(); document.getElementById('auth-notice').classList.remove('hidden'); 
+            }
+            fetchBooks();
+        }
+
+        // --- INISIALISASI DEARFLIP MANUAL (KUNCI OTOMATISASI FIX) ---
+        function renderModulInteraktif(urlPdf) {
+            document.getElementById('main-ui').style.display = 'none';
+            document.getElementById('viewer-section').style.display = 'block';
+
+            // Kita render flipbook secara manual menggunakan jQuery agar kita bisa
+            // menyisipkan callback onPageChange tanpa di-overwrite oleh sistem DearFlip
+            $('#flipbook_container').flipBook(urlPdf, {
+                webgl: false,
+                soundEnable: true,
+                height: '100vh',
+                hideControls: "download,print,more,share,fullscreen,toggle,play", 
+                // DETEKTOR HALAMAN RESMI
+                onPageChange: function(flipbook) {
+                    if (flipbook && flipbook.currentPage === flipbook.totalPages) {
+                        if (!kuisSudahDipicu) {
+                            kuisSudahDipicu = true;
+                            // Munculkan popup dengan sedikit jeda agar tidak mengagetkan saat halaman terbuka
+                            setTimeout(() => {
+                                document.getElementById('noticeModal').classList.remove('hidden');
+                            }, 800);
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- AKSI MODAL JEMBATAN KUIS ---
+        function tutupNoticeMembacaLagi() {
+            document.getElementById('noticeModal').classList.add('hidden');
+            kuisSudahDipicu = false; // Reset agar jika dia pindah halaman akhir lagi, popup bisa muncul
+        }
+
+        async function lanjutKeSoalKuis() {
+            document.getElementById('noticeModal').classList.add('hidden');
+            document.getElementById('quizModal').classList.remove('hidden');
+            
+            try {
+                const { data: buku } = await supabaseClient.from('buku').select('id').eq('file_url', decodeURIComponent(bookUrl)).single();
+                if (!buku) return;
+
+                const { data: listKuis, error } = await supabaseClient.from('kuis').select('*').eq('id_buku', buku.id);
+                if (error || !listKuis || listKuis.length === 0) {
+                    document.getElementById('quiz-content').innerHTML = `
+                        <p class="text-center text-slate-500 text-sm py-6"><i class="fa-solid fa-face-smile text-3xl mb-2 text-slate-300"></i><br>Modul ini belum memiliki evaluasi kuis.</p>`;
+                    document.getElementById('btn-submit-kuis').style.display = 'none';
+                    return;
+                }
+
+                currentQuizData = listKuis;
+                const container = document.getElementById('quiz-content');
+                container.innerHTML = '';
+                document.getElementById('btn-submit-kuis').style.display = 'inline-block';
+
+                currentQuizData.forEach((soal, index) => {
+                    let htmlOpsi = '';
+                    if (soal.jenis_kuis === 'Pilihan Ganda' && soal.opsi_jawaban) {
+                        const opsi = soal.opsi_jawaban;
+                        htmlOpsi = `<div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                            ${['A', 'B', 'C', 'D'].map(l => `
+                                <label class="flex items-center gap-2 p-2.5 border border-slate-200 rounded-xl hover:bg-blue-50 cursor-pointer transition text-sm">
+                                    <input type="radio" name="soal_${soal.id}" value="${l}" class="accent-blue-600 w-4 h-4">
+                                    <span class="text-slate-700"><strong>${l}.</strong> ${opsi[l] || ''}</span>
+                                </label>`).join('')}
+                        </div>`;
+                    } else {
+                        htmlOpsi = `<div class="grid grid-cols-2 gap-2 mt-2">
+                            ${['Benar', 'Salah'].map(v => `
+                                <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-200 rounded-xl hover:bg-blue-50 cursor-pointer transition text-sm font-bold text-slate-700">
+                                    <input type="radio" name="soal_${soal.id}" value="${v}" class="accent-blue-600 w-4 h-4"> ${v}
+                                </label>`).join('')}
+                        </div>`;
+                    }
+                    container.innerHTML += `
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="font-bold text-slate-800 text-sm">${index + 1}. ${soal.pertanyaan}</p>
+                            ${htmlOpsi}
+                        </div>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function batalKuisKembaliKeNotice() {
+            document.getElementById('quizModal').classList.add('hidden');
+            document.getElementById('noticeModal').classList.remove('hidden');
+        }
+
+        async function jawabKuis() {
+            let totalPoinDapat = 0; let semuaTerjawab = true;
+            currentQuizData.forEach(soal => {
+                const terpilih = document.querySelector(`input[name="soal_${soal.id}"]:checked`);
+                if (!terpilih) { semuaTerjawab = false; return; }
+                if (terpilih.value === soal.jawaban_benar) { totalPoinDapat += soal.poin_reward || 10; }
+            });
+
+            if (!semuaTerjawab) return alert("Ups! Harap lengkapi semua jawaban kamu ya.");
+            const btn = document.getElementById('btn-submit-kuis');
+            btn.disabled = true; btn.innerHTML = "Memproses...";
+
+            try {
+                const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
+                const poinBaru = (profil.total_poin || 0) + totalPoinDapat;
+                await supabaseClient.from('profiles').update({ total_poin: poinBaru }).eq('id', loggedInUser.id);
+                alert(`Selamat! Poin kamu bertambah +${totalPoinDapat} XP! Total menjadi ${poinBaru} XP.`);
+                window.location.href = "?"; 
+            } catch (err) { alert("Gagal memperbarui nilai."); btn.disabled = false; btn.innerHTML = "Kirim Jawaban"; }
+        }
+
+        // --- FUNGSI GALERI & AUTH ---
+        function arahkanMembaca(urlFile) { if (loggedInUser) { window.location.href = `?baca=${encodeURIComponent(urlFile)}`; } else { bukaModalAuth(); document.getElementById('auth-notice').classList.remove('hidden'); } }
+        function bukaModalAuth() { document.getElementById('authModal').classList.remove('hidden'); }
+        function tutupModalAuth() { document.getElementById('authModal').classList.add('hidden'); document.getElementById('auth-notice').classList.add('hidden'); }
+        function gantiTabAuth(tab) {
+            if(tab === 'login') { document.getElementById('form-login').classList.remove('hidden'); document.getElementById('form-daftar').classList.add('hidden'); document.getElementById('tab-login').classList.replace('auth-tab-inactive', 'auth-tab-active'); document.getElementById('tab-daftar').classList.replace('auth-tab-active', 'auth-tab-inactive'); }
+            else { document.getElementById('form-login').classList.add('hidden'); document.getElementById('form-daftar').classList.remove('hidden'); document.getElementById('tab-login').classList.replace('auth-tab-active', 'auth-tab-inactive'); document.getElementById('tab-daftar').classList.replace('auth-tab-inactive', 'auth-tab-active'); }
+        }
+        async function prosesDaftar() {
+            const email = document.getElementById('reg-email').value; const password = document.getElementById('reg-password').value; const nama = document.getElementById('reg-nama').value; const gender = document.getElementById('reg-gender').value; const kategori = document.getElementById('reg-kategori').value; const tglLahir = document.getElementById('reg-tgl').value;
+            if(!email || !password || !nama) return alert("Lengkapi data!");
+            try { const { data, error } = await supabaseClient.auth.signUp({ email, password }); if (error) throw error; if (data.user) { await supabaseClient.from('profiles').insert([{ id: data.user.id, nama_lengkap: nama, jenis_kelamin: gender, kategori: kategori, tanggal_lahir: tglLahir, total_poin: 0 }]); } alert("Berhasil mendaftar!"); gantiTabAuth('login'); } catch (e) { alert(e.message); }
+        }
+        async function prosesLogin() {
+            const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
+            try { const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); if (error) throw error; window.location.reload(); } catch (e) { alert("Login gagal."); }
+        }
+        async function prosesLogout() { await supabaseClient.auth.signOut(); window.location.reload(); }
+        async function fetchBooks() {
+            try {
+                const { data } = await supabaseClient.from('buku').select('*').order('created_at', { ascending: false });
+                const bookList = document.getElementById('bookList'); bookList.innerHTML = '';
+                if (!data || data.length === 0) return bookList.innerHTML = `<p class="col-span-full text-center text-slate-400 py-10">Belum ada modul.</p>`;
+                data.forEach(book => {
+                    const cover = book.cover_url ? `<img src="${book.cover_url}" class="w-full h-full object-cover">` : `<i class="fa-regular fa-file-pdf text-4xl"></i>`;
+                    bookList.innerHTML += `<div class="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col h-full hover:shadow-lg transition group"><div class="bg-slate-100 h-52 flex items-center justify-center relative overflow-hidden">${cover} <span class="absolute top-3 right-3 bg-white/90 text-slate-700 px-2 py-1 rounded-md text-[10px] font-bold shadow-sm uppercase">${book.kategori}</span></div><div class="p-4 flex flex-col flex-grow"><h4 class="font-bold text-sm text-slate-800 mb-4 flex-grow line-clamp-2 leading-snug">${book.judul}</h4><button onclick="arahkanMembaca('${book.file_url}')" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-semibold w-full transition shadow-sm flex items-center justify-center gap-2"><i class="fa-solid fa-book-open"></i> Mulai Membaca</button></div></div>`;
+                });
+            } catch (err) { console.error(err); }
+        }
+    </script>
+</body>
+</html>

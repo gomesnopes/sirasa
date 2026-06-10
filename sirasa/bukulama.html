@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Membaca Modul SIRASA</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        window.DFLIP = window.DFLIP || {};
+        window.DFLIP.defaults = {
+            webgl: false,
+            soundEnable: true,
+            hideControls: "download,print,more,share,fullscreen,toggle,play"
+        };
+    </script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0f172a; }
+        .modal-enter { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .quiz-enter { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        ._df_book { height: 100vh !important; width: 100vw !important; margin: 0 !important; }
+
+        /* Kustomisasi Radio Button Kuis */
+        input[type="radio"]:checked + span { color: #e11d48; font-weight: bold; }
+        .radio-card:has(input[type="radio"]:checked) { border-color: #e11d48; background-color: #fff1f2; }
+        
+        /* Progress Bar Kuis */
+        .progress-bar-fill { transition: width 0.4s ease-in-out; }
+    </style>
+</head>
+<body>
+
+    <!-- Tombol Navigasi Bawaan -->
+    <div class="absolute top-4 left-4 right-4 flex justify-between z-[60] pointer-events-none">
+        <button onclick="window.location.href='index.html'" class="pointer-events-auto bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm border border-slate-600">
+            <i class="fa-solid fa-arrow-left"></i> Kembali
+        </button>
+        
+       <button id="btn-selesai" onclick="tampilkanKonfirmasiSelesai()" class="hidden pointer-events-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-emerald-500">
+            <i class="fa-solid fa-check"></i> Selesai
+        </button>
+    </div>
+
+    <!-- Wadah Flipbook -->
+    <div id="wadah-buku" class="w-full h-full"></div>
+
+    <!-- 1. MODAL KONFIRMASI BACA SELESAI -->
+    <div id="modalSelesai" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm modal-enter p-8 text-center relative overflow-hidden">
+            <div class="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">
+                <i class="fa-solid fa-shield-virus"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Modul Selesai!</h3>
+            <p class="text-slate-500 text-sm mb-6">Hebat! Kamu telah menyelesaikan materi pencegahan ini. Mari uji pemahamanmu!</p>
+            
+            <div class="flex flex-col gap-3">
+                <button onclick="lanjutKuis()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-xl shadow-md transition">
+                    Mulai Tantangan Kuis
+                </button>
+                <button onclick="tutupModalSelesai()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 rounded-xl transition">
+                    Kembali Membaca
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MODAL KUIS (SISTEM CAT) -->
+    <div id="modalQuiz" class="hidden fixed inset-0 bg-slate-900/95 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-2xl quiz-enter relative overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Progress Bar Atas -->
+            <div class="h-2 w-full bg-slate-100">
+                <div id="progress-bar" class="h-full bg-rose-600 progress-bar-fill" style="width: 0%"></div>
+            </div>
+            
+            <div class="p-6 md:p-8 flex-1 overflow-y-auto relative">
+                <button onclick="tutupQuiz()" id="btn-tutup-kuis" class="absolute top-6 right-6 w-10 h-10 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full flex items-center justify-center transition" title="Batal & Kembali">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+
+                <div id="quiz-header" class="mb-6">
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-ribbon text-rose-500"></i> Evaluasi SIRASA
+                    </h2>
+                    <div id="info-latihan" class="hidden mt-3 bg-amber-50 border border-amber-200 text-amber-700 px-4 py-2 rounded-xl text-xs font-semibold items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-amber-500"></i> Kamu sudah pernah menyelesaikan kuis ini. Mode Latihan aktif.
+                    </div>
+                </div>
+
+                <!-- Kontainer Soal -->
+                <div id="quiz-content" class="space-y-6 min-h-[250px]">
+                    <div class="text-center py-10">
+                        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-500 mb-4"></i>
+                        <p class="text-slate-500">Memuat soal evaluasi...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bagian Bawah Kuis (Tombol Navigasi CAT) -->
+            <div id="quiz-footer" class="p-6 bg-slate-50 border-t border-slate-200 hidden">
+                <!-- Tombol Akan Di-inject oleh JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient;
+        let bookId = null;
+        let kuisSudahDipicu = false;
+        let waktuMulaiMembaca = Date.now(); // Stopwatch Durasi
+        
+        let loggedInUser = null;
+        let currentQuizData = [];
+        let sudahPernahSelesai = false;
+        
+        // Variabel Khusus Sistem CAT
+        let indexSoalSaatIni = 0;
+        let jawabanPeserta = [];
+
+        try {
+            if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            jalankanBuku();
+        } catch (err) { console.error(err); }
+
+        async function jalankanBuku() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html?pesan=wajib_login';
+                return;
+            }
+            loggedInUser = session.user;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            bookId = urlParams.get('id');
+            const fileUrl = urlParams.get('file');
+
+            if (!bookId || !fileUrl) {
+                alert("Gagal memuat buku.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const pdfBersih = decodeURIComponent(fileUrl);
+            const wadah = document.getElementById('wadah-buku');
+            wadah.innerHTML = `<div class="_df_book" source="${pdfBersih}"></div>`;
+
+            window.DFLIP.defaults.onFlip = function(flipbook) {
+                let halamanSaatIni = flipbook.target._activePage || flipbook.target.page;
+                let totalHalaman = flipbook.target.pageCount || flipbook.options.pageCount;
+                let tombolSelesai = document.getElementById('btn-selesai');
+
+                if (halamanSaatIni && totalHalaman && halamanSaatIni >= totalHalaman) {
+                    tombolSelesai.classList.remove('hidden');
+                    tombolSelesai.classList.add('flex');
+                    if (!kuisSudahDipicu) {
+                        kuisSudahDipicu = true;
+                        setTimeout(() => { tampilkanKonfirmasiSelesai(); }, 800); 
+                    }
+                } else {
+                    tombolSelesai.classList.add('hidden');
+                    tombolSelesai.classList.remove('flex');
+                    kuisSudahDipicu = false; 
+                }
+            };
+
+            if(window.DFLIP && window.DFLIP.parseBooks) {
+                window.DFLIP.parseBooks();
+            }
+        }
+
+        // --- NAVIGASI AWAL MODAL ---
+        function tampilkanKonfirmasiSelesai() { document.getElementById('modalSelesai').classList.remove('hidden'); }
+        function tutupModalSelesai() { document.getElementById('modalSelesai').classList.add('hidden'); kuisSudahDipicu = false; }
+
+        function lanjutKuis() {
+            tutupModalSelesai(); 
+            document.getElementById('modalQuiz').classList.remove('hidden'); 
+            
+            // Reset state CAT setiap mulai kuis
+            indexSoalSaatIni = 0;
+            jawabanPeserta = [];
+            document.getElementById('progress-bar').style.width = '0%';
+            
+            tarikDataKuis(); 
+        }
+
+        function tutupQuiz() {
+            if(confirm("Yakin ingin menutup kuis? Progres jawabanmu akan hilang.")) {
+                document.getElementById('modalQuiz').classList.add('hidden');
+                document.getElementById('quiz-content').innerHTML = `<div class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-500 mb-4"></i><p class="text-slate-500">Memuat soal evaluasi...</p></div>`;
+                document.getElementById('quiz-footer').classList.add('hidden');
+            }
+        }
+
+        // --- LOGIKA DATA & SISTEM CAT ---
+        async function tarikDataKuis() {
+            try {
+                // 1. Cek Riwayat
+                const { data: riwayat } = await supabaseClient
+                    .from('riwayat_kuis')
+                    .select('id')
+                    .eq('id_user', loggedInUser.id)
+                    .eq('id_buku', bookId)
+                    .maybeSingle();
+
+                if (riwayat) {
+                    sudahPernahSelesai = true;
+                    document.getElementById('info-latihan').classList.remove('hidden');
+                    document.getElementById('info-latihan').classList.add('flex');
+                }
+
+                // 2. Tarik Soal Kuis
+                const { data, error } = await supabaseClient.from('kuis').select('*').eq('id_buku', bookId);
+                
+                if (error || !data || data.length === 0) {
+                    document.getElementById('quiz-header').classList.add('hidden');
+                    document.getElementById('quiz-content').innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fa-solid fa-face-smile text-6xl text-slate-300 mb-6"></i>
+                            <h4 class="text-xl font-bold text-slate-700">Tidak Ada Kuis</h4>
+                            <p class="text-slate-500 mt-2">Belum ada evaluasi untuk modul ini.</p>
+                            <button onclick="window.location.href='index.html'" class="mt-8 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-8 rounded-xl transition">
+                                Kembali ke Galeri
+                            </button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                currentQuizData = data;
+                document.getElementById('quiz-header').classList.remove('hidden');
+                document.getElementById('quiz-footer').classList.remove('hidden');
+                
+                renderSoalCAT(); // Mulai render soal pertama
+            } catch (err) { console.error(err); }
+        }
+
+        // Fungsi Render Satu Soal (CAT System)
+        function renderSoalCAT() {
+            const container = document.getElementById('quiz-content');
+            const soal = currentQuizData[indexSoalSaatIni];
+            
+            // Update Progress Bar
+            const progress = ((indexSoalSaatIni) / currentQuizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // HTML Generator untuk Opsi Jawaban
+            let htmlOpsi = '';
+            if (soal.jenis_kuis === 'Pilihan Ganda' && soal.opsi_jawaban) {
+                const opsi = soal.opsi_jawaban;
+                htmlOpsi = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
+                    ${['A', 'B', 'C', 'D'].map(l => `
+                        <label class="radio-card flex items-start gap-3 p-4 border-2 border-slate-200 rounded-xl cursor-pointer transition bg-white">
+                            <input type="radio" name="jawaban" value="${l}" class="mt-1 w-4 h-4 accent-rose-600">
+                            <span class="text-slate-700 text-sm md:text-base leading-snug"><strong>${l}.</strong> ${opsi[l] || ''}</span>
+                        </label>`).join('')}
+                </div>`;
+            } else {
+                htmlOpsi = `<div class="grid grid-cols-2 gap-4 mt-5">
+                    ${['Benar', 'Salah'].map(v => `
+                        <label class="radio-card flex items-center justify-center gap-2 p-5 border-2 border-slate-200 rounded-xl cursor-pointer transition bg-white">
+                            <input type="radio" name="jawaban" value="${v}" class="w-4 h-4 accent-rose-600">
+                            <span class="text-slate-700 font-bold text-lg">${v}</span>
+                        </label>`).join('')}
+                </div>`;
+            }
+
+            container.innerHTML = `
+                <div class="modal-enter">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Soal ${indexSoalSaatIni + 1} dari ${currentQuizData.length}</span>
+                        <span class="text-xs font-bold text-slate-400 border border-slate-200 px-2 py-1 rounded-md">${soal.poin_reward || 10} XP</span>
+                    </div>
+                    <p class="font-bold text-slate-800 text-lg md:text-xl leading-relaxed mt-2">${soal.pertanyaan}</p>
+                    ${htmlOpsi}
+                </div>
+            `;
+
+            // Atur Tombol Footer (Selanjutnya vs Selesai)
+            const footer = document.getElementById('quiz-footer');
+            if (indexSoalSaatIni === currentQuizData.length - 1) {
+                footer.innerHTML = `<button onclick="prosesKirimTerakhir()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg"><i class="fa-solid fa-flag-checkered"></i> Selesaikan Evaluasi</button>`;
+            } else {
+                footer.innerHTML = `<button onclick="nextSoal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg">Selanjutnya <i class="fa-solid fa-arrow-right"></i></button>`;
+            }
+        }
+
+        // Lanjut ke soal berikutnya
+        function nextSoal() {
+            const terpilih = document.querySelector('input[name="jawaban"]:checked');
+            if (!terpilih) return alert("Pilih salah satu jawaban terlebih dahulu!");
+            
+            jawabanPeserta[indexSoalSaatIni] = terpilih.value;
+            indexSoalSaatIni++;
+            renderSoalCAT();
+        }
+
+        // Proses submit akhir
+        async function prosesKirimTerakhir() {
+            const terpilih = document.querySelector('input[name="jawaban"]:checked');
+            if (!terpilih) return alert("Pilih jawaban untuk soal terakhir ini!");
+            
+            jawabanPeserta[indexSoalSaatIni] = terpilih.value;
+
+            if(!confirm("Yakin ingin mengumpulkan jawaban? Pastikan semua sudah sesuai.")) return;
+
+            const btn = document.querySelector('#quiz-footer button');
+            btn.disabled = true; 
+            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menyimpan...";
+
+            // Kalkulasi Skor
+            let totalPoinDapat = 0; 
+            let jumlahBenar = 0;
+            
+            jawabanPeserta.forEach((jawaban, i) => {
+                if (jawaban === currentQuizData[i].jawaban_benar) { 
+                    totalPoinDapat += currentQuizData[i].poin_reward || 10; 
+                    jumlahBenar++;
+                }
+            });
+
+            // Kalkulasi Durasi
+            let waktuSelesai = Date.now();
+            let durasiDetik = Math.floor((waktuSelesai - waktuMulaiMembaca) / 1000);
+
+            try {
+                // Simpan ke DB jika belum pernah
+                if (!sudahPernahSelesai) {
+                    if (totalPoinDapat > 0) {
+                        const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
+                        const poinBaru = (profil.total_poin || 0) + totalPoinDapat;
+                        await supabaseClient.from('profiles').update({ total_poin: poinBaru }).eq('id', loggedInUser.id);
+                    }
+                    
+                    const { error: errRiwayat } = await supabaseClient.from('riwayat_kuis').insert({
+                        id_user: loggedInUser.id,
+                        id_buku: bookId,
+                        poin_didapat: totalPoinDapat,
+                        durasi_baca_detik: durasiDetik
+                    });
+
+                    if (errRiwayat) console.error("Gagal simpan riwayat:", errRiwayat);
+                    sudahPernahSelesai = true; 
+                }
+                
+                // Tampilan Result Screen
+                document.getElementById('progress-bar').style.width = '100%';
+                
+                let textReward = sudahPernahSelesai 
+                    ? `<span class="text-slate-600 font-bold text-lg"><i class="fa-solid fa-check-double"></i> Latihan Selesai (0 XP)</span>`
+                    : `<span class="text-rose-600 font-black text-xl">+ ${totalPoinDapat} XP Didapatkan!</span>`;
+
+                document.getElementById('quiz-header').classList.add('hidden');
+                document.getElementById('quiz-footer').classList.add('hidden');
+                document.getElementById('btn-tutup-kuis').classList.add('hidden'); 
+
+                document.getElementById('quiz-content').innerHTML = `
+                    <div class="text-center py-10 modal-enter">
+                        <div class="w-24 h-24 ${sudahPernahSelesai ? 'bg-slate-100' : 'bg-rose-100'} rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fa-solid ${sudahPernahSelesai ? 'fa-star text-slate-400' : 'fa-trophy text-rose-500'} text-5xl"></i>
+                        </div>
+                        <h3 class="text-3xl font-black text-slate-800 mb-2">Evaluasi Selesai!</h3>
+                        <p class="text-slate-500 mb-6 text-lg">Kamu berhasil menjawab <strong>${jumlahBenar}</strong> dari <strong>${currentQuizData.length}</strong> pertanyaan dengan tepat.</p>
+                        
+                        <div class="inline-block ${sudahPernahSelesai ? 'bg-slate-50 border-slate-200' : 'bg-rose-50 border-rose-200'} border px-8 py-4 rounded-2xl mb-8 shadow-sm">
+                            ${textReward}
+                        </div>
+
+                        <div class="flex flex-col gap-3 max-w-sm mx-auto">
+                            <button onclick="window.location.href='index.html'" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-xl transition shadow-md">
+                                <i class="fa-solid fa-house mr-2"></i> Kembali ke Galeri Utama
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (err) { 
+                console.error(err);
+                alert("Terjadi kesalahan jaringan."); 
+                btn.disabled = false; 
+                btn.innerHTML = "<i class='fa-solid fa-flag-checkered'></i> Selesaikan Evaluasi"; 
+            }
+        }
+        
+        // Pencegahan keluar tiba-tiba
+        window.onbeforeunload = function() {
+            const modalQuiz = document.getElementById('modalQuiz');
+            if (!modalQuiz.classList.contains('hidden') && document.getElementById('quiz-footer').classList.contains('hidden') === false) {
+                return "Kuis sedang berjalan! Jika Anda keluar, progres akan hilang.";
+            }
+        };
+    </script>
+</body>
+</html>

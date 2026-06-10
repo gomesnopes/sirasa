@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - FlipStory E-Learning</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        if(typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        }
+    </script>
+    <script src="config.js"></script>
+
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .modal-enter { animation: zoomIn 0.3s ease-out forwards; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        #sidebar { transition: width 0.3s ease, transform 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 md:w-0 bg-slate-900 text-slate-300 flex flex-col absolute md:relative z-50 h-full flex-shrink-0 overflow-hidden -translate-x-full md:translate-x-0 transition-all duration-300 shadow-xl md:shadow-none">
+        <div class="h-16 flex items-center justify-between px-6 bg-slate-950 text-white font-bold text-xl tracking-wide border-b border-slate-800 min-w-[256px]">
+            <div><i class="fa-solid fa-graduation-cap text-blue-500 mr-2"></i> AdminPro</div>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-w-[256px]">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-600 text-white font-medium transition-colors">
+                <i class="fa-solid fa-chart-pie w-5"></i> Dasbor Analitik
+            </button>
+            <button onclick="switchTab('pengguna')" id="nav-pengguna" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="fa-solid fa-users w-5"></i> Manajemen User
+            </button>
+            <button onclick="switchTab('modul')" id="nav-modul" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="fa-solid fa-book w-5"></i> Manajemen Modul
+            </button>
+            <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="fa-solid fa-list-check w-5"></i> Manajemen Kuis
+            </button>
+            <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors">
+                <i class="fa-solid fa-sliders w-5"></i> Pengaturan Data
+            </button>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="bg-white h-16 border-b border-slate-200 flex items-center px-6 shrink-0 z-10 shadow-sm">
+            <button onclick="toggleSidebar()" class="text-slate-500 hover:text-blue-600 transition p-2 bg-slate-100 rounded-lg">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+            <h1 class="ml-4 font-bold text-slate-700 hidden sm:block">Sistem Kelola Pembelajaran (LMS)</h1>
+        </header>
+
+        <!-- Tambahkan max-w-[1400px] dan mx-auto di sini agar tidak melebar berlebihan di layar monitor -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 w-full">
+            <div class="max-w-[1400px] mx-auto">
+                
+                <!-- 1. TAB DASHBOARD -->
+                <section id="dashboard" class="tab-content active">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Dasbor Analitik Terpadu</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Peserta Aktif</p><h3 id="stat-peserta" class="text-xl font-black text-slate-800">0</h3></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg"><i class="fa-solid fa-star"></i></div>
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Total XP</p><h3 id="stat-poin" class="text-xl font-black text-slate-800">0</h3></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center text-lg"><i class="fa-solid fa-trophy"></i></div>
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Avg Poin/User</p><h3 id="stat-rata" class="text-xl font-black text-slate-800">0</h3></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-lg"><i class="fa-solid fa-bullseye"></i></div>
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Akurasi Partisipasi</p><h3 id="stat-akurasi" class="text-xl font-black text-slate-800">0%</h3></div>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg"><i class="fa-solid fa-clock"></i></div>
+                            <div><p class="text-[10px] font-bold text-slate-400 uppercase">Rata-rata Waktu Baca</p><h3 id="stat-waktu" class="text-xl font-black text-slate-800">0s</h3></div>
+                        </div>
+                    </div>
+
+                    <!-- GRAFIK TREN -->
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm mb-8 flex flex-col">
+                        <h4 class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-arrow-trend-up text-blue-500 mr-2"></i> Tren Aktivitas Belajar (7 Hari Terakhir)</h4>
+                        <p class="text-xs text-slate-500 mb-4">Melihat konsistensi perolehan poin XP dan partisipasi kuis dari waktu ke waktu.</p>
+                        <div class="relative h-64 w-full flex-grow"><canvas id="chartTrend"></canvas></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                            <h4 class="font-bold text-slate-700 mb-1">Distribusi Rentang Usia</h4>
+                            <div class="relative h-64 w-full flex-grow"><canvas id="chartUsia"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center">
+                            <div class="w-full text-left"><h4 class="font-bold text-slate-700 mb-1">Komposisi Jenis Kelamin</h4></div>
+                            <div class="relative h-64 w-full flex justify-center flex-grow"><canvas id="chartGender"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-10">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col">
+                            <h4 class="font-bold text-slate-700 mb-1">Perbandingan Poin per Kategori</h4>
+                            <div class="relative h-64 w-full flex-grow"><canvas id="chartKategori"></canvas></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                            <h4 class="font-bold text-slate-700 mb-4"><i class="fa-solid fa-medal text-amber-500 mr-2"></i> Papan Peringkat Tertinggi (Top 5)</h4>
+                            <div id="papan-peringkat" class="space-y-3 flex-grow overflow-y-auto pr-2">
+                                <p class="text-sm text-slate-400 text-center py-4"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Memuat papan peringkat...</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. TAB MANAJEMEN USER -->
+                <section id="pengguna" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">Manajemen Pengguna</h2>
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold" id="badgeTotalUser">Total: 0</span>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto w-full">
+                            <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
+                                <thead>
+                                    <tr class="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                                        <th class="py-4 px-6 font-bold">Nama Lengkap</th>
+                                        <th class="py-4 px-6 font-bold">Kategori</th>
+                                        <th class="py-4 px-6 font-bold">Gender</th>
+                                        <th class="py-4 px-6 font-bold">Total XP</th>
+                                        <th class="py-4 px-6 font-bold text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelPengguna" class="text-sm text-slate-700 divide-y divide-slate-100">
+                                    <tr><td colspan="5" class="py-6 text-center text-slate-400">Memuat data pengguna...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. TAB MANAJEMEN MODUL -->
+                <section id="modul" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">Manajemen Modul Buku</h2>
+                        <button onclick="document.getElementById('modalTambahModul').classList.remove('hidden')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Upload Modul Baru
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[600px]">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                                    <th class="py-3 px-6 font-bold w-16">Cover</th>
+                                    <th class="py-3 px-6 font-bold min-w-[200px]">Judul Modul</th>
+                                    <th class="py-3 px-6 font-bold">Kategori</th>
+                                    <th class="py-3 px-6 font-bold text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelModul" class="text-sm text-slate-700 divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 4. TAB MANAJEMEN KUIS -->
+                <section id="kuis" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">Manajemen Kuis</h2>
+                        <button onclick="document.getElementById('modalTambahKuis').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Pertanyaan
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[700px]">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 text-sm border-b border-slate-200">
+                                    <th class="py-3 px-6 font-bold w-1/4">Modul</th>
+                                    <th class="py-3 px-6 font-bold w-1/2">Pertanyaan</th>
+                                    <th class="py-3 px-6 font-bold text-center w-1/4">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelKuis" class="text-sm text-slate-700 divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- 5. TAB PENGATURAN -->
+                <section id="pengaturan" class="tab-content">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Pengaturan Sistem</h2>
+                    <div class="bg-white rounded-xl border border-red-200 shadow-sm p-6 max-w-2xl">
+                        <div class="flex flex-col sm:flex-row items-start gap-4">
+                            <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800 mb-1">Hapus Semua Data Peserta</h3>
+                                <p class="text-slate-500 text-sm mb-4">Fitur ini menghapus seluruh entri profil dan riwayat untuk keperluan simulasi.</p>
+                                <button onclick="hapusSemuaDataPeserta()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2 w-full sm:w-auto"><i class="fa-solid fa-trash-can"></i> Hapus Semua Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div> <!-- End of Max-W Wrapper -->
+        </main>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODALS SECTION -->
+    <!-- ============================================== -->
+
+    <!-- MODAL TAMBAH MODUL BARU -->
+    <div id="modalTambahModul" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg modal-enter overflow-hidden flex flex-col">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-book text-emerald-500 mr-2"></i> Upload Modul Baru</h3>
+                <button onclick="tutupModal('modalTambahModul')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div><label class="block text-sm font-medium mb-1 text-slate-700">Judul Buku</label><input type="text" id="judulBuku" class="w-full p-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"></div>
+                <div><label class="block text-sm font-medium mb-1 text-slate-700">Kategori</label>
+                    <select id="kategoriBuku" class="w-full p-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="Materi Inti">Materi Inti</option><option value="Panduan Praktik">Panduan Praktik</option><option value="Evaluasi">Evaluasi</option>
+                    </select>
+                </div>
+                <div><label class="block text-sm font-medium mb-1 text-slate-700">File PDF</label>
+                    <input type="file" id="filePdf" accept="application/pdf" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 border border-slate-300 rounded-lg">
+                </div>
+                <div id="statusUpload" class="hidden p-3 rounded-lg text-sm font-medium"></div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3">
+                <button onclick="tutupModal('modalTambahModul')" class="w-1/2 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition hover:bg-slate-300">Batal</button>
+                <button onclick="uploadModul()" id="btnUpload" class="w-1/2 bg-emerald-600 text-white font-bold py-2.5 rounded-lg transition hover:bg-emerald-700"><i class="fa-solid fa-cloud-arrow-up"></i> Upload</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT MODUL -->
+    <div id="modalEditModul" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md modal-enter overflow-hidden flex flex-col">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg text-slate-800">Edit Metadata Modul</h3>
+                <button onclick="tutupModal('modalEditModul')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="edit-modul-id">
+                <div><label class="block text-sm font-medium mb-1">Judul Buku</label><input type="text" id="edit-modul-judul" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                <div><label class="block text-sm font-medium mb-1">Kategori</label><select id="edit-modul-kategori" class="w-full p-2 border rounded-lg outline-none"><option value="Materi Inti">Materi Inti</option><option value="Panduan Praktik">Panduan Praktik</option><option value="Evaluasi">Evaluasi</option></select></div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3">
+                <button onclick="tutupModal('modalEditModul')" class="w-1/2 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition hover:bg-slate-300">Batal</button>
+                <button onclick="simpanEditModul(this)" class="w-1/2 bg-blue-600 text-white font-bold py-2.5 rounded-lg transition hover:bg-blue-700"><i class="fa-solid fa-check"></i> Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH KUIS BARU -->
+    <div id="modalTambahKuis" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl modal-enter overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-plus text-blue-500 mr-2"></i> Buat Pertanyaan Baru</h3>
+                <button onclick="tutupModal('modalTambahKuis')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium mb-1">Modul</label><select id="pilihBukuKuis" class="w-full p-2 border rounded-lg bg-blue-50"></select></div>
+                    <div><label class="block text-sm font-medium mb-1">Jenis</label><select id="jenisKuis" onchange="toggleTipeKuis()" class="w-full p-2 border rounded-lg"><option value="Pilihan Ganda">Pilihan Ganda</option><option value="Benar Salah">Benar / Salah</option></select></div>
+                </div>
+                <div><label class="block text-sm font-medium mb-1">Pertanyaan</label><textarea id="teksPertanyaan" rows="3" class="w-full p-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500"></textarea></div>
+                <div id="formPilihanGanda" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-lg">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi A</label><input type="text" id="opsiA" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi B</label><input type="text" id="opsiB" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi C</label><input type="text" id="opsiC" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi D</label><input type="text" id="opsiD" class="w-full p-2 border rounded-md"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-emerald-600 mb-1">Kunci Jawaban</label>
+                    <select id="kunciJawaban" class="w-full p-2 border border-emerald-300 bg-emerald-50 rounded-lg outline-none"><option value="A">Opsi A</option><option value="B">Opsi B</option><option value="C">Opsi C</option><option value="D">Opsi D</option></select>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3 shrink-0">
+                <button onclick="tutupModal('modalTambahKuis')" class="w-1/2 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition hover:bg-slate-300">Batal</button>
+                <button onclick="simpanKuis(this)" class="w-1/2 bg-blue-600 text-white font-bold py-2.5 rounded-lg transition hover:bg-blue-700"><i class="fa-solid fa-save"></i> Simpan Pertanyaan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT KUIS -->
+    <div id="modalEditKuis" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl modal-enter overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-pen-to-square text-emerald-500 mr-2"></i> Edit Pertanyaan Kuis</h3>
+                <button onclick="tutupModal('modalEditKuis')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <input type="hidden" id="edit-kuis-id">
+                <input type="hidden" id="edit-kuis-jenis">
+                <div><label class="block text-sm font-medium mb-1">Pertanyaan</label><textarea id="edit-kuis-pertanyaan" rows="3" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea></div>
+                <div id="edit-form-pg" class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-lg hidden">
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi A</label><input type="text" id="edit-opsiA" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi B</label><input type="text" id="edit-opsiB" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi C</label><input type="text" id="edit-opsiC" class="w-full p-2 border rounded-md"></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Opsi D</label><input type="text" id="edit-opsiD" class="w-full p-2 border rounded-md"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-emerald-600 mb-1">Kunci Jawaban Baru</label>
+                    <select id="edit-kuis-kunci" class="w-full p-2 border border-emerald-300 bg-emerald-50 rounded-lg outline-none"></select>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3 shrink-0">
+                <button onclick="tutupModal('modalEditKuis')" class="w-1/2 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition hover:bg-slate-300">Batal</button>
+                <button onclick="simpanEditKuis(this)" class="w-1/2 bg-emerald-600 text-white font-bold py-2.5 rounded-lg transition hover:bg-emerald-700"><i class="fa-solid fa-check"></i> Perbarui</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL & EDIT USER -->
+    <div id="modalDetailUser" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md modal-enter overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-50 px-6 py-4 border-b flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-user-gear text-blue-500 mr-2"></i> Analisis & Data User</h3>
+                <button onclick="tutupModal('modalDetailUser')" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <input type="hidden" id="edit-user-id">
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
+                    <p class="text-xs font-bold text-blue-500 uppercase mb-3">Statistik Pembelajaran</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-xs text-slate-500">Modul Selesai</p><h4 id="analitik-user-modul" class="font-black text-xl text-slate-800">-</h4></div>
+                        <div><p class="text-xs text-slate-500">Rata-rata Waktu</p><h4 id="analitik-user-waktu" class="font-black text-xl text-slate-800">-</h4></div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Nama Lengkap</label><input type="text" id="edit-user-nama" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs font-medium text-slate-500 mb-1">Kategori</label><select id="edit-user-kategori" class="w-full p-2 border rounded-lg outline-none"><option value="Pelajar">Pelajar</option><option value="Mahasiswa">Mahasiswa</option><option value="Umum">Umum</option></select></div>
+                        <div><label class="block text-xs font-medium text-slate-500 mb-1">Gender</label><select id="edit-user-gender" class="w-full p-2 border rounded-lg outline-none"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
+                    </div>
+                    <div><label class="block text-xs font-medium text-slate-500 mb-1">Total XP</label><input type="number" id="edit-user-poin" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-emerald-600 bg-emerald-50 border-emerald-200"></div>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3 shrink-0">
+                <button onclick="tutupModal('modalDetailUser')" class="w-1/2 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-lg transition hover:bg-slate-300">Batal</button>
+                <button onclick="simpanEditUser(this)" class="w-1/2 bg-blue-600 text-white font-bold py-2.5 rounded-lg transition hover:bg-blue-700"><i class="fa-solid fa-save"></i> Perbarui</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let supabaseClient;
+        let chartInstances = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+                supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                fetchDaftarBukuAdmin();
+                fetchDaftarKuis();
+                fetchPengguna();
+                muatDataDasbor();
+            } catch (err) { console.error("Gagal inisialisasi Supabase:", err); }
+        });
+
+        // Event Listener Global untuk menutup semua modal jika klik di luar kotak
+        window.addEventListener('click', function(event) {
+            const listModals = ['modalTambahModul', 'modalEditModul', 'modalDetailUser', 'modalTambahKuis', 'modalEditKuis'];
+            listModals.forEach(id => {
+                const modal = document.getElementById(id);
+                if (event.target === modal) tutupModal(id);
+            });
+        });
+
+        // KONTROL SIDEBAR & TAB
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768) {
+                sidebar.classList.toggle('-translate-x-full');
+            } else {
+                sidebar.classList.toggle('md:w-0');
+                sidebar.classList.toggle('md:w-64');
+                setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-blue-600', 'text-white');
+                el.classList.add('hover:bg-slate-800', 'hover:text-white', 'text-slate-300');
+            });
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById('nav-' + tabId);
+            activeBtn.classList.remove('hover:bg-slate-800', 'text-slate-300');
+            activeBtn.classList.add('bg-blue-600', 'text-white');
+            
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            } else if (window.innerWidth >= 768 && sidebar.classList.contains('md:w-64')) {
+                sidebar.classList.remove('md:w-64');
+                sidebar.classList.add('md:w-0');
+                setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 350);
+            }
+            if(tabId === 'dashboard') { setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100); }
+        }
+
+        function tutupModal(idModal) { document.getElementById(idModal).classList.add('hidden'); }
+
+        // MANAJEMEN USER
+        async function fetchPengguna() {
+            try {
+                const { data, error } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
+                if (error) throw error;
+                const tbody = document.getElementById('tabelPengguna'); tbody.innerHTML = '';
+                document.getElementById('badgeTotalUser').innerText = `Total: ${data.length}`;
+                if (data.length === 0) return tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-slate-400">Belum ada pengguna.</td></tr>';
+                data.forEach(user => {
+                    const avatar = `<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mr-3 shrink-0">${user.nama_lengkap.charAt(0)}</div>`;
+                    const userString = encodeURIComponent(JSON.stringify(user));
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3 px-6 cursor-pointer group" onclick="bukaModalDetailUser('${userString}')">
+                                <div class="flex items-center">
+                                    ${avatar} <span class="font-medium truncate max-w-[200px] text-slate-800 group-hover:text-blue-600 transition">${user.nama_lengkap}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-6"><span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold text-slate-600">${user.kategori}</span></td>
+                            <td class="py-3 px-6 text-slate-500">${user.jenis_kelamin}</td>
+                            <td class="py-3 px-6"><span class="text-emerald-600 font-bold"><i class="fa-solid fa-star text-amber-400 mr-1"></i>${user.total_poin}</span></td>
+                            <td class="py-3 px-6 text-center whitespace-nowrap">
+                                <button onclick="bukaModalDetailUser('${userString}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded transition mr-1"><i class="fa-solid fa-user-pen"></i></button>
+                                <button onclick="hapusUser('${user.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                });
+            } catch (err) {}
+        }
+        
+        async function bukaModalDetailUser(userStringEncoded) {
+            const user = JSON.parse(decodeURIComponent(userStringEncoded));
+            document.getElementById('edit-user-id').value = user.id; document.getElementById('edit-user-nama').value = user.nama_lengkap; document.getElementById('edit-user-kategori').value = user.kategori; document.getElementById('edit-user-gender').value = user.jenis_kelamin; document.getElementById('edit-user-poin').value = user.total_poin;
+            document.getElementById('analitik-user-modul').innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm text-slate-300"></i>`; document.getElementById('analitik-user-waktu').innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-sm text-slate-300"></i>`;
+            document.getElementById('modalDetailUser').classList.remove('hidden');
+            try {
+                const { data: riwayat } = await supabaseClient.from('riwayat_kuis').select('durasi_baca_detik').eq('id_user', user.id);
+                if(riwayat && riwayat.length > 0) {
+                    const totalDurasi = riwayat.reduce((sum, r) => sum + (r.durasi_baca_detik || 0), 0);
+                    document.getElementById('analitik-user-modul').innerText = riwayat.length; document.getElementById('analitik-user-waktu').innerText = Math.round(totalDurasi / riwayat.length) + 's';
+                } else { document.getElementById('analitik-user-modul').innerText = '0'; document.getElementById('analitik-user-waktu').innerText = '0s'; }
+            } catch(e) {}
+        }
+
+        async function simpanEditUser(btn) {
+            const id = document.getElementById('edit-user-id').value; const nama_lengkap = document.getElementById('edit-user-nama').value; const kategori = document.getElementById('edit-user-kategori').value; const jenis_kelamin = document.getElementById('edit-user-gender').value; const total_poin = document.getElementById('edit-user-poin').value;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`; btn.disabled = true;
+            try { await supabaseClient.from('profiles').update({ nama_lengkap, kategori, jenis_kelamin, total_poin }).eq('id', id); tutupModal('modalDetailUser'); fetchPengguna(); muatDataDasbor(); } catch(e) {} finally { btn.innerHTML = `<i class="fa-solid fa-save"></i> Perbarui`; btn.disabled = false; }
+        }
+
+        async function hapusUser(userId) { if(confirm("Yakin hapus akun ini?")) { await supabaseClient.from('profiles').delete().eq('id', userId); fetchPengguna(); muatDataDasbor(); } }
+
+        // MANAJEMEN MODUL (UPLOAD & EDIT)
+        async function fetchDaftarBukuAdmin() {
+            try {
+                const { data } = await supabaseClient.from('buku').select('*').order('created_at', { ascending: false });
+                const tabel = document.getElementById('tabelModul'); const dropdown = document.getElementById('pilihBukuKuis');
+                tabel.innerHTML = ''; dropdown.innerHTML = '<option value="">-- Pilih Modul Buku --</option>';
+                if (!data || data.length === 0) return tabel.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-slate-400">Belum ada modul.</td></tr>';
+                data.forEach(buku => {
+                    const cover = buku.cover_url ? `<img src="${buku.cover_url}" class="w-10 h-14 object-cover rounded shadow-sm">` : `<i class="fa-solid fa-file-pdf text-2xl text-red-400"></i>`;
+                    tabel.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-2 px-6">${cover}</td>
+                            <td class="py-2 px-6 font-medium text-slate-800"><div class="line-clamp-1">${buku.judul}</div></td>
+                            <td class="py-2 px-6 text-slate-500">${buku.kategori}</td>
+                            <td class="py-2 px-6 text-center whitespace-nowrap">
+                                <button onclick="bukaModalEditModul('${buku.id}', \`${buku.judul}\`, '${buku.kategori}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded transition mr-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="hapusModul('${buku.id}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                    dropdown.innerHTML += `<option value="${buku.id}">${buku.judul}</option>`;
+                });
+            } catch (err) {}
+        }
+
+        function bukaModalEditModul(id, judul, kategori) { document.getElementById('edit-modul-id').value = id; document.getElementById('edit-modul-judul').value = judul; document.getElementById('edit-modul-kategori').value = kategori; document.getElementById('modalEditModul').classList.remove('hidden'); }
+        async function simpanEditModul(btn) { const id = document.getElementById('edit-modul-id').value; const judul = document.getElementById('edit-modul-judul').value; const kategori = document.getElementById('edit-modul-kategori').value; btn.disabled = true; try { await supabaseClient.from('buku').update({ judul, kategori }).eq('id', id); tutupModal('modalEditModul'); fetchDaftarBukuAdmin(); } catch(e) {} finally { btn.disabled = false; } }
+        async function hapusModul(id) { if(confirm("Hapus modul beserta kuisnya?")) { await supabaseClient.from('buku').delete().eq('id', id); fetchDaftarBukuAdmin(); fetchDaftarKuis(); } }
+        
+        async function uploadModul() {
+            const judul = document.getElementById('judulBuku').value; const kategori = document.getElementById('kategoriBuku').value; const fileInput = document.getElementById('filePdf'); const btn = document.getElementById('btnUpload'); const status = document.getElementById('statusUpload');
+            if (!judul || fileInput.files.length === 0) return alert("Isi form!");
+            const file = fileInput.files[0]; const baseFileName = Date.now() + "_" + Math.random().toString(36).substring(7);
+            btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i>`; status.className = 'bg-blue-50 text-blue-700 p-3 rounded-lg block mt-4'; status.innerHTML = `Mengunggah...`;
+            try {
+                const arrayBuffer = await file.arrayBuffer(); const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise; const page = await pdf.getPage(1); const viewport = page.getViewport({ scale: 1.0 }); const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); canvas.height = viewport.height; canvas.width = viewport.width; await page.render({ canvasContext: ctx, viewport: viewport }).promise; const coverBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+                await supabaseClient.storage.from('pdf-buku').upload(baseFileName + ".pdf", file); await supabaseClient.storage.from('pdf-buku').upload(baseFileName + "_cover.jpg", coverBlob);
+                const pdfUrl = supabaseClient.storage.from('pdf-buku').getPublicUrl(baseFileName + ".pdf").data.publicUrl; const coverUrl = supabaseClient.storage.from('pdf-buku').getPublicUrl(baseFileName + "_cover.jpg").data.publicUrl;
+                await supabaseClient.from('buku').insert([{ judul, kategori, file_url: pdfUrl, cover_url: coverUrl }]);
+                status.className = 'bg-green-100 text-green-700 p-3 rounded-lg block mt-4'; status.innerHTML = `Sukses!`; 
+                setTimeout(() => { 
+                    document.getElementById('judulBuku').value = ''; fileInput.value = ''; status.classList.add('hidden'); 
+                    tutupModal('modalTambahModul'); fetchDaftarBukuAdmin(); 
+                    btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Upload`; 
+                }, 1000);
+            } catch (error) { status.className = 'bg-red-100 text-red-700 p-3 rounded-lg block mt-4'; status.innerHTML = error.message; btn.disabled = false; btn.innerHTML = `Coba Lagi`; }
+        }
+
+        // MANAJEMEN KUIS (TAMBAH & EDIT)
+        function toggleTipeKuis() {
+            const jenis = document.getElementById('jenisKuis').value;
+            document.getElementById('formPilihanGanda').style.display = (jenis === 'Pilihan Ganda') ? 'grid' : 'none';
+            document.getElementById('kunciJawaban').innerHTML = (jenis === 'Pilihan Ganda') ? `<option value="A">Opsi A</option><option value="B">Opsi B</option><option value="C">Opsi C</option><option value="D">Opsi D</option>` : `<option value="Benar">Benar</option><option value="Salah">Salah</option>`;
+        }
+
+        async function simpanKuis(btn) {
+            const idBuku = document.getElementById('pilihBukuKuis').value; const jenis = document.getElementById('jenisKuis').value; const pertanyaan = document.getElementById('teksPertanyaan').value; const kunci = document.getElementById('kunciJawaban').value; let opsiJawaban = null;
+            if (!idBuku || !pertanyaan) return;
+            if (jenis === 'Pilihan Ganda') { opsiJawaban = { A: document.getElementById('opsiA').value, B: document.getElementById('opsiB').value, C: document.getElementById('opsiC').value, D: document.getElementById('opsiD').value }; }
+            btn.disabled = true; try { 
+                await supabaseClient.from('kuis').insert([{ id_buku: idBuku, jenis_kuis: jenis, pertanyaan, opsi_jawaban: opsiJawaban, jawaban_benar: kunci }]); 
+                document.getElementById('teksPertanyaan').value = ''; 
+                tutupModal('modalTambahKuis'); fetchDaftarKuis(); 
+            } catch (err) {} finally { btn.disabled = false; }
+        }
+
+        async function fetchDaftarKuis() {
+            try {
+                const { data } = await supabaseClient.from('kuis').select('*, buku(judul)').order('created_at', { ascending: false });
+                const tbody = document.getElementById('tabelKuis'); tbody.innerHTML = '';
+                if (!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="3" class="py-6 text-center text-slate-400">Belum ada pertanyaan.</td></tr>';
+                data.forEach(q => {
+                    const qString = encodeURIComponent(JSON.stringify(q));
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 border-b border-slate-100">
+                            <td class="py-3 px-6"><div class="line-clamp-1 font-bold truncate max-w-[200px]">${q.buku ? q.buku.judul : 'Terhapus'}</div><div class="text-xs text-slate-400">${q.jenis_kuis}</div></td>
+                            <td class="py-3 px-6"><div class="text-slate-800 line-clamp-2">${q.pertanyaan}</div><div class="text-xs text-emerald-600 font-bold mt-1">Kunci: ${q.jawaban_benar}</div></td>
+                            <td class="py-3 px-6 text-center whitespace-nowrap">
+                                <button onclick="bukaModalEditKuis('${qString}')" class="text-emerald-500 hover:bg-emerald-50 p-2 rounded transition mr-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button onclick="hapusKuis(${q.id})" class="text-red-500 hover:bg-red-50 p-2 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                });
+            } catch (err) {}
+        }
+        
+        function bukaModalEditKuis(qStr) {
+            const q = JSON.parse(decodeURIComponent(qStr)); document.getElementById('edit-kuis-id').value = q.id; document.getElementById('edit-kuis-jenis').value = q.jenis_kuis; document.getElementById('edit-kuis-pertanyaan').value = q.pertanyaan; const sel = document.getElementById('edit-kuis-kunci'); const formPg = document.getElementById('edit-form-pg');
+            if (q.jenis_kuis === 'Pilihan Ganda') { formPg.classList.remove('hidden'); document.getElementById('edit-opsiA').value = q.opsi_jawaban.A||''; document.getElementById('edit-opsiB').value = q.opsi_jawaban.B||''; document.getElementById('edit-opsiC').value = q.opsi_jawaban.C||''; document.getElementById('edit-opsiD').value = q.opsi_jawaban.D||''; sel.innerHTML = `<option value="A">Opsi A</option><option value="B">Opsi B</option><option value="C">Opsi C</option><option value="D">Opsi D</option>`; } else { formPg.classList.add('hidden'); sel.innerHTML = `<option value="Benar">Benar</option><option value="Salah">Salah</option>`; }
+            sel.value = q.jawaban_benar; document.getElementById('modalEditKuis').classList.remove('hidden');
+        }
+        
+        async function simpanEditKuis(btn) {
+            const id = document.getElementById('edit-kuis-id').value; const jenis = document.getElementById('edit-kuis-jenis').value; const pertanyaan = document.getElementById('edit-kuis-pertanyaan').value; const kunci = document.getElementById('edit-kuis-kunci').value; let opsiJawaban = null;
+            if (jenis === 'Pilihan Ganda') { opsiJawaban = { A: document.getElementById('edit-opsiA').value, B: document.getElementById('edit-opsiB').value, C: document.getElementById('edit-opsiC').value, D: document.getElementById('edit-opsiD').value }; }
+            btn.disabled = true; try { await supabaseClient.from('kuis').update({ pertanyaan, opsi_jawaban: opsiJawaban, jawaban_benar: kunci }).eq('id', id); tutupModal('modalEditKuis'); fetchDaftarKuis(); } catch(e) {} finally { btn.disabled = false; }
+        }
+        async function hapusKuis(id) { if(confirm("Hapus?")) { await supabaseClient.from('kuis').delete().eq('id', id); fetchDaftarKuis(); } }
+
+        // DASBOR ANALITIK & TREND
+        async function muatDataDasbor() {
+            try {
+                const { data: profil } = await supabaseClient.from('profiles').select('*').order('total_poin', { ascending: false });
+                if (!profil || profil.length === 0) return;
+                
+                const { data: riwayat } = await supabaseClient.from('riwayat_kuis').select('durasi_baca_detik, poin_didapat, created_at');
+                
+                let avgDurasi = 0;
+                if(riwayat && riwayat.length > 0) {
+                    const sum = riwayat.reduce((acc, curr) => acc + (curr.durasi_baca_detik || 0), 0);
+                    avgDurasi = Math.round(sum / riwayat.length);
+                }
+                
+                const totalPeserta = profil.length;
+                const totalPoin = profil.reduce((sum, p) => sum + (p.total_poin || 0), 0);
+                
+                if(document.getElementById('stat-peserta')) document.getElementById('stat-peserta').innerText = totalPeserta;
+                if(document.getElementById('stat-poin')) document.getElementById('stat-poin').innerText = totalPoin.toLocaleString('id-ID');
+                if(document.getElementById('stat-rata')) document.getElementById('stat-rata').innerText = Math.round(totalPoin / totalPeserta);
+                if(document.getElementById('stat-akurasi')) document.getElementById('stat-akurasi').innerText = Math.round((profil.filter(p => p.total_poin > 0).length / totalPeserta) * 100) + '%';
+                if(document.getElementById('stat-waktu')) document.getElementById('stat-waktu').innerText = avgDurasi + 's';
+
+                let umurRents = { '< 15 Thn': 0, '16-18 Thn': 0, '19-25 Thn': 0, '> 25 Thn': 0 }; let genderCount = { 'Laki-laki': 0, 'Perempuan': 0 }; let katTotal = { 'Pelajar': { p: 0, c: 0 }, 'Mahasiswa': { p: 0, c: 0 }, 'Umum': { p: 0, c: 0 } };
+                const thnIni = new Date().getFullYear();
+                profil.forEach(p => {
+                    if(p.tanggal_lahir) { const u = thnIni - new Date(p.tanggal_lahir).getFullYear(); if (u < 15) umurRents['< 15 Thn']++; else if (u <= 18) umurRents['16-18 Thn']++; else if (u <= 25) umurRents['19-25 Thn']++; else umurRents['> 25 Thn']++; }
+                    if (genderCount[p.jenis_kelamin] !== undefined) genderCount[p.jenis_kelamin]++;
+                    if (katTotal[p.kategori]) { katTotal[p.kategori].p += (p.total_poin || 0); katTotal[p.kategori].c++; }
+                });
+                const rataKat = [ katTotal['Pelajar'].c ? Math.round(katTotal['Pelajar'].p/katTotal['Pelajar'].c) : 0, katTotal['Mahasiswa'].c ? Math.round(katTotal['Mahasiswa'].p/katTotal['Mahasiswa'].c) : 0, katTotal['Umum'].c ? Math.round(katTotal['Umum'].p/katTotal['Umum'].c) : 0 ];
+
+                const wadah = document.getElementById('papan-peringkat');
+                if (wadah) {
+                    wadah.innerHTML = '';
+                    profil.slice(0, 5).forEach((p, i) => {
+                        if (p.total_poin > 0) {
+                            const w = ['bg-blue-200 text-blue-700', 'bg-pink-200 text-pink-700', 'bg-indigo-200 text-indigo-700', 'bg-amber-200 text-amber-700', 'bg-emerald-200 text-emerald-700'][i % 5];
+                            wadah.innerHTML += `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border hover:bg-white transition"><div class="flex items-center gap-3"><span class="font-bold text-slate-400 w-4">${i+1}</span><div class="w-8 h-8 rounded-full ${w} flex items-center justify-center font-bold text-sm shrink-0">${p.nama_lengkap.charAt(0)}</div><span class="font-bold text-sm truncate max-w-[120px]">${p.nama_lengkap}</span></div><span class="font-bold text-emerald-600">${p.total_poin} XP</span></div>`;
+                        }
+                    });
+                    if(wadah.innerHTML==='') wadah.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Belum ada skor.</p>';
+                }
+
+                const trendData = { labels: [], dataXP: [], dataKuis: [] };
+                const hariIni = new Date();
+                for(let i=6; i>=0; i--) {
+                    let d = new Date(hariIni); d.setDate(d.getDate() - i);
+                    trendData.labels.push(d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }));
+                    trendData.dataXP.push(0); trendData.dataKuis.push(0);
+                }
+                
+                if (riwayat) {
+                    riwayat.forEach(r => {
+                        if(r.created_at) {
+                            let rDate = new Date(r.created_at);
+                            let diffTime = hariIni - rDate;
+                            let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                            if (diffDays >= 0 && diffDays < 7) {
+                                let index = 6 - diffDays;
+                                trendData.dataXP[index] += (r.poin_didapat || 0);
+                                trendData.dataKuis[index] += 1;
+                            }
+                        }
+                    });
+                }
+
+                if(chartInstances.usia) { chartInstances.usia.destroy(); chartInstances.gender.destroy(); chartInstances.kategori.destroy(); chartInstances.trend.destroy(); }
+                const ops = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+                if(document.getElementById('chartUsia')) {
+                    chartInstances.usia = new Chart(document.getElementById('chartUsia').getContext('2d'), { type: 'bar', data: { labels: Object.keys(umurRents), datasets: [{ data: Object.values(umurRents), backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: ops });
+                    chartInstances.gender = new Chart(document.getElementById('chartGender').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(genderCount), datasets: [{ data: Object.values(genderCount), backgroundColor: ['#3b82f6', '#ec4899'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%' } });
+                    chartInstances.kategori = new Chart(document.getElementById('chartKategori').getContext('2d'), { type: 'bar', data: { labels: ['Pelajar', 'Mahasiswa', 'Umum'], datasets: [{ data: rataKat, backgroundColor: ['#10b981', '#f59e0b', '#6366f1'], borderRadius: 6 }] }, options: ops });
+                    chartInstances.trend = new Chart(document.getElementById('chartTrend').getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: trendData.labels,
+                            datasets: [
+                                { label: 'XP Terkumpul', data: trendData.dataXP, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 },
+                                { label: 'Kuis Selesai', data: trendData.dataKuis, borderColor: '#10b981', backgroundColor: 'transparent', borderDash: [5, 5], tension: 0.4 }
+                            ]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false } }
+                    });
+                }
+            } catch (err) {}
+        }
+
+        async function hapusSemuaDataPeserta() { if(!confirm("Yakin hapus semua?")) return; try { await supabaseClient.from('riwayat_kuis').delete().neq('id', 0); await supabaseClient.from('profiles').delete().neq('total_poin', -1); window.location.reload(); } catch(e){} }
+    </script>
+</body>
+</html>
