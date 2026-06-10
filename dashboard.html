@@ -82,9 +82,12 @@
         let supabaseClient; let loggedInUser = null; let semuaBuku = []; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            try { if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!"); supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); cekStatusLogin(); } catch (err) {}
-        });
-
+            try { if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+                 // Tulis langsung kuncinya di sini, abaikan CONFIG sementara
+supabaseClient = window.supabase.createClient(
+    "https://rzzmpxeiducczixmwkpo.supabase.co", 
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6em1weGVpZHVjY3ppeG13a3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzEwOTYsImV4cCI6MjA5NjY0NzA5Nn0.uoLGH53BbizJqAGvBZwaC3GAbEAj20o_xLheKlu3CFY" // <- Paste Anon Key baru di sini
+);
         async function cekStatusLogin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) { window.location.href = 'index'; return; } // PERBAIKAN: Usir ke index
