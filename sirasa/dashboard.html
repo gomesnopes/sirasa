@@ -82,8 +82,23 @@
         let supabaseClient; let loggedInUser = null; let semuaBuku = []; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            try { if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!"); supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); cekStatusLogin(); } catch (err) {}
-        });
+           try { 
+    if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca! Pastikan file sudah di-upload ke GitHub."); 
+    
+    // Pastikan nilai variabel tidak kosong sebelum inisialisasi
+    if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+        throw new Error("URL atau API Key Supabase kosong di dalam config.js!");
+    }
+
+    supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); 
+    cekStatusLogin(); 
+} catch (err) {
+    // Tampilkan pesan eror warna merah di Console
+    console.error("❌ GAGAL INISIALISASI SUPABASE:", err.message);
+    
+    // Tampilkan pop-up peringatan di layar agar langsung terlihat
+    alert("Terjadi masalah konfigurasi: " + err.message);
+}
 
         async function cekStatusLogin() {
             const { data: { session } } = await supabaseClient.auth.getSession();
