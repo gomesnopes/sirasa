@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluasi Kuis - FlipStory Pro</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        .quiz-enter { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Kustomisasi Radio Button agar lebih modern */
+        input[type="radio"]:checked + span { color: #2563eb; font-weight: bold; }
+        .radio-card:has(input[type="radio"]:checked) { border-color: #3b82f6; background-color: #eff6ff; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 font-sans text-slate-800">
+
+    <div class="bg-white rounded-3xl shadow-xl w-full max-w-2xl quiz-enter relative overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="h-3 w-full bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+        
+        <div class="p-6 md:p-8 flex-1 overflow-y-auto">
+            <button onclick="kembaliKeGaleri()" class="absolute top-8 right-8 text-slate-400 hover:text-slate-700 transition" title="Batal & Kembali">
+                <i class="fa-solid fa-xmark text-2xl"></i>
+            </button>
+
+            <div class="text-center mb-8 border-b border-slate-100 pb-6">
+                <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 rotate-3">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-800">Uji Kemampuanmu</h2>
+                <p class="text-slate-500 text-sm mt-2">Jawab dengan tepat untuk mendapatkan poin XP maksimal.</p>
+            </div>
+
+            <div id="quiz-content" class="space-y-6">
+                <div class="text-center py-10">
+                    <i class="fa-solid fa-circle-notch fa-spin text-4xl text-blue-500 mb-4"></i>
+                    <p class="text-slate-500">Memuat soal evaluasi...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 bg-slate-50 border-t border-slate-200">
+            <button onclick="kirimJawaban()" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-3 text-lg hidden">
+                <i class="fa-solid fa-paper-plane"></i> Kirim Jawaban
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient;
+        let loggedInUser = null;
+        let currentQuizData = [];
+        let bookId = null;
+
+        try {
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            validasiAksesKuis();
+        } catch (err) { console.error(err); }
+
+        async function validasiAksesKuis() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html?pesan=wajib_login';
+                return;
+            }
+            loggedInUser = session.user;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            bookId = urlParams.get('buku_id');
+
+            if (!bookId) {
+                alert("Data kuis tidak ditemukan!");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            tarikDataKuis();
+        }
+
+        async function tarikDataKuis() {
+            try {
+                const { data, error } = await supabaseClient.from('kuis').select('*').eq('id_buku', bookId);
+                
+                if (error || !data || data.length === 0) {
+                    document.getElementById('quiz-content').innerHTML = `
+                        <div class="text-center py-10">
+                            <i class="fa-solid fa-face-smile text-5xl text-slate-300 mb-4"></i>
+                            <h4 class="text-lg font-bold text-slate-700">Tidak Ada Kuis</h4>
+                            <p class="text-slate-500 text-sm mt-1">Admin belum membuat evaluasi untuk modul ini.</p>
+                            <button onclick="kembaliKeGaleri()" class="mt-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-6 rounded-lg transition">Kembali ke Galeri</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                currentQuizData = data;
+                renderSoal();
+                document.getElementById('btn-submit').classList.remove('hidden');
+            } catch (err) { console.error(err); }
+        }
+
+        function renderSoal() {
+            const container = document.getElementById('quiz-content');
+            container.innerHTML = '';
+
+            currentQuizData.forEach((soal, index) => {
+                let htmlOpsi = '';
+                
+                if (soal.jenis_kuis === 'Pilihan Ganda' && soal.opsi_jawaban) {
+                    const opsi = soal.opsi_jawaban;
+                    htmlOpsi = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        ${['A', 'B', 'C', 'D'].map(l => `
+                            <label class="radio-card flex items-start gap-3 p-4 border-2 border-slate-200 rounded-xl cursor-pointer transition">
+                                <input type="radio" name="soal_${soal.id}" value="${l}" class="mt-1 w-4 h-4 accent-blue-600">
+                                <span class="text-slate-700 text-sm md:text-base leading-snug"><strong>${l}.</strong> ${opsi[l] || ''}</span>
+                            </label>`).join('')}
+                    </div>`;
+                } else {
+                    htmlOpsi = `<div class="grid grid-cols-2 gap-4 mt-4">
+                        ${['Benar', 'Salah'].map(v => `
+                            <label class="radio-card flex items-center justify-center gap-2 p-4 border-2 border-slate-200 rounded-xl cursor-pointer transition">
+                                <input type="radio" name="soal_${soal.id}" value="${v}" class="w-4 h-4 accent-blue-600">
+                                <span class="text-slate-700 font-bold text-lg">${v}</span>
+                            </label>`).join('')}
+                    </div>`;
+                }
+                
+                container.innerHTML += `
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 shrink-0">${index + 1}</div>
+                            <div class="w-full">
+                                <p class="font-bold text-slate-800 text-base md:text-lg leading-relaxed">${soal.pertanyaan}</p>
+                                ${htmlOpsi}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function kirimJawaban() {
+            let totalPoinDapat = 0; 
+            let semuaTerjawab = true;
+            
+            currentQuizData.forEach(soal => {
+                const terpilih = document.querySelector(`input[name="soal_${soal.id}"]:checked`);
+                if (!terpilih) { semuaTerjawab = false; return; }
+                
+                if (terpilih.value === soal.jawaban_benar) { 
+                    totalPoinDapat += soal.poin_reward || 10; 
+                }
+            });
+
+            if (!semuaTerjawab) return alert("Ups! Pastikan kamu sudah menjawab semua pertanyaan.");
+            
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true; 
+            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menghitung Nilai...";
+
+            try {
+                const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
+                const poinBaru = (profil.total_poin || 0) + totalPoinDapat;
+                
+                await supabaseClient.from('profiles').update({ total_poin: poinBaru }).eq('id', loggedInUser.id);
+                
+                alert(`Luar biasa! Kamu berhasil mendapatkan +${totalPoinDapat} XP!`);
+                // Kembali ke Galeri (Atau ke Profil nanti)
+                window.location.href = "index.html"; 
+            } catch (err) { 
+                alert("Gagal memproses data."); 
+                btn.disabled = false; 
+                btn.innerHTML = "<i class='fa-solid fa-paper-plane'></i> Kirim Jawaban"; 
+            }
+        }
+
+        function kembaliKeGaleri() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

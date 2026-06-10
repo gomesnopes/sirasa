@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlipStory - Digital Library</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        var dFlipLocation = "https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/";
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookUrl = urlParams.get('baca');
+        
+        if(bookUrl) {
+            // JIKA SEDANG MEMBACA: Atur DearFlip ke Mode Ringan (webgl: false)
+            var option_flipbook_container = {
+                source: bookUrl,
+                webgl: false, // Jauh lebih ringan, anti-lag
+                height: '100vh',
+                direction: 1
+            };
+        } else {
+            // JIKA DI GALERI: Baru panggil pembuat sampul otomatis (mencegah bentrok)
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"><\/script>');
+            document.write('<script>if(typeof pdfjsLib !== "undefined") { pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"; }<\/script>');
+        }
+    </script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .modal-enter { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        #viewer-section { display: none; width: 100vw; height: 100vh; background: #1e293b; position: fixed; top: 0; left: 0; z-index: 50; }
+        ._df_book { height: 100vh !important; margin: 0 !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <div id="main-ui">
+        <nav class="bg-white shadow-sm border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-40">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-book-open-reader text-blue-600 text-2xl"></i>
+                <h1 class="text-xl font-bold text-slate-800">FlipStory <span class="text-blue-600">Pro</span></h1>
+            </div>
+            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Buku
+            </button>
+        </nav>
+
+        <div class="max-w-6xl mx-auto px-6 py-10">
+            <h2 class="text-3xl font-extrabold mb-2">Koleksi Buku Digital</h2>
+            <p class="text-slate-500 mb-8">Pilih dan baca buku interaktif dengan mudah dan cepat.</p>
+            <div id="bookList" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <p class="text-slate-500 font-medium col-span-full">Memuat koleksi buku...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="uploadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 modal-enter relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h3 class="text-2xl font-bold mb-1 text-slate-800">Upload Buku Baru</h3>
+            <p class="text-slate-500 text-sm mb-6">Sistem akan otomatis membuat sampul dari halaman 1.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Judul Buku</label>
+                    <input type="text" id="judulBuku" placeholder="Contoh: Kancil dan Buaya" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Kategori</label>
+                    <select id="kategoriBuku" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white">
+                        <option value="Storytelling">Storytelling / Dongeng</option>
+                        <option value="Edukasi">Edukasi / Modul</option>
+                        <option value="Laporan">Laporan / Majalah</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">File PDF</label>
+                    <input type="file" id="filePdf" accept="application/pdf" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition border border-slate-300 rounded-lg">
+                </div>
+                <div id="statusUpload" class="text-sm font-medium hidden p-3 rounded-lg"></div>
+                <button onclick="uploadBuku()" id="btnUpload" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition mt-4 flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Simpan & Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer-section">
+        <a href="?" class="absolute top-4 left-4 z-[60] bg-white/90 backdrop-blur hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Galeri
+        </a>
+        <div class="_df_book" id="flipbook_container"></div>
+    </div>
+
+    <script>
+        let supabaseClient; 
+        
+        try {
+            if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+
+            if (bookUrl) {
+                document.getElementById('main-ui').style.display = 'none';
+                document.getElementById('viewer-section').style.display = 'block';
+            } else {
+                fetchBooks();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+
+        function openModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
+        function closeModal() { 
+            document.getElementById('uploadModal').classList.add('hidden'); 
+            document.getElementById('judulBuku').value = '';
+            document.getElementById('filePdf').value = '';
+            document.getElementById('statusUpload').classList.add('hidden');
+        }
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => alert("Link tersalin!"));
+        }
+
+        async function fetchBooks() {
+            try {
+                const { data, error } = await supabaseClient.from('buku').select('*').order('created_at', { ascending: false });
+                const bookList = document.getElementById('bookList');
+                bookList.innerHTML = ''; 
+                if (error) throw error;
+
+                if (data.length === 0) {
+                    bookList.innerHTML = `<div class="col-span-full text-center py-12 bg-white rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-slate-500 font-medium">Belum ada buku di perpustakaan.</p>
+                    </div>`;
+                    return;
+                }
+
+                data.forEach(book => {
+                    const shareLink = window.location.href.split('?')[0] + '?baca=' + encodeURIComponent(book.file_url);
+                    
+                    const coverElement = book.cover_url 
+                        ? `<img src="${book.cover_url}" alt="${book.judul}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">`
+                        : `<i class="fa-regular fa-file-pdf text-5xl text-red-400 group-hover:scale-110 transition-transform"></i>`;
+
+                    bookList.innerHTML += `
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col h-full">
+                            <div class="bg-slate-200 h-56 flex items-center justify-center border-b border-slate-200 relative group overflow-hidden">
+                                ${coverElement}
+                                <span class="absolute top-3 right-3 bg-white/90 backdrop-blur px-2 py-1 rounded text-xs font-bold text-slate-700 shadow-sm">${book.kategori}</span>
+                            </div>
+                            <div class="p-4 flex flex-col flex-grow">
+                                <h3 class="font-bold text-md text-slate-800 leading-tight mb-4 flex-grow line-clamp-2">${book.judul}</h3>
+                                <div class="grid grid-cols-2 gap-2 mt-auto">
+                                    <a href="?baca=${encodeURIComponent(book.file_url)}" class="bg-blue-600 hover:bg-blue-700 text-white text-center py-2 rounded-lg text-sm font-medium transition">
+                                        <i class="fa-solid fa-book-open mr-1"></i> Baca
+                                    </a>
+                                    <button onclick="copyLink('${shareLink}')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-center py-2 rounded-lg text-sm font-medium transition">
+                                        <i class="fa-solid fa-link"></i> Share
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function uploadBuku() {
+            const judul = document.getElementById('judulBuku').value;
+            const kategori = document.getElementById('kategoriBuku').value;
+            const fileInput = document.getElementById('filePdf');
+            const btn = document.getElementById('btnUpload');
+            const status = document.getElementById('statusUpload');
+
+            if (!judul || fileInput.files.length === 0) return alert("Judul dan File PDF wajib diisi!");
+
+            const file = fileInput.files[0];
+            const baseFileName = Date.now() + "_" + Math.random().toString(36).substring(7);
+            const pdfFileName = baseFileName + ".pdf";
+            const coverFileName = baseFileName + "_cover.jpg";
+
+            btn.disabled = true; 
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...`;
+            status.className = 'bg-blue-50 text-blue-700 p-3 rounded-lg text-sm font-medium mt-4 block';
+            
+            try {
+                status.innerHTML = `<i class="fa-solid fa-camera fa-spin mr-2"></i> Membuat sampul otomatis...`;
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 1.0 }); 
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                
+                const coverBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
+
+                status.innerHTML = `<i class="fa-solid fa-cloud-arrow-up fa-bounce mr-2"></i> Mengunggah file ke server...`;
+                
+                const { error: pdfError } = await supabaseClient.storage.from('pdf-buku').upload(pdfFileName, file);
+                if (pdfError) throw new Error("Gagal upload PDF: " + pdfError.message);
+                
+                const { error: coverError } = await supabaseClient.storage.from('pdf-buku').upload(coverFileName, coverBlob);
+                if (coverError) throw new Error("Gagal upload Cover: " + coverError.message);
+
+                const pdfUrl = supabaseClient.storage.from('pdf-buku').getPublicUrl(pdfFileName).data.publicUrl;
+                const coverUrl = supabaseClient.storage.from('pdf-buku').getPublicUrl(coverFileName).data.publicUrl;
+                
+                status.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Merapikan rak digital...`;
+                const { error: dbError } = await supabaseClient.from('buku').insert([{ 
+                    judul: judul, 
+                    kategori: kategori, 
+                    file_url: pdfUrl,
+                    cover_url: coverUrl 
+                }]);
+                
+                if (dbError) throw new Error(dbError.message);
+
+                status.className = 'bg-green-100 text-green-700 p-3 rounded-lg text-sm font-medium mt-4 block';
+                status.innerHTML = `<i class="fa-solid fa-check mr-2"></i> Buku berhasil diterbitkan!`;
+                
+                setTimeout(() => { closeModal(); fetchBooks(); btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Simpan & Upload`; }, 1500);
+            } catch (error) {
+                status.className = 'bg-red-100 text-red-700 p-3 rounded-lg text-sm font-medium mt-4 block';
+                status.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i> ${error.message}`;
+                btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Coba Lagi`;
+            }
+        }
+    </script>
+</body>
+</html>
