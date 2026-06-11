@@ -259,7 +259,7 @@
             try { 
                 const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
                 if (error) throw error; 
-                if (data.user) { await supabaseClient.from('profiles').insert([{ id: data.user.id, nama_lengkap: nama, jenis_kelamin: gender, kategori: kategori, kota: kota, total_poin: 0 }]); } 
+                if (data.user) { await supabaseClient.from('profiles').upsert([{ id: data.user.id, nama_lengkap: nama, jenis_kelamin: gender, kategori: kategori, kota: kota, total_poin: 0 }]); }
                 alert("Pendaftaran Berhasil! Silakan masuk."); switchTabAuth('login'); document.getElementById('login-email').value = email; 
             } catch (e) { alert("Gagal mendaftar: " + e.message); } finally { btn.disabled = false; btn.innerHTML = "Daftar Menjadi Agen"; } 
         }
