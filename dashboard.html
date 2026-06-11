@@ -79,18 +79,36 @@
     </div>
 
     <script>
-        let supabaseClient; let loggedInUser = null; let semuaBuku = []; 
+        let supabaseClient; 
+        let loggedInUser = null; 
+        let semuaBuku = []; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            try { if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
-                 // Tulis langsung kuncinya di sini, abaikan CONFIG sementara
-supabaseClient = window.supabase.createClient(
-    "https://rzzmpxeiducczixmwkpo.supabase.co/rest/v1/", 
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6em1weGVpZHVjY3ppeG13a3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzEwOTYsImV4cCI6MjA5NjY0NzA5Nn0.uoLGH53BbizJqAGvBZwaC3GAbEAj20o_xLheKlu3CFY" // <- Paste Anon Key baru di sini
-);
+            try { 
+                if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+                
+                // PERBAIKAN 1: Hapus akhiran "/rest/v1/" dari URL agar Auth bisa berjalan!
+                supabaseClient = window.supabase.createClient(
+                    "https://rzzmpxeiducczixmwkpo.supabase.co", 
+                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6em1weGVpZHVjY3ppeG13a3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzEwOTYsImV4cCI6MjA5NjY0NzA5Nn0.uoLGH53BbizJqAGvBZwaC3GAbEAj20o_xLheKlu3CFY" 
+                );
+
+                // PERBAIKAN 2: Panggil fungsi cek login agar layar tidak kosong
+                cekStatusLogin();
+
+            // PERBAIKAN 3: Menutup blok try-catch dan event listener yang sebelumnya hilang
+            } catch (error) {
+                console.error("Terjadi kesalahan:", error);
+            }
+        }); 
+
         async function cekStatusLogin() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) { window.location.href = 'index'; return; } // PERBAIKAN: Usir ke index
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (!session) { 
+                window.location.href = 'index.html'; // Usir ke halaman login
+                return; 
+            } 
             
             loggedInUser = session.user;
             const menuContainer = document.getElementById('user-menu-container');
@@ -99,7 +117,7 @@ supabaseClient = window.supabase.createClient(
             if (profil) {
                 menuContainer.innerHTML = `
                     <div class="flex items-center gap-3 md:gap-4">
-                        <a href="profil" class="flex items-center gap-3 group cursor-pointer bg-slate-50 border border-slate-200 py-1.5 px-2 md:pr-4 rounded-full transition hover:bg-white hover:shadow-sm">
+                        <a href="profil.html" class="flex items-center gap-3 group cursor-pointer bg-slate-50 border border-slate-200 py-1.5 px-2 md:pr-4 rounded-full transition hover:bg-white hover:shadow-sm">
                             <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-rose-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm md:text-lg uppercase shadow-sm group-hover:scale-105 transition transform">${profil.nama_lengkap.charAt(0)}</div>
                             <div class="text-left hidden sm:block group-hover:opacity-80 transition"><p class="text-xs md:text-sm font-bold text-slate-800 leading-tight">${profil.nama_lengkap.split(' ')[0]}</p><p class="text-[10px] md:text-xs font-black text-emerald-600">${profil.total_poin} XP</p></div>
                         </a>
@@ -109,119 +127,162 @@ supabaseClient = window.supabase.createClient(
                 document.getElementById('greet-name').innerText = `Halo, ${profil.nama_lengkap.split(' ')[0]}! 👋`;
                 document.getElementById('greet-xp').innerText = profil.total_poin.toLocaleString('id-ID');
                 
-                fetchBooks(); fetchLeaderboard();
-
-                
+                fetchBooks(); 
+                fetchLeaderboard();
             }
         }
 
-        function tampilkanModalIntro(fileUrl) { document.getElementById('modalIntroSystem').classList.remove('hidden'); document.getElementById('wadah-flipbook-intro').innerHTML = `<div class="_df_book" source="${fileUrl}" id="df_manual_intro"></div>`; if(window.DFLIP && window.DFLIP.parseBooks) window.DFLIP.parseBooks(); }
-        function tutupModalIntro() { document.getElementById('modalIntroSystem').classList.add('hidden'); document.getElementById('wadah-flipbook-intro').innerHTML = ''; }
-        async function prosesLogout() { if(confirm("Yakin ingin keluar?")) { await supabaseClient.auth.signOut(); sessionStorage.removeItem('introSudahDilihat'); window.location.href = 'index'; } }
-        function arahkanMembaca(idBuku, urlFile) { window.location.href = `buku?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; }
-        function alertTerkunci() { alert('🔒 Modul ini masih terkunci! Tunggu instruksi peneliti untuk membukanya.'); }
+        function tampilkanModalIntro(fileUrl) { 
+            document.getElementById('modalIntroSystem').classList.remove('hidden'); 
+            document.getElementById('wadah-flipbook-intro').innerHTML = `<div class="_df_book" source="${fileUrl}" id="df_manual_intro"></div>`; 
+            if(window.DFLIP && window.DFLIP.parseBooks) window.DFLIP.parseBooks(); 
+        }
+        
+        function tutupModalIntro() { 
+            document.getElementById('modalIntroSystem').classList.add('hidden'); 
+            document.getElementById('wadah-flipbook-intro').innerHTML = ''; 
+        }
+        
+        async function prosesLogout() { 
+            if(confirm("Yakin ingin keluar?")) { 
+                await supabaseClient.auth.signOut(); 
+                sessionStorage.removeItem('introSudahDilihat'); 
+                window.location.href = 'index.html'; 
+            } 
+        }
+        
+        function arahkanMembaca(idBuku, urlFile) { 
+            window.location.href = `buku.html?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; 
+        }
+        
+        function alertTerkunci() { 
+            alert('🔒 Modul ini masih terkunci! Tunggu instruksi peneliti untuk membukanya.'); 
+        }
 
         function filterBuku(kategori, btnElement) {
-            document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.remove('bg-white', 'text-rose-600', 'shadow-sm', 'active-filter'); btn.classList.add('text-slate-500'); });
-            btnElement.classList.add('bg-white', 'text-rose-600', 'shadow-sm', 'active-filter'); btnElement.classList.remove('text-slate-500');
-            const filtered = kategori === 'Semua' ? semuaBuku : semuaBuku.filter(b => b.kategori === kategori); renderGridBuku(filtered);
+            document.querySelectorAll('.filter-btn').forEach(btn => { 
+                btn.classList.remove('bg-white', 'text-rose-600', 'shadow-sm', 'active-filter'); 
+                btn.classList.add('text-slate-500'); 
+            });
+            btnElement.classList.add('bg-white', 'text-rose-600', 'shadow-sm', 'active-filter'); 
+            btnElement.classList.remove('text-slate-500');
+            
+            const filtered = kategori === 'Semua' ? semuaBuku : semuaBuku.filter(b => b.kategori === kategori); 
+            renderGridBuku(filtered);
         }
 
         async function fetchBooks() {
             try {
                 const { data } = await supabaseClient.from('buku').select('*').neq('tipe_konten', 'Pengantar Sistem').order('created_at', { ascending: true });
-                if (!data || data.length === 0) { document.getElementById('bookList').innerHTML = `<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-300"></i><p>Belum ada modul di perpustakaan.</p></div>`; return; }
-                semuaBuku = data; renderGridBuku(semuaBuku);
-            } catch (err) {}
+                if (!data || data.length === 0) { 
+                    document.getElementById('bookList').innerHTML = `<div class="col-span-full text-center text-slate-400 py-10"><i class="fa-solid fa-folder-open text-4xl mb-3 text-slate-300"></i><p>Belum ada modul di perpustakaan.</p></div>`; 
+                    return; 
+                }
+                semuaBuku = data; 
+                renderGridBuku(semuaBuku);
+            } catch (err) {
+                console.error("Gagal memuat buku:", err);
+            }
         }
 
         function renderGridBuku(dataBuku) {
-    const bookList = document.getElementById('bookList'); 
-    bookList.innerHTML = '';
-    
-    if (dataBuku.length === 0) { 
-        bookList.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 fade-in"><p>Tidak ada modul dalam kategori ini.</p></div>`; 
-        return; 
-    }
+            const bookList = document.getElementById('bookList'); 
+            bookList.innerHTML = '';
+            
+            if (dataBuku.length === 0) { 
+                bookList.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 fade-in"><p>Tidak ada modul dalam kategori ini.</p></div>`; 
+                return; 
+            }
 
-    dataBuku.forEach((book, index) => {
-        const isLocked = book.is_active === false || book.is_active === null; 
-        
-        // 1. LOGIKA COVER
-        let cover = "";
-        if (book.cover_url) { 
-            cover = `<img src="${book.cover_url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ${isLocked ? '' : 'group-hover:scale-110'}">`; 
-        } else { 
-            if (book.judul.toLowerCase().includes('pre-test')) { 
-                cover = `<div class="w-full h-full bg-indigo-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-question text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">PRE-TEST</span></div>`; 
-            } else if (book.judul.toLowerCase().includes('post-test')) { 
-                cover = `<div class="w-full h-full bg-emerald-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-check text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">POST-TEST</span></div>`; 
-            } else if (book.tipe_konten === 'Hanya Kuis') {
-                // Tambahan: Cover default khusus jika dia Hanya Kuis
-                cover = `<div class="w-full h-full bg-amber-500 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-list-check text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">KUIS</span></div>`;
-            } else { 
-                cover = `<div class="w-full h-full bg-slate-200 flex items-center justify-center"><i class="fa-regular fa-file-pdf text-6xl text-slate-400"></i></div>`; 
-            } 
+            dataBuku.forEach((book, index) => {
+                const isLocked = book.is_active === false || book.is_active === null; 
+                
+                // 1. LOGIKA COVER
+                let cover = "";
+                if (book.cover_url) { 
+                    cover = `<img src="${book.cover_url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ${isLocked ? '' : 'group-hover:scale-110'}">`; 
+                } else { 
+                    if (book.judul.toLowerCase().includes('pre-test')) { 
+                        cover = `<div class="w-full h-full bg-indigo-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-question text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">PRE-TEST</span></div>`; 
+                    } else if (book.judul.toLowerCase().includes('post-test')) { 
+                        cover = `<div class="w-full h-full bg-emerald-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-check text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">POST-TEST</span></div>`; 
+                    } else if (book.tipe_konten === 'Hanya Kuis') {
+                        cover = `<div class="w-full h-full bg-amber-500 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-list-check text-5xl opacity-30 mb-2"></i><span class="font-black text-xs tracking-widest">KUIS</span></div>`;
+                    } else { 
+                        cover = `<div class="w-full h-full bg-slate-200 flex items-center justify-center"><i class="fa-regular fa-file-pdf text-6xl text-slate-400"></i></div>`; 
+                    } 
+                }
+                
+                // 2. LOGIKA BADGE
+                let badgeColor = "text-rose-700 bg-white/90"; 
+                let badgeText = book.kategori || "UMUM";
+                
+                if (book.judul.toLowerCase().includes('post-test')) { 
+                    badgeText = "POST-TEST"; 
+                    badgeColor = "text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm"; 
+                } else if (book.judul.toLowerCase().includes('pre-test')) { 
+                    badgeText = "PRE-TEST"; 
+                    badgeColor = "text-indigo-700 bg-indigo-50 border border-indigo-200 shadow-sm"; 
+                } else if (book.tipe_konten === 'Hanya Kuis') { 
+                    badgeText = "KUIS"; 
+                    badgeColor = "text-amber-700 bg-amber-50 border border-amber-200 shadow-sm"; 
+                }
+
+                // 3. LOGIKA STYLE & RENDER
+                const actionClick = isLocked ? `alertTerkunci()` : `arahkanMembaca('${book.id}', '${book.file_url}')`;
+                const cardStyle = isLocked ? "grayscale opacity-75 cursor-not-allowed border-slate-200" : "card-hover group cursor-pointer border-slate-100";
+                const btnBawahStyle = isLocked ? "bg-slate-100 text-slate-400 border-transparent" : "bg-slate-50 hover:bg-rose-600 text-rose-600 hover:text-white border-slate-100";
+                const btnBawahText = isLocked ? '<i class="fa-solid fa-lock"></i> Terkunci' : '<i class="fa-solid fa-book-open"></i> Buka Konten';
+                const overlayContent = isLocked ? `<div class="bg-slate-800/90 text-white font-bold py-2.5 px-6 rounded-full text-sm shadow-xl flex items-center gap-2 border border-slate-600"><i class="fa-solid fa-lock"></i> Belum Dibuka</div>` : `<button class="bg-white text-rose-600 font-bold py-2.5 px-6 rounded-full text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl">Mulai Sekarang</button>`;
+
+                bookList.innerHTML += `
+                    <div class="bg-white rounded-2xl p-3 border flex flex-col h-full transition-all duration-300 fade-in ${cardStyle}" style="animation-delay: ${index * 0.05}s; opacity: 1;">
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden relative shadow-inner bg-slate-100 shrink-0" onclick="${actionClick}">
+                            ${cover}
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 ${isLocked ? 'opacity-100 bg-slate-900/30' : 'group-hover:opacity-100'} transition-opacity duration-300 flex items-end justify-center pb-5">
+                                ${overlayContent}
+                            </div>
+                            <span class="absolute top-3 right-3 ${badgeColor} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide backdrop-blur-md">
+                                ${badgeText}
+                            </span>
+                        </div>
+                        <div class="pt-4 flex flex-col flex-grow text-center px-1">
+                            <h4 class="font-bold text-sm md:text-base text-slate-800 mb-4 flex-grow line-clamp-2 leading-snug ${isLocked ? '' : 'group-hover:text-rose-600'} transition-colors" onclick="${actionClick}">
+                                ${book.judul}
+                            </h4>
+                            <button onclick="${actionClick}" class="w-full py-2.5 rounded-xl text-xs md:text-sm font-bold transition-colors border flex items-center justify-center gap-2 mt-auto ${btnBawahStyle}">
+                                ${btnBawahText}
+                            </button>
+                        </div>
+                    </div>`;
+            });
         }
-        
-        // 2. LOGIKA BADGE
-        let badgeColor = "text-rose-700 bg-white/90"; 
-        let badgeText = book.kategori;
-        
-        if (book.judul.toLowerCase().includes('post-test')) { 
-            badgeText = "POST-TEST"; 
-            badgeColor = "text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm"; 
-        } else if (book.judul.toLowerCase().includes('pre-test')) { 
-            badgeText = "PRE-TEST"; 
-            badgeColor = "text-indigo-700 bg-indigo-50 border border-indigo-200 shadow-sm"; 
-        } else if (book.tipe_konten === 'Hanya Kuis') { 
-            // KONDISI DIPISAH: Modul "Hanya Kuis" kini punya badgenya sendiri
-            badgeText = "KUIS"; 
-            badgeColor = "text-amber-700 bg-amber-50 border border-amber-200 shadow-sm"; 
-        }
-
-        // 3. LOGIKA STYLE & RENDER
-        const actionClick = isLocked ? `alertTerkunci()` : `arahkanMembaca('${book.id}', '${book.file_url}')`;
-        const cardStyle = isLocked ? "grayscale opacity-75 cursor-not-allowed border-slate-200" : "card-hover group cursor-pointer border-slate-100";
-        const btnBawahStyle = isLocked ? "bg-slate-100 text-slate-400 border-transparent" : "bg-slate-50 hover:bg-rose-600 text-rose-600 hover:text-white border-slate-100";
-        const btnBawahText = isLocked ? '<i class="fa-solid fa-lock"></i> Terkunci' : '<i class="fa-solid fa-book-open"></i> Buka Konten';
-        const overlayContent = isLocked ? `<div class="bg-slate-800/90 text-white font-bold py-2.5 px-6 rounded-full text-sm shadow-xl flex items-center gap-2 border border-slate-600"><i class="fa-solid fa-lock"></i> Belum Dibuka</div>` : `<button class="bg-white text-rose-600 font-bold py-2.5 px-6 rounded-full text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl">Mulai Sekarang</button>`;
-
-        bookList.innerHTML += `
-            <div class="bg-white rounded-2xl p-3 border flex flex-col h-full transition-all duration-300 fade-in ${cardStyle}" style="animation-delay: ${index * 0.05}s; opacity: 0;">
-                <div class="aspect-[3/4] rounded-xl overflow-hidden relative shadow-inner bg-slate-100 shrink-0" onclick="${actionClick}">
-                    ${cover}
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 ${isLocked ? 'opacity-100 bg-slate-900/30' : 'group-hover:opacity-100'} transition-opacity duration-300 flex items-end justify-center pb-5">
-                        ${overlayContent}
-                    </div>
-                    <span class="absolute top-3 right-3 ${badgeColor} px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide backdrop-blur-md">
-                        ${badgeText}
-                    </span>
-                </div>
-                <div class="pt-4 flex flex-col flex-grow text-center px-1">
-                    <h4 class="font-bold text-sm md:text-base text-slate-800 mb-4 flex-grow line-clamp-2 leading-snug ${isLocked ? '' : 'group-hover:text-rose-600'} transition-colors" onclick="${actionClick}">
-                        ${book.judul}
-                    </h4>
-                    <button onclick="${actionClick}" class="w-full py-2.5 rounded-xl text-xs md:text-sm font-bold transition-colors border flex items-center justify-center gap-2 mt-auto ${btnBawahStyle}">
-                        ${btnBawahText}
-                    </button>
-                </div>
-            </div>`;
-    });
-}
-
 
         async function fetchLeaderboard() {
             try {
                 const { data } = await supabaseClient.from('profiles').select('nama_lengkap, total_poin, kategori').gt('total_poin', 0).order('total_poin', { ascending: false }).limit(5);
-                const wadah = document.getElementById('leaderboard-list'); wadah.innerHTML = '';
-                if (!data || data.length === 0) { wadah.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Belum ada agen yang mencetak skor.</p>'; return; }
+                const wadah = document.getElementById('leaderboard-list'); 
+                wadah.innerHTML = '';
+                
+                if (!data || data.length === 0) { 
+                    wadah.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Belum ada agen yang mencetak skor.</p>'; 
+                    return; 
+                }
+                
                 data.forEach((p, index) => {
-                    const inisial = p.nama_lengkap.charAt(0).toUpperCase(); let rankIcon = `<span class="font-bold text-slate-400 w-5 text-center">${index + 1}</span>`; let bgAvatar = "bg-slate-100 text-slate-600";
-                    if (index === 0) { rankIcon = `<i class="fa-solid fa-medal text-amber-400 text-xl w-5 text-center drop-shadow-sm"></i>`; bgAvatar = "bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-md"; } else if (index === 1) { rankIcon = `<i class="fa-solid fa-medal text-slate-300 text-lg w-5 text-center"></i>`; bgAvatar = "bg-slate-200 text-slate-700"; } else if (index === 2) { rankIcon = `<i class="fa-solid fa-medal text-amber-700 text-lg w-5 text-center"></i>`; bgAvatar = "bg-amber-100 text-amber-800"; }
-                    wadah.innerHTML += `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 cursor-default"><div class="flex items-center gap-3 overflow-hidden">${rankIcon}<div class="w-9 h-9 rounded-full ${bgAvatar} flex items-center justify-center font-black text-sm shrink-0">${inisial}</div><div class="flex flex-col min-w-0"><span class="font-bold text-sm text-slate-800 truncate">${p.nama_lengkap.split(' ')[0]}</span><span class="text-[9px] font-bold uppercase text-slate-400 tracking-wide truncate">${p.kategori}</span></div></div><div class="shrink-0 text-right ml-2"><span class="font-black text-emerald-500 text-sm">${p.total_poin}</span><br><span class="text-[9px] font-bold text-slate-400 uppercase">XP</span></div></div>`;
+                    const inisial = p.nama_lengkap.charAt(0).toUpperCase(); 
+                    let rankIcon = `<span class="font-bold text-slate-400 w-5 text-center">${index + 1}</span>`; 
+                    let bgAvatar = "bg-slate-100 text-slate-600";
+                    
+                    if (index === 0) { rankIcon = `<i class="fa-solid fa-medal text-amber-400 text-xl w-5 text-center drop-shadow-sm"></i>`; bgAvatar = "bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-md"; } 
+                    else if (index === 1) { rankIcon = `<i class="fa-solid fa-medal text-slate-300 text-lg w-5 text-center"></i>`; bgAvatar = "bg-slate-200 text-slate-700"; } 
+                    else if (index === 2) { rankIcon = `<i class="fa-solid fa-medal text-amber-700 text-lg w-5 text-center"></i>`; bgAvatar = "bg-amber-100 text-amber-800"; }
+                    
+                    wadah.innerHTML += `<div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100 cursor-default"><div class="flex items-center gap-3 overflow-hidden">${rankIcon}<div class="w-9 h-9 rounded-full ${bgAvatar} flex items-center justify-center font-black text-sm shrink-0">${inisial}</div><div class="flex flex-col min-w-0"><span class="font-bold text-sm text-slate-800 truncate">${p.nama_lengkap.split(' ')[0]}</span><span class="text-[9px] font-bold uppercase text-slate-400 tracking-wide truncate">${p.kategori || 'Umum'}</span></div></div><div class="shrink-0 text-right ml-2"><span class="font-black text-emerald-500 text-sm">${p.total_poin}</span><br><span class="text-[9px] font-bold text-slate-400 uppercase">XP</span></div></div>`;
                 });
-            } catch (err) {}
+            } catch (err) {
+                console.error("Gagal memuat leaderboard:", err);
+            }
         }
     </script>
 </body>
