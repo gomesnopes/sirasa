@@ -87,20 +87,17 @@
             try { 
                 if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
                 
-                // PERBAIKAN 1: Hapus akhiran "/rest/v1/" dari URL agar Auth bisa berjalan!
-                supabaseClient = window.supabase.createClient(
-                    "https://rzzmpxeiducczixmwkpo.supabase.co", 
-                    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6em1weGVpZHVjY3ppeG13a3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzEwOTYsImV4cCI6MjA5NjY0NzA5Nn0.uoLGH53BbizJqAGvBZwaC3GAbEAj20o_xLheKlu3CFY" 
-                );
+                // Memanggil URL dan Anon Key langsung dari config.js
+                supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 
-                // PERBAIKAN 2: Panggil fungsi cek login agar layar tidak kosong
+                // Panggil fungsi cek login
                 cekStatusLogin();
 
-            // PERBAIKAN 3: Menutup blok try-catch dan event listener yang sebelumnya hilang
             } catch (error) {
-                console.error("Terjadi kesalahan:", error);
+                console.error("Terjadi kesalahan sistem:", error);
+                alert("Sistem gagal memuat konfigurasi. Pastikan file config.js tersedia.");
             }
-        }); 
+        });
 
         async function cekStatusLogin() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
