@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeri Modul KITA SEBAYA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>window.DFLIP = window.DFLIP || {}; window.DFLIP.defaults = { webgl: false, soundEnable: true, hideControls: "download,print,more,share,fullscreen,toggle,play" };</script>
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .glass-nav { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.15); border-color: rgba(13, 148, 136, 0.3); }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; } @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-enter { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; } @keyframes zoomIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+        ._df_book { height: 100% !important; width: 100% !important; margin: 0 !important; }
+        
+        /* Tema Scrollbar Custom */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <nav class="glass-nav px-4 md:px-8 py-3 flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.reload()">
+                <div class="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center text-xl shadow-md shadow-teal-500/20 group-hover:-rotate-6 transition transform"><i class="fa-solid fa-ribbon"></i></div>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight hidden sm:block">KITA <span class="text-teal-600">SEBAYA</span></h1>
+            </div>
+         </div>
+        <div id="user-menu-container" class="transition-opacity duration-500"></div>
+    </nav>
+
+    <main class="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8">
+        <div class="flex-1 w-full lg:w-3/4">
+            
+            <!-- Banner Utama Baru -->
+            <div id="user-banner" class="bg-gradient-to-br from-teal-700 via-sky-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden fade-in border border-slate-700/50">
+                <div class="absolute -top-20 -right-10 w-80 h-80 bg-teal-400 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-20 w-60 h-60 bg-sky-400 opacity-10 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <span class="inline-block px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3 text-teal-100">Dasbor Responden</span>
+                        <h2 class="text-3xl font-black mb-2" id="greet-name">Halo! 👋</h2>
+                        <p class="text-sky-100 font-medium max-w-xl text-sm md:text-base leading-relaxed">Siap memperkaya wawasan kesehatan hari ini? Selesaikan misi modul dan kumpulkan poin pengalaman (XP) sebanyak-banyaknya!</p>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-5 rounded-2xl text-center shrink-0 w-full md:w-auto flex flex-col justify-center items-center shadow-inner">
+                        <p class="text-teal-100 text-xs font-bold uppercase tracking-wider mb-1">Total Poin Edukasi</p>
+                        <div class="text-4xl font-black flex items-center justify-center gap-2"><i class="fa-solid fa-star text-amber-400 drop-shadow-md"></i> <span id="greet-xp" class="tracking-tight">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div><h3 class="text-2xl font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-layer-group text-teal-600"></i> Galeri Misi</h3></div>
+                
+                <!-- Filter Tab Berbentuk Kapsul Modern -->
+                <div class="flex bg-slate-200/50 p-1.5 rounded-full w-full md:w-auto overflow-x-auto border border-slate-200">
+                    <button onclick="filterBuku('Semua', this)" class="filter-btn active-filter px-6 py-2 text-sm font-bold rounded-full transition-all bg-white text-teal-700 shadow-sm border border-slate-100">Semua Modul</button>
+                    <button onclick="filterBuku('Materi Inti', this)" class="filter-btn px-6 py-2 text-sm font-bold rounded-full text-slate-500 hover:text-slate-700 transition-all">Buku Materi</button>
+                    <button onclick="filterBuku('Evaluasi', this)" class="filter-btn px-6 py-2 text-sm font-bold rounded-full text-slate-500 hover:text-slate-700 transition-all">Soal Kuis</button>               
+                </div>
+            </div>
+            <div id="bookList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 min-h-[300px]"></div>
+        </div>
+
+        <aside class="w-full lg:w-1/4 shrink-0">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sticky top-24 fade-in">
+                <div class="text-center mb-6 border-b border-slate-100 pb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-amber-200 text-amber-600 border border-amber-300 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner"><i class="fa-solid fa-crown"></i></div>
+                    <h3 class="text-lg font-black text-slate-800">Top Leaderboard</h3>
+                    <p class="text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-widest">5 Peringkat Teratas</p>
+                </div>
+                <div id="leaderboard-list" class="space-y-3"></div>
+            </div>
+        </aside>
+    </main>
+
+    <div id="modalIntroSystem" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden relative modal-enter">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
+                <h3 class="font-bold text-sm text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-book-open-reader text-teal-600 mr-2"></i> Pengantar Sistem</h3>
+                <button onclick="tutupModalIntro()" class="text-slate-500 hover:text-rose-600 transition px-4 py-1.5 bg-white border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-bold shadow-sm">Tutup Layar <i class="fa-solid fa-xmark ml-1"></i></button>
+            </div>
+            <div id="wadah-flipbook-intro" class="flex-1 w-full bg-slate-100 relative"></div>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient; 
+        let loggedInUser = null; 
+        let semuaBuku = []; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try { 
+                if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
+                supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                cekStatusLogin();
+            } catch (error) {
+                console.error("Terjadi kesalahan sistem:", error);
+                alert("Sistem gagal memuat konfigurasi. Pastikan file config.js tersedia.");
+            }
+        });
+
+        async function cekStatusLogin() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            
+            if (!session) { 
+                window.location.href = 'index.html'; 
+                return; 
+            } 
+            
+            loggedInUser = session.user;
+            const menuContainer = document.getElementById('user-menu-container');
+            
+            // PERBAIKAN LOGIKA: Menggunakan maybeSingle agar tidak crash jika profil kosong
+            const { data: profil } = await supabaseClient.from('profiles').select('*').eq('id', loggedInUser.id).maybeSingle();
+            
+            if (profil) {
+                menuContainer.innerHTML = `
+                    <div class="flex items-center gap-3 md:gap-4">
+                        <a href="profil.html" class="flex items-center gap-3 group cursor-pointer bg-white border border-slate-200 py-1.5 px-2 md:pr-4 rounded-full transition hover:border-teal-300 hover:shadow-sm">
+                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100 text-teal-700 border border-slate-200 flex items-center justify-center font-black text-sm md:text-lg uppercase group-hover:bg-teal-600 group-hover:text-white transition-colors">${profil.nama_lengkap.charAt(0)}</div>
+                            <div class="text-left hidden sm:block"><p class="text-xs md:text-sm font-bold text-slate-800 leading-tight group-hover:text-teal-700 transition-colors">${profil.nama_lengkap.split(' ')[0]}</p><p class="text-[10px] md:text-xs font-black text-sky-600">${profil.total_poin} XP</p></div>
+                        </a>
+                        <button onclick="prosesLogout()" class="w-10 h-10 bg-slate-100 text-slate-500 border border-slate-200 rounded-full hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all flex items-center justify-center" title="Keluar Akun"><i class="fa-solid fa-power-off"></i></button>
+                    </div>`;
+
+                document.getElementById('greet-name').innerText = `Halo, ${profil.nama_lengkap.split(' ')[0]}! 👋`;
+                document.getElementById('greet-xp').innerText = profil.total_poin.toLocaleString('id-ID');
+                
+                fetchBooks(); 
+                fetchLeaderboard();
+            } else {
+                // Fallback jika profil tidak ditemukan, tetap render agar layar tidak kosong
+                document.getElementById('greet-name').innerText = `Halo, Responden! 👋`;
+                fetchBooks(); fetchLeaderboard();
+            }
+        }
+
+        function tampilkanModalIntro(fileUrl) { 
+            document.getElementById('modalIntroSystem').classList.remove('hidden'); 
+            document.getElementById('wadah-flipbook-intro').innerHTML = `<div class="_df_book" source="${fileUrl}" id="df_manual_intro"></div>`; 
+            if(window.DFLIP && window.DFLIP.parseBooks) window.DFLIP.parseBooks(); 
+        }
+        
+        function tutupModalIntro() { 
+            document.getElementById('modalIntroSystem').classList.add('hidden'); 
+            document.getElementById('wadah-flipbook-intro').innerHTML = ''; 
+        }
+        
+        async function prosesLogout() { 
+            if(confirm("Yakin ingin mengakhiri sesi belajar?")) { 
+                await supabaseClient.auth.signOut(); 
+                sessionStorage.removeItem('introSudahDilihat'); 
+                window.location.href = 'index.html'; 
+            } 
+        }
+        
+        function arahkanMembaca(idBuku, urlFile) { 
+            window.location.href = `buku.html?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; 
+        }
+        
+        function alertTerkunci() { 
+            alert('🔒 Akses Ditolak: Modul ini masih terkunci. Harap selesaikan misi sebelumnya atau tunggu instruksi peneliti.'); 
+        }
+
+        function filterBuku(kategori, btnElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => { 
+                btn.classList.remove('bg-white', 'text-teal-700', 'shadow-sm', 'border-slate-100', 'active-filter'); 
+                btn.classList.add('text-slate-500', 'border-transparent'); 
+            });
+            btnElement.classList.add('bg-white', 'text-teal-700', 'shadow-sm', 'border-slate-100', 'active-filter'); 
+            btnElement.classList.remove('text-slate-500', 'border-transparent');
+            
+            const filtered = kategori === 'Semua' ? semuaBuku : semuaBuku.filter(b => b.kategori === kategori); 
+            renderGridBuku(filtered);
+        }
+
+        async function fetchBooks() {
+            try {
+                const { data } = await supabaseClient.from('buku').select('*').neq('tipe_konten', 'Pengantar Sistem').order('created_at', { ascending: true });
+                if (!data || data.length === 0) { 
+                    document.getElementById('bookList').innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 bg-white rounded-2xl border border-dashed border-slate-300"><i class="fa-solid fa-box-open text-4xl mb-3 text-slate-300"></i><p class="font-medium">Belum ada modul di galeri.</p></div>`; 
+                    return; 
+                }
+                semuaBuku = data; 
+                renderGridBuku(semuaBuku);
+            } catch (err) {
+                console.error("Gagal memuat buku:", err);
+            }
+        }
+
+        function renderGridBuku(dataBuku) {
+            const bookList = document.getElementById('bookList'); 
+            bookList.innerHTML = '';
+            
+            if (dataBuku.length === 0) { 
+                bookList.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 fade-in"><p>Tidak ada modul dalam filter ini.</p></div>`; 
+                return; 
+            }
+
+            dataBuku.forEach((book, index) => {
+                const isLocked = book.is_active === false || book.is_active === null; 
+                
+                // 1. LOGIKA COVER (Tema Warna Baru)
+                let cover = "";
+                if (book.cover_url) { 
+                    cover = `<img src="${book.cover_url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ${isLocked ? '' : 'group-hover:scale-110'}">`; 
+                } else { 
+                    if (book.judul.toLowerCase().includes('pre-test')) { 
+                        cover = `<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-question text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-indigo-100">PRE-TEST</span></div>`; 
+                    } else if (book.judul.toLowerCase().includes('post-test')) { 
+                        cover = `<div class="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-check text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-emerald-100">POST-TEST</span></div>`; 
+                    } else if (book.tipe_konten === 'Hanya Kuis') {
+                        cover = `<div class="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-list-check text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-amber-100">KUIS MANDIRI</span></div>`;
+                    } else { 
+                        cover = `<div class="w-full h-full bg-slate-200 flex flex-col items-center justify-center"><i class="fa-solid fa-file-pdf text-5xl text-slate-300 mb-3"></i><span class="font-black text-xs tracking-widest text-slate-400">MATERI PDF</span></div>`; 
+                    } 
+                }
+                
+                // 2. LOGIKA BADGE (Tema Warna Baru)
+                let badgeColor = "text-slate-600 bg-white border border-slate-200"; 
+                let badgeText = book.kategori || "UMUM";
+                
+                if (book.judul.toLowerCase().includes('post-test')) { 
+                    badgeText = "POST-TEST"; 
+                    badgeColor = "text-emerald-700 bg-emerald-50 border border-emerald-200"; 
+                } else if (book.judul.toLowerCase().includes('pre-test')) { 
+                    badgeText = "PRE-TEST"; 
+                    badgeColor = "text-indigo-700 bg-indigo-50 border border-indigo-200"; 
+                } else if (book.tipe_konten === 'Hanya Kuis') { 
+                    badgeText = "KUIS"; 
+                    badgeColor = "text-amber-700 bg-amber-50 border border-amber-200"; 
+                }
+
+                // 3. LOGIKA STYLE & RENDER
+                const actionClick = isLocked ? `alertTerkunci()` : `arahkanMembaca('${book.id}', '${book.file_url}')`;
+                const cardStyle = isLocked ? "grayscale opacity-60 cursor-not-allowed border-slate-200" : "card-hover group cursor-pointer border-slate-200 bg-white";
+                const btnBawahStyle = isLocked ? "bg-slate-50 text-slate-400 border-transparent" : "bg-white text-teal-600 border-teal-100 group-hover:bg-teal-600 group-hover:text-white";
+                const btnBawahText = isLocked ? '<i class="fa-solid fa-lock text-xs"></i> Terkunci' : 'Mulai Misi <i class="fa-solid fa-arrow-right text-xs"></i>';
+                
+                // Overlay saat terkunci: Frosted Glass
+                const overlayContent = isLocked ? `<div class="bg-slate-900/60 backdrop-blur-sm text-white font-bold py-2 px-5 rounded-full text-xs shadow-lg flex items-center gap-2 border border-white/20"><i class="fa-solid fa-lock"></i> Belum Dibuka</div>` : `<div class="bg-white/90 backdrop-blur-md text-teal-700 font-bold py-2.5 px-6 rounded-full text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl border border-white/50">Buka Modul</div>`;
+
+                bookList.innerHTML += `
+                    <div class="rounded-2xl p-3 border flex flex-col h-full transition-all duration-300 fade-in ${cardStyle}" style="animation-delay: ${index * 0.05}s; opacity: 1;">
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden relative shadow-inner bg-slate-100 shrink-0" onclick="${actionClick}">
+                            ${cover}
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 ${isLocked ? 'opacity-100 bg-slate-900/20' : 'group-hover:opacity-100'} transition-opacity duration-300 flex items-end justify-center pb-5">
+                                ${overlayContent}
+                            </div>
+                            <span class="absolute top-3 right-3 ${badgeColor} px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider shadow-sm">
+                                ${badgeText}
+                            </span>
+                        </div>
+                        <div class="pt-4 pb-1 flex flex-col flex-grow text-center px-1">
+                            <h4 class="font-bold text-sm md:text-[15px] text-slate-700 mb-4 flex-grow line-clamp-2 leading-snug ${isLocked ? '' : 'group-hover:text-teal-700'} transition-colors" onclick="${actionClick}">
+                                ${book.judul}
+                            </h4>
+                            <button onclick="${actionClick}" class="w-full py-2 rounded-xl text-xs font-bold transition-all duration-300 border flex items-center justify-center gap-2 mt-auto ${btnBawahStyle}">
+                                ${btnBawahText}
+                            </button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function fetchLeaderboard() {
+            try {
+                const { data } = await supabaseClient.from('profiles').select('nama_lengkap, total_poin, kategori').gt('total_poin', 0).order('total_poin', { ascending: false }).limit(5);
+                const wadah = document.getElementById('leaderboard-list'); 
+                wadah.innerHTML = '';
+                
+                if (!data || data.length === 0) { 
+                    wadah.innerHTML = '<div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center"><p class="text-xs font-medium text-slate-400">Papan peringkat masih kosong. Jadilah yang pertama!</p></div>'; 
+                    return; 
+                }
+                
+                data.forEach((p, index) => {
+                    const inisial = p.nama_lengkap.charAt(0).toUpperCase(); 
+                    let rankIcon = `<span class="font-black text-slate-300 text-lg w-5 text-center">${index + 1}</span>`; 
+                    let bgAvatar = "bg-slate-100 text-slate-500 border border-slate-200";
+                    
+                    if (index === 0) { 
+                        rankIcon = `<i class="fa-solid fa-crown text-amber-500 text-xl w-5 text-center drop-shadow-sm"></i>`; 
+                        bgAvatar = "bg-gradient-to-tr from-amber-400 to-orange-400 text-white shadow-md border border-amber-200"; 
+                    } else if (index === 1) { 
+                        rankIcon = `<i class="fa-solid fa-medal text-slate-400 text-lg w-5 text-center"></i>`; 
+                        bgAvatar = "bg-gradient-to-tr from-slate-200 to-slate-300 text-slate-700 shadow-sm border border-slate-200"; 
+                    } else if (index === 2) { 
+                        rankIcon = `<i class="fa-solid fa-medal text-amber-700 text-lg w-5 text-center"></i>`; 
+                        bgAvatar = "bg-gradient-to-tr from-amber-700 to-amber-900 text-amber-50 shadow-sm border border-amber-700"; 
+                    }
+                    
+                    wadah.innerHTML += `
+                        <div class="flex items-center justify-between p-2.5 bg-white hover:bg-slate-50 transition-colors rounded-2xl border border-slate-100 cursor-default group">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                ${rankIcon}
+                                <div class="w-10 h-10 rounded-full ${bgAvatar} flex items-center justify-center font-black text-sm shrink-0 transition-transform group-hover:scale-105">${inisial}</div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="font-bold text-sm text-slate-800 truncate">${p.nama_lengkap.split(' ')[0]}</span>
+                                    <span class="text-[9px] font-bold uppercase text-slate-400 tracking-wider truncate">${p.kategori || 'Umum'}</span>
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-right bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
+                                <span class="font-black text-sky-600 text-sm">${p.total_poin}</span><span class="text-[10px] font-bold text-slate-400 uppercase ml-1">XP</span>
+                            </div>
+                        </div>`;
+                });
+            } catch (err) {
+                console.error("Gagal memuat leaderboard:", err);
+            }
+        }
+    </script>
+</body>
+</html>
