@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KITA SEBAYA - Edukasi Pencegahan HIV/AIDS</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.6); }
+        .modal-enter { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .animate-float { animation: float 7s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-15px) rotate(2deg); } 100% { transform: translateY(0px) rotate(0deg); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-teal-200 selection:text-teal-900">
+
+    <nav class="glass-nav px-6 md:px-10 py-4 flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.reload()">
+                <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-700 text-white rounded-full flex items-center justify-center text-xl shadow-md group-hover:rotate-12 transition-all duration-300">
+                    <i class="fa-solid fa-ribbon"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight font-sans">KITA <span class="text-teal-600">SEBAYA</span></h1>
+            </div>
+        </div>
+        <div>
+            <button onclick="bukaModalAuth()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-full font-bold transition-all duration-300 flex items-center gap-2 shadow-lg shadow-slate-900/20 hover:-translate-y-0.5">
+                <i class="fa-solid fa-user-astronaut"></i> Ruang Agen
+            </button>
+        </div>
+    </nav>
+
+    <div class="relative bg-slate-50 overflow-hidden">
+        <!-- Dekorasi Background Baru -->
+        <div class="absolute inset-0 z-0 opacity-[0.03]" style="background-image: linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px); background-size: 40px 40px;"></div>
+        <div class="absolute -top-20 -right-20 w-96 h-96 bg-sky-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-duration: 10s;"></div>
+        <div class="absolute top-40 -left-20 w-80 h-80 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-duration: 8s; animation-delay: 2s;"></div>
+
+        <div class="max-w-[1300px] mx-auto px-6 py-20 md:py-32 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+            <div class="flex-1 w-full text-center md:text-left">
+                <div class="inline-flex items-center gap-2 bg-white text-teal-700 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-teal-100 mb-6 shadow-sm">
+                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span></span>
+                    Modul Interaktif 3D
+                </div>
+                <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight tracking-tight text-slate-800">
+                    Kenali Virusnya,<br>Jauhi Penyakitnya,<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-sky-500">Jadilah Agen Peduli!</span>
+                </h2>
+                <p class="text-slate-500 text-base md:text-lg max-w-xl mx-auto md:mx-0 mb-10 leading-relaxed font-medium">
+                    Platform edukasi pencegahan HIV/AIDS terpadu. Taklukkan tantangan Pre-Test, baca modul interaktif, dan buktikan wawasanmu untuk meraih skor tertinggi!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
+                    <button onclick="bukaModalAuth()" class="bg-teal-600 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1 hover:bg-teal-700 flex items-center justify-center gap-2">
+                        Mulai Misi Sekarang <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-1 w-full relative hidden md:block">
+                <!-- Background Blob Image Baru -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-teal-100 to-sky-50 rounded-full scale-90 blur-xl opacity-70"></div>
+                <img src="assets/img.png" alt="Ilustrasi Belajar" class="relative z-10 w-full max-w-lg mx-auto animate-float drop-shadow-xl object-contain">
+            </div>
+        </div>
+    </div>
+
+    <section class="bg-white border-y border-slate-100 py-20 md:py-28 relative z-20">
+        <div class="max-w-[1200px] mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-black text-center text-slate-800 mb-16 tracking-tight">Kenapa Harus <span class="text-teal-600">KITA SEBAYA?</span></h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-teal-200 transition-colors group">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-teal-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-book-open-reader text-xl"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Visual 3D Interaktif</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Pengalaman membaca materi dengan teknologi flipbook 3D yang nyata dan tidak membosankan.</p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-sky-200 transition-colors group">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-sky-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-ranking-star text-xl"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Sistem Gamifikasi</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Kumpulkan Experience Points (XP) dari kuis dan rebut posisi teratas di papan peringkat global.</p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-clipboard-check text-xl"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Uji Evaluasi Akurat</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Dilengkapi dengan instrumen Pre-Test dan Post-Test yang terstandarisasi untuk mengukur pemahaman.</p>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-amber-200 transition-colors group">
+                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-amber-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chart-line text-xl"></i></div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Rapor Personal</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Pantau grafik pertumbuhan wawasan Anda secara langsung melalui Dasbor Analitik pengguna.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 py-8 text-center mt-auto">
+        <p class="text-slate-400 text-sm font-medium">© 2026 KITA SEBAYA. Dibangun untuk mengedukasi generasi peduli kesehatan.</p>
+    </footer>
+
+    <!-- MODAL AUTHENTICATION -->
+    <div id="modalAuth" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md modal-enter overflow-hidden flex flex-col relative border border-slate-100">
+            <button onclick="tutupModalAuth()" class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition z-20"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="p-8 relative z-10">
+                <div class="text-left mb-8">
+                    <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h2 class="text-2xl font-black text-slate-800">Akses Masuk</h2>
+                    <p class="text-sm text-slate-500 mt-1">Gunakan akun Anda untuk melanjutkan misi.</p>
+                </div>
+                
+                <div class="flex bg-slate-100 p-1 rounded-xl mb-8">
+                    <button onclick="switchTabAuth('login')" id="tab-login" class="flex-1 py-2 text-sm text-center transition rounded-lg bg-white shadow-sm text-teal-700 font-bold">Log In</button>
+                    <button onclick="switchTabAuth('daftar')" id="tab-daftar" class="flex-1 py-2 text-sm text-center transition rounded-lg text-slate-500 font-medium hover:text-slate-700">Buat Akun</button>
+                </div>
+                
+                <div id="form-login" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Email Terdaftar</label>
+                        <input type="email" id="login-email" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-xl outline-none transition" placeholder="email@contoh.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1 ml-1">Kata Sandi</label>
+                        <input type="password" id="login-password" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 rounded-xl outline-none transition" placeholder="••••••••">
+                    </div>
+                    <button onclick="prosesLogin()" id="btn-login" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3.5 rounded-xl shadow-md transition mt-4 text-sm">Masuk Sekarang</button>
+                </div>
+                
+                <div id="form-daftar" class="hidden space-y-3">
+                    <input type="text" id="reg-nama" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none" placeholder="Nama Lengkap">
+                    <div class="grid grid-cols-2 gap-3">
+                        <select id="reg-gender" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select>
+                        <select id="reg-kategori" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none"><option value="Pelajar">Pelajar</option><option value="Mahasiswa">Mahasiswa</option><option value="Umum">Umum</option></select>
+                    </div>
+                    <select id="reg-kota" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none font-bold text-slate-700">
+                        <option value="">-- Pilih Asal Kota --</option>
+                        <option value="Ternate">Ternate</option>
+                        <option value="Palembang">Palembang</option>
+                        <option value="Surabaya">Semarang</option>
+                    </select>
+                    <input type="email" id="reg-email" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none" placeholder="Alamat Email">
+                    <input type="password" id="reg-password" class="w-full px-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-teal-500 rounded-xl outline-none" placeholder="Buat Kata Sandi">
+                    <button onclick="prosesDaftar()" id="btn-daftar" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-md transition mt-4 text-sm">Daftar Akun Baru</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INTRO SYSTEM -->
+    <div id="modalIntroSystem" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden relative modal-enter flex flex-col">
+            <div id="wadah-slides-intro" class="p-8 md:p-12 relative overflow-hidden h-[450px] md:h-[400px]"></div>
+            <div class="bg-slate-50 px-8 py-5 border-t border-slate-200 flex justify-between items-center z-20">
+                <div id="wadah-dots-intro" class="flex gap-2"></div>
+                <div class="flex gap-3">
+                    <button id="btn-skip-intro" onclick="tutupModalIntro()" class="text-slate-500 hover:text-slate-700 font-bold text-sm px-4 py-2 transition">Lewati</button>
+                    <button id="btn-next-slide" onclick="nextSlide()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+                    <button id="btn-start-app" onclick="tutupModalIntro()" class="hidden bg-slate-800 hover:bg-slate-900 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition items-center gap-2"><i class="fa-solid fa-rocket"></i> Mulai Belajar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let supabaseClient;
+        let slidesDOM = []; let dotsDOM = []; let currentSlideIndex = 0;
+        const iconList = ['fa-hand-holding-heart', 'fa-book-open-reader', 'fa-ranking-star', 'fa-rocket', 'fa-lightbulb', 'fa-award'];
+
+        try { 
+            if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!"); 
+            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); 
+            cekStatusLogin(); 
+        } catch (err) { console.error(err); }
+
+        async function cekStatusLogin() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) { 
+                if (!sessionStorage.getItem('introSudahDilihat')) {
+                    const { data: introData } = await supabaseClient.from('buku').select('is_active, deskripsi').eq('tipe_konten', 'Pengantar Sistem').maybeSingle();
+                    if(introData && introData.is_active) {
+                        try {
+                            const slideData = JSON.parse(introData.deskripsi);
+                            if(slideData && slideData.length > 0) {
+                                const wadahSlide = document.getElementById('wadah-slides-intro');
+                                const wadahDots = document.getElementById('wadah-dots-intro');
+                                wadahSlide.innerHTML = ''; wadahDots.innerHTML = '';
+                                
+                                slideData.forEach((s, i) => {
+                                    const hiddenClass = i === 0 ? 'opacity-100 z-10' : 'opacity-0 translate-x-full hidden z-0';
+                                    const dotClass = i === 0 ? 'bg-teal-600' : 'bg-slate-300';
+                                    const icon = iconList[i % iconList.length]; 
+                                    
+                                    wadahSlide.innerHTML += `
+                                        <div class="intro-slide absolute inset-0 p-8 md:p-12 flex flex-col items-center justify-center text-center slide-content ${hiddenClass} bg-white">
+                                            <div class="w-24 h-24 bg-teal-50 text-teal-500 rounded-full flex items-center justify-center text-5xl mb-6 shadow-inner"><i class="fa-solid ${icon}"></i></div>
+                                            <h3 class="text-3xl font-black text-slate-800 mb-3">${s.judul}</h3>
+                                            <p class="text-slate-500 text-base md:text-lg leading-relaxed max-w-md">${s.desc}</p>
+                                        </div>`;
+                                    
+                                    wadahDots.innerHTML += `<div class="intro-dot w-2.5 h-2.5 rounded-full ${dotClass} transition-colors"></div>`;
+                                });
+                                slidesDOM = document.querySelectorAll('.intro-slide'); dotsDOM = document.querySelectorAll('.intro-dot'); currentSlideIndex = 0;
+                                updateSlideUI();
+                                document.getElementById('modalIntroSystem').classList.remove('hidden');
+                                sessionStorage.setItem('introSudahDilihat', 'true');
+                                return; 
+                            }
+                        } catch(e) {}
+                    }
+                }
+                window.location.href = 'dashboard.html';
+            }
+        }
+
+        function updateSlideUI() {
+            slidesDOM.forEach((slide, index) => {
+                if (index === currentSlideIndex) {
+                    slide.classList.remove('hidden', 'opacity-0', 'translate-x-full', '-translate-x-full');
+                    slide.classList.add('opacity-100', 'z-10');
+                    dotsDOM[index].classList.add('bg-teal-600'); dotsDOM[index].classList.remove('bg-slate-300');
+                } else {
+                    slide.classList.add('opacity-0', index < currentSlideIndex ? '-translate-x-full' : 'translate-x-full');
+                    slide.classList.remove('opacity-100', 'z-10');
+                    setTimeout(() => slide.classList.add('hidden'), 400); 
+                    dotsDOM[index].classList.remove('bg-teal-600'); dotsDOM[index].classList.add('bg-slate-300');
+                }
+            });
+            if (currentSlideIndex === slidesDOM.length - 1) {
+                document.getElementById('btn-next-slide').classList.add('hidden'); document.getElementById('btn-skip-intro').classList.add('hidden');
+                document.getElementById('btn-start-app').classList.remove('hidden'); document.getElementById('btn-start-app').classList.add('flex');
+            } else {
+                document.getElementById('btn-next-slide').classList.remove('hidden'); document.getElementById('btn-skip-intro').classList.remove('hidden');
+                document.getElementById('btn-start-app').classList.add('hidden'); document.getElementById('btn-start-app').classList.remove('flex');
+            }
+        }
+
+        function nextSlide() { if (currentSlideIndex < slidesDOM.length - 1) { currentSlideIndex++; updateSlideUI(); } }
+        function tutupModalIntro() { document.getElementById('modalIntroSystem').classList.add('hidden'); window.location.href = 'dashboard.html'; }
+
+        function bukaModalAuth() { document.getElementById('modalAuth').classList.remove('hidden'); }
+        function tutupModalAuth() { document.getElementById('modalAuth').classList.add('hidden'); }
+        window.addEventListener('click', function(e) { const modal = document.getElementById('modalAuth'); if (e.target === modal) tutupModalAuth(); });
+        
+        function switchTabAuth(tab) { 
+            const isLogin = tab === 'login'; 
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin); 
+            document.getElementById('form-daftar').classList.toggle('hidden', isLogin); 
+            
+            document.getElementById('tab-login').className = `flex-1 py-2 text-sm text-center transition rounded-lg ${isLogin ? 'bg-white shadow-sm text-teal-700 font-bold' : 'text-slate-500 font-medium hover:text-slate-700'}`; 
+            document.getElementById('tab-daftar').className = `flex-1 py-2 text-sm text-center transition rounded-lg ${isLogin ? 'text-slate-500 font-medium hover:text-slate-700' : 'bg-white shadow-sm text-teal-700 font-bold'}`; 
+        }
+
+        async function prosesLogin() { 
+            const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const btn = document.getElementById('btn-login'); 
+            if(!email || !password) return alert("Isi email & password!"); 
+            btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memverifikasi..."; 
+            try { 
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
+                if (error) throw error; 
+                window.location.reload(); 
+            } catch (e) { 
+                alert("Gagal Masuk: Email atau kata sandi salah."); 
+                btn.disabled = false; btn.innerHTML = `Masuk Sekarang`; 
+            } 
+        }
+
+        // PERBAIKAN LOGIKA: MENGGUNAKAN UPSERT
+        async function prosesDaftar() { 
+            const email = document.getElementById('reg-email').value; const password = document.getElementById('reg-password').value; const nama = document.getElementById('reg-nama').value; const gender = document.getElementById('reg-gender').value; const kategori = document.getElementById('reg-kategori').value; const kota = document.getElementById('reg-kota').value; const btn = document.getElementById('btn-daftar'); 
+            if(!email || !password || !nama || !kota) return alert("Mohon lengkapi semua kolom, termasuk Kota!"); 
+            btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses..."; 
+            try { 
+                const { data, error } = await supabaseClient.auth.signUp({ email, password }); 
+                if (error) throw error; 
+                if (data.user) { 
+                    // Menggunakan UPSERT agar tidak konflik dengan Database Trigger
+                    await supabaseClient.from('profiles').upsert([{ id: data.user.id, nama_lengkap: nama, jenis_kelamin: gender, kategori: kategori, kota: kota, total_poin: 0 }]); 
+                } 
+                alert("Pendaftaran Berhasil! Silakan masuk."); 
+                switchTabAuth('login'); document.getElementById('login-email').value = email; 
+            } catch (e) { 
+                alert("Gagal mendaftar: " + e.message); 
+            } finally { 
+                btn.disabled = false; btn.innerHTML = "Daftar Akun Baru"; 
+            } 
+        }
+    </script>
+</body>
+</html>
