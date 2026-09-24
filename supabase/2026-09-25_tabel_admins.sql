@@ -1,5 +1,5 @@
 -- =====================================================================
--- KITA SEBAYA — Pindahkan admin ke tabel tersendiri (public.admins)
+-- SIRASA — Pindahkan admin ke tabel tersendiri (public.admins)
 -- Menggantikan desain profiles.role dari admin_setup.sql.
 -- Aman dijalankan berulang kali.
 --

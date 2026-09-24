@@ -3,7 +3,7 @@
 --    (admin kini di tabel public.admins, kolom profiles.role dihapus).
 --    Bagian 5 (rekomendasi RLS) masih relevan.
 -- =====================================================================
--- KITA SEBAYA — Setup peran Admin
+-- SIRASA — Setup peran Admin
 -- Jalankan di: Supabase Dashboard > SQL Editor > New query > Run
 -- Aman dijalankan berulang kali.
 -- =====================================================================

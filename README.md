@@ -1,6 +1,6 @@
-# KITA SEBAYA — Platform Edukasi Pencegahan HIV/AIDS
+# SIRASA — Platform Edukasi Pencegahan HIV/AIDS
 
-Situs statis (GitHub Pages, domain `kitasebaya.biz.id`) dengan backend **Supabase** (Auth, Database, Storage).
+Situs statis (GitHub Pages: https://gomesnopes.github.io/sirasa/) dengan backend **Supabase** (Auth, Database, Storage).
 Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript biasa.
 
 ## Struktur Halaman
@@ -73,8 +73,9 @@ dengan tombol tengah "Belajar" (membuka misi berikutnya yang belum selesai). Tam
    memverifikasi JWT pemanggil dan `is_admin()`, atau minimal cek token rahasia + validasi admin di GAS.
 3. **Poin/XP dihitung di browser** (`buku.html` mengubah `profiles.total_poin` langsung) sehingga bisa dimanipulasi.
    Pindahkan perhitungan skor ke fungsi database (RPC) yang membaca kunci jawaban di server.
-4. **Gambar**: halaman kini memakai versi ringan (`assets/hero.png`, `hero-mobile.png`, `logo-ks.png`, ikon).
-   File asli `img.png` (5,8 MB) & `kitasebaya.png` (1,8 MB) disimpan sebagai master dan tidak dimuat halaman mana pun.
+4. **Gambar**: halaman kini memakai versi ringan (`assets/hero.png`, `hero-mobile.png`, `logo-sirasa.svg`, ikon).
+   File asli `img.png` (5,8 MB) disimpan sebagai master dan tidak dimuat halaman mana pun.
+   `kitasebaya.png` adalah logo program KITA SEBAYA (platform lain) — tidak dipakai di SIRASA.
 5. **Tailwind CDN** (`cdn.tailwindcss.com`) tidak disarankan untuk produksi (lambat, peringatan di konsol).
    Pertimbangkan build Tailwind CLI sekali jadi `styles.css`.
 6. **Satukan kode yang berulang**: inisialisasi Supabase, fungsi upload PDF+sampul (ada 2 salinan di `admin.html`),

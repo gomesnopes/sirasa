@@ -1,5 +1,5 @@
 -- =====================================================================
--- KITA SEBAYA — Data sekolah, kelas & tanggal lahir responden
+-- SIRASA — Data sekolah, kelas & tanggal lahir responden
 -- Jalankan SETELAH supabase/admin_setup.sql (butuh fungsi public.is_admin()).
 -- Aman dijalankan berulang kali.
 -- =====================================================================
