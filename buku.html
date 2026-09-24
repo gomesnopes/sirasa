@@ -82,6 +82,7 @@
             <div id="kontrol-tts" class="hidden items-center gap-1.5">
                 <button onclick="toggleTTS()" id="btn-tts" class="btn-bar" title="Bacakan halaman ini (klik paragraf untuk mulai dari situ)"><i class="fa-solid fa-volume-high"></i><span class="hidden sm:inline">Bacakan</span></button>
                 <button onclick="hentikanTTS()" id="btn-tts-stop" class="btn-bar hidden" title="Hentikan"><i class="fa-solid fa-stop"></i></button>
+                <select id="tts-suara" onchange="ubahSuaraTTS(this.value)" class="hidden sm:block h-10 max-w-[11rem] rounded-lg px-2 text-sm font-bold" title="Pilih suara pembaca"></select>
                 <select id="tts-kecepatan" onchange="ubahKecepatanTTS(this.value)" class="h-10 rounded-lg px-2 text-sm font-bold" title="Kecepatan suara">
                     <option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
                 </select>
@@ -339,7 +340,7 @@ if (!pdfBersih) {
         function escapeHtml(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
         function muatPrefBaca() {
-            const bawaan = { ukuran: 1, tema: 'terang', kecepatan: 1 };
+            const bawaan = { ukuran: 1, tema: 'terang', kecepatan: 1, suara: '' };
             try { return Object.assign(bawaan, JSON.parse(localStorage.getItem('prefBacaTeks') || '{}')); } catch (e) { return bawaan; }
         }
         function simpanPrefBaca() { try { localStorage.setItem('prefBacaTeks', JSON.stringify(prefBaca)); } catch (e) {} }
@@ -357,6 +358,11 @@ if (!pdfBersih) {
         function ubahUkuranTeks(d) { prefBaca.ukuran += d; terapkanPrefBaca(); simpanPrefBaca(); }
         function gantiTemaTeks() { prefBaca.tema = TEMA_TEKS[(TEMA_TEKS.indexOf(prefBaca.tema) + 1) % TEMA_TEKS.length]; terapkanPrefBaca(); simpanPrefBaca(); }
         function ubahKecepatanTTS(v) { prefBaca.kecepatan = parseFloat(v) || 1; simpanPrefBaca(); }
+        function ubahSuaraTTS(nama) {
+            prefBaca.suara = nama; simpanPrefBaca();
+            tts.suara = daftarSuaraIndonesia().find(v => v.name === nama) || pilihSuaraIndonesia();
+            if (tts.aktif) mulaiTTS(tts.antrian[tts.idx]?.i || 0); // langsung dengar suara baru
+        }
 
         // Pakai pdf.js yang sudah dimuat DearFlip bila ada, agar tidak bentrok.
         function muatPdfJs() {
@@ -495,13 +501,37 @@ if (!pdfBersih) {
         });
 
         // ---------- Text-to-Speech ----------
+        // Suara bahasa Indonesia yang tersedia di perangkat, diurutkan dari yang paling natural.
+        // Suara neural ("Natural"/"Online", mis. Microsoft Gadis/Ardi di Edge) dan suara Google
+        // jauh lebih alami daripada suara lokal lama (mis. "Damayanti" di Apple).
+        function skorSuara(v) {
+            let skor = 0;
+            if (/natural|neural/i.test(v.name)) skor += 10;
+            if (/online/i.test(v.name)) skor += 4;
+            if (/google/i.test(v.name)) skor += 5;
+            if (/enhanced|premium|siri/i.test(v.name)) skor += 3;
+            if (v.localService === false) skor += 1;
+            return skor;
+        }
+        function daftarSuaraIndonesia() {
+            return speechSynthesis.getVoices()
+                .filter(v => /^id([-_]|$)/i.test(v.lang) || /indonesia/i.test(v.name))
+                .sort((a, b) => skorSuara(b) - skorSuara(a));
+        }
         function pilihSuaraIndonesia() {
-            const daftar = speechSynthesis.getVoices();
-            return daftar.find(v => /^id([-_]|$)/i.test(v.lang)) || daftar.find(v => /indonesia/i.test(v.name)) || null;
+            const daftar = daftarSuaraIndonesia();
+            return daftar.find(v => v.name === prefBaca.suara) || daftar[0] || null;
+        }
+        function isiPilihanSuara() {
+            const daftar = daftarSuaraIndonesia(), sel = document.getElementById('tts-suara');
+            tts.suara = pilihSuaraIndonesia();
+            sel.innerHTML = daftar.map(v => `<option value="${escapeHtml(v.name)}">${escapeHtml(v.name.replace(/\s*[-–(].*indones.*$/i, '').replace(/^(Microsoft|Google)\s+/, '') + (skorSuara(v) >= 5 ? ' ★' : ''))}</option>`).join('');
+            sel.classList.toggle('sm:block', daftar.length > 1);
+            if (tts.suara) sel.value = tts.suara.name;
         }
         if (ttsDidukung) {
-            tts.suara = pilihSuaraIndonesia();
-            speechSynthesis.addEventListener('voiceschanged', () => { tts.suara = pilihSuaraIndonesia(); });
+            isiPilihanSuara();
+            speechSynthesis.addEventListener('voiceschanged', isiPilihanSuara);
             window.addEventListener('pagehide', () => speechSynthesis.cancel());
         }
 
