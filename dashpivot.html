@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Kuis - Pagination & Waktu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="configdash.js?v=7"></script> 
+    <style>
+        .sticky-col-left { position: sticky; left: 0; z-index: 10; }
+        .sticky-col-right { position: sticky; right: 0; z-index: 10; }
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-6 font-sans text-gray-800">
+
+    <div class="max-w-[1400px] mx-auto bg-white rounded-xl shadow-lg p-4 md:p-6">
+        
+        <!-- Header & Judul -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 mb-4 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-1">Rekap Hasil Kuis</h1>
+                <p class="text-sm text-gray-500">Pilih modul/buku di bawah untuk melihat hasil per dimensi.</p>
+            </div>
+
+            <!-- Tombol Download -->
+            <div class="flex space-x-2 w-full md:w-auto">
+                <button onclick="downloadExcel('aktif')" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 transition-colors text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Unduh Tab Aktif
+                </button>
+                <button onclick="downloadExcel('semua')" class="flex-1 md:flex-none bg-green-600 hover:bg-green-700 transition-colors text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                    Unduh Semua
+                </button>
+            </div>
+        </div>
+
+        <!-- TABS PILIHAN BUKU / MODUL -->
+        <div id="book-tabs" class="flex space-x-2 overflow-x-auto pb-3 mb-4 custom-scrollbar"></div>
+
+        <!-- STATUS LOADING -->
+        <div id="loading" class="text-center py-12 hidden">
+            <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="text-gray-500 font-medium" id="teks-loading">Mengambil data...</p>
+        </div>
+
+        <div id="pesan-awal" class="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            Silakan pilih Modul / Buku pada tab di atas untuk menampilkan data rekapitulasi.
+        </div>
+
+        <!-- AREA KONTEN UTAMA (Tab Dimensi & Tabel) -->
+        <div id="main-content" class="hidden">
+            <!-- TABS DIMENSI SOAL -->
+            <div id="tabs-nav" class="flex space-x-1 border-b border-gray-200 mb-0 overflow-x-auto custom-scrollbar"></div>
+            
+            <!-- KONTAINER TABEL -->
+            <div id="table-container" class="bg-white border border-gray-200 rounded-b-lg rounded-tr-lg shadow-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        let dataTabs = {}; 
+        let sortedDimensions = [];
+        let currentBukuTitle = '';
+        let currentTabName = ''; 
+        
+        // State Pagination
+        let currentPage = 1;
+        const rowsPerPage = 10; 
+
+       // 1. Ambil dan Render Tab Buku
+        async function loadDaftarBuku() {
+            try {
+                // PERBAIKAN: ascending: true agar diurutkan dari yang paling pertama dibuat (Minggu 1, Minggu 2, dst -> Kiri ke Kanan)
+                const { data, error } = await window.supabaseClient.from('buku').select('*').order('created_at', { ascending: true }); 
+                if (error) throw error;
+
+                const bookTabsContainer = document.getElementById('book-tabs');
+                bookTabsContainer.innerHTML = '';
+
+                if(data.length === 0) {
+                    bookTabsContainer.innerHTML = '<span class="text-red-500 text-sm py-2">Belum ada modul/buku di database.</span>';
+                    return;
+                }
+
+                data.forEach(buku => {
+                    const judul = buku.judul_buku || buku.judul || ('Buku ' + buku.id);
+                    
+                    // PERBAIKAN: Sembunyikan "Pengaturan Slide Intro Aplikasi"
+                    if (judul.toLowerCase().includes('pengaturan slide intro aplikasi')) {
+                        return; // Lewati data ini, jangan buatkan tombol
+                    }
+
+                    const btn = document.createElement('button');
+                    btn.className = 'book-tab-btn px-4 py-2 text-sm font-medium border border-gray-300 rounded-full whitespace-nowrap bg-white text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none';
+                    btn.innerText = judul;
+                    
+                    btn.onclick = () => {
+                        document.querySelectorAll('.book-tab-btn').forEach(b => {
+                            b.classList.remove('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
+                            b.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                        });
+                        btn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+                        btn.classList.add('bg-blue-600', 'text-white', 'border-blue-600', 'hover:bg-blue-700');
+                        
+                        currentBukuTitle = judul;
+                        loadDataKuis(buku.id);
+                    };
+                    bookTabsContainer.appendChild(btn);
+                });
+            } catch (err) {
+                console.error("Gagal memuat buku:", err);
+                document.getElementById('book-tabs').innerHTML = '<span class="text-red-500 text-sm py-2">Gagal memuat daftar buku, periksa koneksi.</span>';
+            }
+        }
+
+        function hitungUmur(tanggalLahir) {
+            if (!tanggalLahir) return '-';
+            const today = new Date();
+            const birthDate = new Date(tanggalLahir);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return age;
+        }
+
+        function formatGender(jk) {
+            if (!jk) return '-';
+            const j = jk.toLowerCase();
+            if (j.includes('laki')) return 'L';
+            if (j.includes('perempuan') || j.includes('wanita')) return 'P';
+            return '-';
+        }
+
+        // Format waktu untuk kolom Waktu Pengerjaan
+        function formatWaktu(isoString) {
+            if (!isoString) return '-';
+            const date = new Date(isoString);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mm = String(date.getMinutes()).padStart(2, '0');
+            return `${d}/${m}/${y} ${hh}:${mm}`;
+        }
+
+        // 2. Load Data Kuis
+        async function loadDataKuis(idBuku) {
+            const loading = document.getElementById('loading');
+            const teksLoading = document.getElementById('teks-loading');
+            
+            document.getElementById('pesan-awal').classList.add('hidden');
+            document.getElementById('main-content').classList.add('hidden');
+            loading.classList.remove('hidden');
+            
+            dataTabs = {}; 
+            currentTabName = '';
+            currentPage = 1;
+
+            try {
+                // A. Master Soal
+                teksLoading.innerText = "Mengambil daftar soal...";
+                const { data: masterSoal, error: errKuis } = await window.supabaseClient
+                    .from('kuis')
+                    .select('id, pertanyaan, dimensi, opsi_jawaban')
+                    .eq('id_buku', idBuku);
+                if (errKuis) throw errKuis;
+
+                if (!masterSoal || masterSoal.length === 0) {
+                    loading.innerHTML = "<p class='text-gray-500 py-10'>Belum ada soal/pertanyaan yang dibuat untuk modul ini.</p>";
+                    return;
+                }
+
+                const kamusSoal = {};
+                masterSoal.forEach(soal => {
+                    kamusSoal[soal.id] = soal;
+                    const dim = soal.dimensi || 'Umum';
+
+                    if (!dataTabs[dim]) dataTabs[dim] = { pertanyaan: new Set(), users: {} };
+                    dataTabs[dim].pertanyaan.add(soal.pertanyaan);
+                });
+
+                // B. Riwayat Jawaban User & Waktu
+                teksLoading.innerText = "Mengambil jawaban peserta...";
+                const { data: riwayatData, error: errRiwayat } = await window.supabaseClient
+                    .from('riwayat_kuis')
+                    .select('id_user, detail_jawaban, created_at')
+                    .eq('id_buku', idBuku)
+                    .order('created_at', { ascending: false }); // Ambil pengerjaan terbaru
+                if (errRiwayat) throw errRiwayat;
+
+                // C. Profil User
+                let mapProfilUser = {};
+                if (riwayatData && riwayatData.length > 0) {
+                    teksLoading.innerText = "Menyesuaikan data profil peserta...";
+                    const userIds = [...new Set(riwayatData.map(r => r.id_user))];
+                    
+                    const { data: profilData, error: errProfil } = await window.supabaseClient
+                        .from('profiles')
+                        .select('id, nama_lengkap, kota, kategori, jenis_kelamin, tanggal_lahir')
+                        .in('id', userIds);
+                    if (errProfil) throw errProfil;
+
+                    profilData.forEach(p => { mapProfilUser[p.id] = p; });
+                }
+
+                // D. Ekstrak JSON
+                if (riwayatData && riwayatData.length > 0) {
+                    riwayatData.forEach(riwayat => {
+                        const userProfil = mapProfilUser[riwayat.id_user] || {};
+                        const JSONJawaban = riwayat.detail_jawaban || {}; 
+
+                        for (const idSoalString in JSONJawaban) {
+                            const referensiSoal = kamusSoal[idSoalString]; 
+                            if (referensiSoal) {
+                                const dim = referensiSoal.dimensi || 'Umum';
+
+                                // Buat profil user di dimensi ini jika belum ada
+                                if (!dataTabs[dim].users[riwayat.id_user]) {
+                                    dataTabs[dim].users[riwayat.id_user] = {
+                                        nama: userProfil.nama_lengkap || 'User Tidak Diketahui',
+                                        umur: hitungUmur(userProfil.tanggal_lahir),
+                                        jk: formatGender(userProfil.jenis_kelamin),
+                                        kota: userProfil.kota || '-',
+                                        kategori: userProfil.kategori || '-',
+                                        waktu: formatWaktu(riwayat.created_at),
+                                        jawaban: {}, 
+                                        totalSkor: 0
+                                    };
+                                }
+
+                                let poin = parseInt(referensiSoal.opsi_jawaban?.[JSONJawaban[idSoalString]]?.poin) || 0;
+                                dataTabs[dim].users[riwayat.id_user].jawaban[referensiSoal.pertanyaan] = poin;
+                                dataTabs[dim].users[riwayat.id_user].totalSkor += poin;
+                            }
+                        }
+                    });
+                }
+
+                // 3. Urutkan Tab (Mencegah acak, Minggu 1 akan muncul sebelum Minggu 2)
+                sortedDimensions = Object.keys(dataTabs).sort((a, b) => {
+                    return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
+                });
+
+                if(sortedDimensions.length > 0) {
+                    currentTabName = sortedDimensions[0];
+                    renderTabNav();
+                    renderTable(1);
+                }
+
+                loading.classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+
+            } catch (err) {
+                console.error("Error:", err);
+                loading.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-lg">Gagal memuat data: ${err.message}</div>`;
+            }
+        }
+
+        // Render Tombol Tab
+        function renderTabNav() {
+            const tabsNav = document.getElementById('tabs-nav');
+            tabsNav.innerHTML = '';
+
+            sortedDimensions.forEach(dim => {
+                const btn = document.createElement('button');
+                btn.className = `dimensi-tab-btn px-6 py-3 text-sm font-semibold rounded-t-lg transition-colors whitespace-nowrap focus:outline-none ${dim === currentTabName ? 'bg-indigo-50 text-indigo-700 border-b-2 border-indigo-600' : 'text-gray-600 hover:bg-gray-50 bg-white'}`;
+                btn.innerText = dim;
+                btn.onclick = () => {
+                    currentTabName = dim;
+                    renderTabNav(); // Re-render tab colors
+                    renderTable(1); // Reset ke halaman 1 setiap ganti tab
+                };
+                tabsNav.appendChild(btn);
+            });
+        }
+
+        // Render Tabel Utama (Dengan Pagination)
+        function renderTable(page) {
+            currentPage = page;
+            const container = document.getElementById('table-container');
+            const tabData = dataTabs[currentTabName];
+            
+            if (!tabData) return;
+
+            const listPertanyaan = Array.from(tabData.pertanyaan);
+            const users = Object.values(tabData.users);
+            
+            // Logika Pagination
+            const totalRows = users.length;
+            const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+            const startIdx = (currentPage - 1) * rowsPerPage;
+            const paginatedUsers = users.slice(startIdx, startIdx + rowsPerPage);
+
+            // Susun Header
+            let html = `<div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-gray-700 bg-gray-100 whitespace-nowrap border-b border-gray-200">
+                        <tr>
+                            <th class="px-4 py-3 border-r sticky-col-left bg-gray-100 min-w-[150px] uppercase">Waktu & Nama</th>
+                            <th class="px-2 py-3 border-r bg-gray-100 uppercase text-center">Umur</th>
+                            <th class="px-2 py-3 border-r bg-gray-100 uppercase text-center">L/P</th>
+                            <th class="px-3 py-3 border-r bg-gray-100 uppercase">Kota / Kategori</th>`;
+
+            listPertanyaan.forEach((tanya, index) => {
+                const teksPendek = tanya.length > 20 ? tanya.substring(0, 20) + '...' : tanya;
+                html += `<th class="px-3 py-2 border-r text-center font-semibold bg-white" title="${tanya}">Q${index + 1}<br><span class="font-normal text-gray-500 capitalize text-[10px]">${teksPendek}</span></th>`;
+            });
+
+            html += `<th class="px-4 py-3 bg-blue-50 text-center sticky-col-right uppercase border-l">Total Skor</th></tr></thead><tbody>`;
+
+            // Susun Baris User
+            if (totalRows === 0) {
+                html += `<tr><td colspan="${listPertanyaan.length + 5}" class="text-center py-8 text-gray-500 bg-white italic">Belum ada user yang menjawab kuis di dimensi ini.</td></tr>`;
+            } else {
+                paginatedUsers.forEach(user => {
+                    html += `<tr class="border-b hover:bg-blue-50/50 transition-colors bg-white">
+                        <td class="px-4 py-3 border-r sticky-col-left bg-white">
+                            <div class="text-[10px] text-gray-400 mb-0.5">${user.waktu}</div>
+                            <div class="font-medium text-gray-900">${user.nama}</div>
+                        </td>
+                        <td class="px-2 py-3 border-r text-center text-gray-600">${user.umur}</td>
+                        <td class="px-2 py-3 border-r text-center text-gray-600 font-semibold">${user.jk}</td>
+                        <td class="px-3 py-3 border-r text-gray-500 text-xs">${user.kota} <br> <span class="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-700">${user.kategori}</span></td>`;
+                    
+                    listPertanyaan.forEach(tanya => {
+                        const skor = user.jawaban[tanya] !== undefined ? user.jawaban[tanya] : '<span class="text-gray-300">-</span>';
+                        html += `<td class="px-3 py-2 text-center border-r border-gray-50">${skor}</td>`;
+                    });
+
+                    html += `<td class="px-4 py-3 border-l bg-blue-50 text-center font-bold text-blue-700 sticky-col-right">${user.totalSkor}</td></tr>`;
+                });
+            }
+            html += `</tbody></table></div>`;
+
+            // UI Pagination Bawah
+            if (totalRows > 0) {
+                html += `
+                <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-t sm:px-6">
+                    <div class="hidden sm:block">
+                        <p class="text-sm text-gray-700">
+                            Menampilkan <span class="font-medium">${startIdx + 1}</span> hingga 
+                            <span class="font-medium">${Math.min(startIdx + rowsPerPage, totalRows)}</span> dari 
+                            <span class="font-medium">${totalRows}</span> hasil
+                        </p>
+                    </div>
+                    <div class="flex flex-1 justify-between sm:justify-end gap-2">
+                        <button onclick="renderTable(${currentPage - 1})" ${currentPage === 1 ? 'disabled class="px-3 py-1 border rounded text-sm text-gray-400 bg-gray-100 cursor-not-allowed"' : 'class="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-100 text-gray-700"'}>Sebelumnya</button>
+                        <span class="px-3 py-1 text-sm text-gray-700 font-medium">Halaman ${currentPage} / ${totalPages}</span>
+                        <button onclick="renderTable(${currentPage + 1})" ${currentPage === totalPages ? 'disabled class="px-3 py-1 border rounded text-sm text-gray-400 bg-gray-100 cursor-not-allowed"' : 'class="px-3 py-1 border rounded text-sm bg-white hover:bg-gray-100 text-gray-700"'}>Selanjutnya</button>
+                    </div>
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // 3. Download Excel
+        function downloadExcel(mode) {
+            if (!currentBukuTitle || Object.keys(dataTabs).length === 0) {
+                alert("Pilih buku dan pastikan data tersedia sebelum mengunduh.");
+                return;
+            }
+
+            const workbook = XLSX.utils.book_new();
+            let adaData = false;
+
+            sortedDimensions.forEach(dimensiName => {
+                if (mode === 'aktif' && dimensiName !== currentTabName) return;
+
+                const tabData = dataTabs[dimensiName];
+                const users = Object.values(tabData.users);
+                if (users.length === 0) return; 
+                adaData = true;
+
+                const listPertanyaan = Array.from(tabData.pertanyaan);
+                const barisExcel = [];
+
+                users.forEach(user => {
+                    let row = {
+                        "Waktu Pengerjaan": user.waktu,
+                        "Nama Lengkap": user.nama,
+                        "Umur": user.umur,
+                        "L/P": user.jk,
+                        "Kota": user.kota,
+                        "Kategori": user.kategori
+                    };
+
+                    listPertanyaan.forEach(tanya => {
+                        row[tanya] = user.jawaban[tanya] !== undefined ? user.jawaban[tanya] : 0;
+                    });
+                    row["Total Skor"] = user.totalSkor;
+                    barisExcel.push(row);
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(barisExcel);
+                let namaSheet = dimensiName.replace(/[\\\/\?\*\[\]\:]/g, '').substring(0, 31);
+                XLSX.utils.book_append_sheet(workbook, worksheet, namaSheet);
+            });
+            
+            if (!adaData) {
+                alert("Tidak ada data untuk diunduh pada tab ini.");
+                return;
+            }
+
+            let judulFile = currentBukuTitle.replace(/[^a-zA-Z0-9 -]/g, "").substring(0, 20);
+            let namaFile = mode === 'aktif' 
+                ? `Rekap_${judulFile}_${currentTabName.replace(/ /g, '')}.xlsx`
+                : `Rekap_${judulFile}_SemuaTab.xlsx`;
+
+            XLSX.writeFile(workbook, namaFile);
+        }
+
+        window.onload = loadDaftarBuku;
+    </script>
+</body>
+</html>
