@@ -1,6 +1,6 @@
-# KITA SEBAYA — Platform Edukasi Pencegahan HIV/AIDS
+# SIRASA — Platform Edukasi Pencegahan HIV/AIDS
 
-Situs statis (GitHub Pages, domain `kitasebaya.biz.id`) dengan backend **Supabase** (Auth, Database, Storage).
+Situs statis (GitHub Pages: https://gomesnopes.github.io/sirasa/) dengan backend **Supabase** (Auth, Database, Storage).
 Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript biasa.
 
 ## Struktur Halaman
@@ -15,31 +15,37 @@ Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript
 | `admin.html` | Admin | Panel: analitik, data responden, konten & modul, bank soal, pengaturan |
 | `analitik.html` | Admin | Dasbor analitik riset (dimuat dalam iframe di admin) |
 | `dashpivot.html` | Admin | Rekap kuis per modul/dimensi + unduh Excel (iframe di admin) |
-| `admin-auth.js` | Admin | Penjaga akses: hanya `profiles.role = 'admin'` yang boleh masuk |
+| `admin-auth.js` | Admin | Penjaga akses: hanya akun yang terdaftar di tabel `admins` yang boleh masuk |
 | `config.js` | Semua | URL & anon key Supabase, **daftar sekolah & kelas** untuk form, fungsi `hitungUmurDari()` |
 | `app.css` | Responden | Gaya tampilan aplikasi native di HP (bottom nav, ubin ikon, bottom sheet) |
 | `manifest.webmanifest` | Responden | Agar situs bisa "Tambahkan ke Layar Utama" dan terbuka layar penuh seperti aplikasi |
-| `supabase/admin_setup.sql` | Setup | Kolom `role`, fungsi `is_admin()`, trigger pelindung, contoh RLS |
+| `supabase/admin_setup.sql` | Setup | (usang, digantikan `tabel_admins`) — bagian 5 berisi contoh RLS |
+| `supabase/2026-09-25_tabel_admins.sql` | Setup | Tabel `admins` terpisah, fungsi `is_admin()`, cara tambah/cabut admin |
 | `supabase/2026-09-25_sekolah_kelas.sql` | Setup | Kolom `sekolah` & `kelas`, trigger pendaftaran, policy `riwayat_kuis` |
 | `_arsip/` | — | Halaman lama yang tidak dipakai (tidak diterbitkan oleh GitHub Pages) |
 
 ## Tabel Supabase yang dipakai
-- `profiles` — data responden (`nama_lengkap`, `jenis_kelamin`, `tanggal_lahir`, `sekolah`, `kelas`, `total_poin`, `role`;
+- `profiles` — data **responden saja** (`nama_lengkap`, `jenis_kelamin`, `tanggal_lahir`, `sekolah`, `kelas`, `total_poin`;
   kolom lama `kota` & `kategori` tidak dipakai lagi)
+- `admins` — akun admin/peneliti (`user_id`, `nama`). RLS tanpa policy tulis: hanya bisa diubah dari SQL Editor.
+  Admin tidak punya baris di `profiles`, jadi tidak muncul di peringkat maupun analitik.
 - `buku` — modul/konten (`judul`, `tipe_konten`: *Modul PDF* / *Hanya Kuis* / *Evaluasi Global* / *Pengantar Sistem*, `file_url`, `cover_url`, `is_active`, `id_kuis_terkait`)
 - `kuis` — soal (`id_buku`, `pertanyaan`, `dimensi`, `opsi_jawaban` JSON berisi `{teks, poin}`)
 - `riwayat_kuis` — aktivitas & jawaban (`id_user`, `id_buku`, `poin_didapat`, `durasi_baca_detik`, `jenis_tes`, `dimensi`, `detail_jawaban`)
 - Storage bucket `pdf-buku` — file PDF & sampul
 
 ## Setup Admin (wajib sekali)
-1. Buka Supabase → **SQL Editor**, jalankan isi `supabase/admin_setup.sql` (bagian 1–3).
-2. Angkat akun Anda menjadi admin (ganti email):
+1. Di Supabase → **SQL Editor**, jalankan berurutan: `supabase/2026-09-25_sekolah_kelas.sql`
+   lalu `supabase/2026-09-25_tabel_admins.sql`.
+2. Akun admin mendaftar dulu lewat situs, lalu angkat menjadi admin (ganti emailnya):
    ```sql
-   update public.profiles set role = 'admin'
-   where id = (select id from auth.users where email = 'email-anda@contoh.com');
+   insert into public.admins (user_id, nama)
+   select id, coalesce(raw_user_meta_data->>'nama_lengkap', split_part(email, '@', 1))
+   from auth.users where email = 'email-admin@contoh.com'
+   on conflict (user_id) do nothing;
+   delete from public.profiles where id in (select user_id from public.admins);
    ```
-3. Jalankan `supabase/2026-09-25_sekolah_kelas.sql` (kolom sekolah/kelas + trigger pendaftaran + policy riwayat).
-4. Masuk lewat `https://kitasebaya.biz.id/admin-login.html`.
+3. Masuk lewat `/admin-login.html`.
 
 ## Mengganti daftar sekolah / kelas
 Edit `DAFTAR_SEKOLAH` dan `DAFTAR_KELAS` di `config.js`. Form daftar, edit profil, edit responden di admin,
@@ -67,8 +73,9 @@ dengan tombol tengah "Belajar" (membuka misi berikutnya yang belum selesai). Tam
    memverifikasi JWT pemanggil dan `is_admin()`, atau minimal cek token rahasia + validasi admin di GAS.
 3. **Poin/XP dihitung di browser** (`buku.html` mengubah `profiles.total_poin` langsung) sehingga bisa dimanipulasi.
    Pindahkan perhitungan skor ke fungsi database (RPC) yang membaca kunci jawaban di server.
-4. **Gambar**: halaman kini memakai versi ringan (`assets/hero.png`, `hero-mobile.png`, `logo-ks.png`, ikon).
-   File asli `img.png` (5,8 MB) & `kitasebaya.png` (1,8 MB) disimpan sebagai master dan tidak dimuat halaman mana pun.
+4. **Gambar**: halaman kini memakai versi ringan (`assets/hero.png`, `hero-mobile.png`, `logo-sirasa.svg`, ikon).
+   File asli `img.png` (5,8 MB) disimpan sebagai master dan tidak dimuat halaman mana pun.
+   `kitasebaya.png` adalah logo program KITA SEBAYA (platform lain) — tidak dipakai di SIRASA.
 5. **Tailwind CDN** (`cdn.tailwindcss.com`) tidak disarankan untuk produksi (lambat, peringatan di konsol).
    Pertimbangkan build Tailwind CLI sekali jadi `styles.css`.
 6. **Satukan kode yang berulang**: inisialisasi Supabase, fungsi upload PDF+sampul (ada 2 salinan di `admin.html`),

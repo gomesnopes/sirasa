@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Login Admin - KITA SEBAYA</title>
+    <title>Login Admin - SIRASA</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,7 +30,7 @@
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <h1 class="text-2xl font-black">Panel Peneliti</h1>
-                <p class="text-slate-400 text-sm mt-1">Masuk dengan akun admin <span class="font-bold text-white">KITA <span class="text-rose-500">SEBAYA</span></span>.</p>
+                <p class="text-slate-400 text-sm mt-1">Masuk dengan akun admin <span class="font-bold text-white">SI<span class="text-rose-500">RASA</span></span>.</p>
             </div>
 
             <form id="form-login" class="p-8 space-y-4" onsubmit="event.preventDefault(); prosesLoginAdmin();">
@@ -57,7 +57,7 @@
                 </button>
 
                 <p class="text-[11px] text-slate-400 text-center leading-relaxed pt-2">
-                    Hanya akun dengan peran <span class="font-bold text-slate-600">admin</span> yang dapat masuk.
+                    Hanya akun yang terdaftar sebagai <span class="font-bold text-slate-600">admin</span> yang dapat masuk.
                 </p>
             </form>
         </div>
@@ -70,7 +70,7 @@
     <script>
         const PESAN_ALASAN = {
             bukan_admin: ['amber', 'Akun ini tidak memiliki akses admin. Silakan masuk dengan akun admin.'],
-            setup: ['red', 'Kolom "role" belum ada di tabel profiles. Jalankan file supabase/admin_setup.sql di SQL Editor Supabase terlebih dahulu.'],
+            setup: ['red', 'Tabel "admins" belum ada di database. Jalankan file supabase/2026-09-25_tabel_admins.sql di SQL Editor Supabase terlebih dahulu.'],
             galat: ['red', 'Gagal memverifikasi akses admin. Periksa koneksi lalu coba lagi.'],
             keluar: ['emerald', 'Anda telah keluar dari panel admin.']
         };

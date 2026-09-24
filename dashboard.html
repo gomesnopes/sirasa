@@ -7,11 +7,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="KITA SEBAYA">
+    <meta name="apple-mobile-web-app-title" content="SIRASA">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/icon-192.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-    <title>Galeri Modul KITA SEBAYA</title>
+    <title>Galeri Modul SIRASA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -65,8 +65,8 @@
             <div class="relative z-10 px-5 pt-5 pb-24 flex items-end justify-between">
                 <div class="max-w-[58%] pb-2">
                     <div class="flex items-center gap-2 mb-2">
-                        <div class="w-9 h-9 bg-white rounded-xl p-1 shadow"><img src="assets/logo-ks.png" alt="" class="w-full h-full object-contain"></div>
-                        <span class="font-black text-xl tracking-tight">KITA <span class="text-sky-300">SEBAYA</span></span>
+                        <div class="w-9 h-9 bg-white rounded-xl p-1 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></div>
+                        <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
                     </div>
                     <p class="text-[11px] leading-snug text-sky-50/90">Selesaikan misi modul &amp; kumpulkan XP. Jadilah agen peduli kesehatan!</p>
                 </div>
@@ -155,7 +155,7 @@
             <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
                 <a href="dashboard.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
                 <div class="flex flex-col items-center">
-                    <button onclick="lanjutBelajar()" class="app-fab app-tap" aria-label="Lanjut belajar"><img src="assets/logo-ks.png" alt="" class="w-9 h-9 object-contain brightness-0 invert"></button>
+                    <button onclick="lanjutBelajar()" class="app-fab app-tap" aria-label="Lanjut belajar"><img src="assets/logo-sirasa.svg" alt="" class="w-9 h-9 object-contain brightness-0 invert"></button>
                     <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Belajar</span>
                 </div>
                 <a href="profil.html" class="nav-item app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-chart-simple text-lg"></i>Rapor</a>
@@ -171,7 +171,7 @@
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.reload()">
                 <div class="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center text-xl shadow-md shadow-teal-500/20 group-hover:-rotate-6 transition transform"><i class="fa-solid fa-ribbon"></i></div>
-                <h1 class="text-xl font-black text-slate-800 tracking-tight hidden sm:block">KITA <span class="text-teal-600">SEBAYA</span></h1>
+                <h1 class="text-xl font-black text-slate-800 tracking-tight hidden sm:block">SI<span class="text-teal-600">RASA</span></h1>
             </div>
          </div>
         <div id="user-menu-container" class="transition-opacity duration-500"></div>
@@ -338,7 +338,7 @@
             const nama = profil?.nama_lengkap || 'Responden';
             const xp = profil?.total_poin || 0;
             document.getElementById('m-sapaan').textContent = nama.split(' ').slice(0, 2).join(' ');
-            document.getElementById('m-subjudul').textContent = [profil?.sekolah, profil?.kelas].filter(Boolean).join(' · ') || 'Agen Peduli KITA SEBAYA';
+            document.getElementById('m-subjudul').textContent = [profil?.sekolah, profil?.kelas].filter(Boolean).join(' · ') || 'Agen Peduli SIRASA';
             document.getElementById('m-avatar').textContent = nama.charAt(0).toUpperCase();
             document.getElementById('m-xp').textContent = xp.toLocaleString('id-ID');
             const level = [...LEVEL_XP].reverse().find(l => xp >= l.min);
