@@ -319,9 +319,10 @@
             { nama: 'Platinum', min: 700, warna: 'text-sky-600' }
         ];
 
+        const adalahMateri = b => b.tipe_konten === 'Modul PDF' || b.tipe_konten === 'Modul Slide';
         function saringBuku(daftar, jenis) {
-            if (jenis === 'Materi') return daftar.filter(b => b.tipe_konten === 'Modul PDF');
-            if (jenis === 'Kuis') return daftar.filter(b => b.tipe_konten !== 'Modul PDF');
+            if (jenis === 'Materi') return daftar.filter(adalahMateri);
+            if (jenis === 'Kuis') return daftar.filter(b => !adalahMateri(b));
             return daftar;
         }
         const bukuTerkunci = b => b.is_active === false || b.is_active === null;
@@ -376,7 +377,7 @@
                 const menit = Math.round(riwayatSaya.reduce((a, r) => a + (r.durasi_baca_detik || 0), 0) / 60);
                 nilai.textContent = `${menit} menit belajar`;
             } else {
-                const tes = riwayatSaya.filter(r => r.jenis_tes !== 'Membaca Modul PDF');
+                const tes = riwayatSaya.filter(r => !String(r.jenis_tes || '').startsWith('Membaca Modul'));
                 nilai.textContent = `${new Set(tes.map(r => r.id_buku)).size} tes dikerjakan`;
             }
         }
@@ -398,7 +399,8 @@
             wadah.innerHTML = daftar.map(b => {
                 const kunci = bukuTerkunci(b), selesai = modulSelesai.has(b.id);
                 const judulKecil = b.judul.toLowerCase();
-                const [ikon, warna, label] = b.tipe_konten === 'Modul PDF' ? ['fa-book-open', 'from-[#1769b3] to-[#0b1d3a]', 'MATERI']
+                const [ikon, warna, label] = b.tipe_konten === 'Modul Slide' ? ['fa-images', 'from-[#1769b3] to-[#0b1d3a]', 'MATERI']
+                    : b.tipe_konten === 'Modul PDF' ? ['fa-book-open', 'from-[#1769b3] to-[#0b1d3a]', 'MATERI']
                     : judulKecil.includes('pre-test') ? ['fa-clipboard-question', 'from-indigo-500 to-indigo-700', 'PRE-TEST']
                     : judulKecil.includes('post-test') ? ['fa-clipboard-check', 'from-emerald-500 to-teal-600', 'POST-TEST']
                     : ['fa-list-check', 'from-amber-400 to-orange-500', 'KUIS'];

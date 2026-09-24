@@ -1,0 +1,66 @@
+/* File: slide.css
+   Tampilan satu slide modul SIRASA — dipakai pembaca siswa (buku.html) dan
+   pratinjau editor admin (admin.html). Tata letak diatur kelas:
+     .sl-potret  : gambar di atas, teks di bawah (HP / layar tegak)
+     .sl-lanskap : gambar di samping teks (desktop / layar mendatar)
+   Ukuran huruf memakai unit container (cqw) agar ikut lebar slide, baik
+   layar penuh maupun bingkai pratinjau kecil. */
+
+.sl-slide {
+    container-type: inline-size;
+    position: relative; width: 100%; height: 100%;
+    display: flex; gap: 4cqw; overflow: hidden;
+    background: #ffffff; color: #0f172a;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+}
+.sl-slide * { box-sizing: border-box; }
+
+.sl-potret  { flex-direction: column; padding: 7cqw 7cqw 8cqw; }
+.sl-lanskap { flex-direction: row; align-items: center; padding: 4.5cqw 5.5cqw; }
+.sl-lanskap.sl-tanpa-gambar { padding: 5cqw 12cqw; }
+
+.sl-media { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.sl-potret  .sl-media { width: 100%; max-height: 42%; }
+.sl-lanskap .sl-media { width: 44%; height: 100%; }
+.sl-media img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    border-radius: 3cqw; box-shadow: 0 1.5cqw 5cqw rgba(11, 29, 58, .15);
+}
+.sl-lanskap .sl-media img { border-radius: 1.6cqw; }
+
+.sl-teks { flex: 1; min-height: 0; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.sl-lanskap .sl-teks { justify-content: center; max-height: 100%; }
+
+.sl-label {
+    align-self: flex-start; display: inline-flex; align-items: center; gap: .5em;
+    background: #e8f1fb; color: #1769b3; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; border-radius: 999px; padding: .45em 1em; margin-bottom: 1em;
+}
+.sl-potret  .sl-label { font-size: 3cqw; }
+.sl-lanskap .sl-label { font-size: 1.25cqw; }
+
+.sl-judul { font-weight: 900; line-height: 1.15; letter-spacing: -.01em; color: #0b1d3a; margin: 0 0 .6em; }
+.sl-potret  .sl-judul { font-size: 7.2cqw; }
+.sl-lanskap .sl-judul { font-size: 3.3cqw; }
+
+.sl-isi { line-height: 1.65; color: #334155; }
+.sl-potret  .sl-isi { font-size: 4.6cqw; }
+.sl-lanskap .sl-isi { font-size: 1.85cqw; }
+.sl-isi p { margin: 0 0 .75em; }
+.sl-isi ul { list-style: none; margin: 0 0 .75em; padding: 0; }
+.sl-isi li { position: relative; padding-left: 1.4em; margin-bottom: .45em; }
+.sl-isi li::before {
+    content: ""; position: absolute; left: .2em; top: .62em;
+    width: .5em; height: .5em; border-radius: 999px; background: #e11d48;
+}
+.sl-isi strong { color: #0b1d3a; }
+
+.sl-kosong { color: #94a3b8; font-style: italic; }
+
+/* Ornamen lembut di sudut */
+.sl-slide::before {
+    content: ""; position: absolute; right: -12cqw; top: -12cqw; width: 34cqw; height: 34cqw;
+    border-radius: 999px; background: radial-gradient(circle, rgba(23,105,179,.10), transparent 70%);
+    pointer-events: none;
+}

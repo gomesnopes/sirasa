@@ -22,6 +22,8 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <link rel="stylesheet" href="slide.css">
+    <script src="slide-render.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; background: #0f172a; font-family: sans-serif; }
@@ -64,6 +66,27 @@
 
     <div id="wadah-buku" class="w-full h-full flex items-center justify-center absolute inset-0 z-10 transition-opacity duration-500">
         <div class="text-white flex flex-col items-center gap-3"><i class="fa-solid fa-spinner fa-spin text-3xl text-rose-500"></i><p class="font-medium">Menyiapkan modul...</p></div>
+    </div>
+
+    <!-- PEMBACA MODUL SLIDE -->
+    <div id="wadah-slide" class="hidden fixed inset-0 z-10 flex flex-col bg-[#0b1d3a] select-none">
+        <div class="h-1 bg-white/10 shrink-0"><div id="sl-progres" class="h-full bg-rose-500 transition-all duration-300" style="width:0%"></div></div>
+        <div class="flex-1 min-h-0 flex items-center justify-center px-2 pt-16 pb-2 md:px-6 md:pt-20 md:pb-3">
+            <div id="sl-bingkai" class="w-full h-full max-w-[1280px] rounded-2xl overflow-hidden shadow-2xl bg-white">
+                <div id="sl-panggung" class="w-full h-full"></div>
+            </div>
+        </div>
+        <div class="shrink-0 px-3 md:px-6 pt-1 pb-3 flex items-center justify-between gap-2 text-white" style="padding-bottom: max(env(safe-area-inset-bottom), 12px)">
+            <button onclick="geserSlide(-1)" id="sl-prev" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg disabled:opacity-30" aria-label="Slide sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="flex items-center gap-3 md:gap-5">
+                <label class="flex items-center gap-2 text-[11px] md:text-xs font-bold text-white/70 cursor-pointer" title="Pindah slide otomatis setelah narasi selesai">
+                    <input type="checkbox" id="sl-otomatis" checked class="accent-rose-500 w-4 h-4"> <span>Lanjut otomatis</span>
+                </label>
+                <button onclick="toggleNarasi()" id="sl-play" class="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-900/40 flex items-center justify-center text-xl" aria-label="Putar narasi"><i class="fa-solid fa-play ml-0.5"></i></button>
+                <span id="sl-hitung" class="text-sm font-bold text-white/80 tabular-nums w-14 text-center">1 / 1</span>
+            </div>
+            <button onclick="geserSlide(1)" id="sl-next" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg" aria-label="Slide berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
     </div>
 
     <!-- PANEL MODE BACA TEKS -->
@@ -159,6 +182,8 @@
                     return panggilKuisSekarang(bookId, dataBuku.judul);
                 }
 
+                if (dataBuku.tipe_konten === 'Modul Slide') return mulaiModeSlide();
+
                 // Paksa selalu ambil file PDF terbaru langsung dari database!
 let pdfBersih = dataBuku.file_url;
 
@@ -202,16 +227,18 @@ if (!pdfBersih) {
         function tutupModalSelesai() { document.getElementById('modalSelesai').classList.add('hidden'); kuisSudahDipicu = false; }
 
         async function simpanDurasiBaca() {
-            try { await supabaseClient.from('riwayat_kuis').insert([{ id_user: loggedInUser.id, id_buku: bookId, poin_didapat: 0, durasi_baca_detik: Math.floor((Date.now() - waktuMulaiMembaca) / 1000), jenis_tes: "Membaca Modul PDF", dimensi: "Aktivitas" }]); } catch(e) {}
+            try { await supabaseClient.from('riwayat_kuis').insert([{ id_user: loggedInUser.id, id_buku: bookId, poin_didapat: 0, durasi_baca_detik: Math.floor((Date.now() - waktuMulaiMembaca) / 1000), jenis_tes: dataBuku && dataBuku.tipe_konten === 'Modul Slide' ? "Membaca Modul Slide" : "Membaca Modul PDF", dimensi: "Aktivitas" }]); } catch(e) {}
         }
 
-        async function keluarKeBeranda() { document.body.style.cursor = 'wait'; await simpanDurasiBaca(); window.location.href = 'dashboard.html'; }
+        async function keluarKeBeranda() { document.body.style.cursor = 'wait'; hentikanNarasi(); await simpanDurasiBaca(); window.location.href = 'dashboard.html'; }
 
         async function transisiKeKuis(targetIdKuis, judulTarget) {
             document.getElementById('btn-lanjut-kuis').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyiapkan Evaluasi...';
             await simpanDurasiBaca(); 
             tutupModalSelesai();
             tutupModeTeks();
+            hentikanNarasi();
+            document.getElementById('wadah-slide').classList.add('hidden');
             
             document.getElementById('nav-atas').classList.add('hidden');
             document.getElementById('wadah-buku').classList.add('opacity-0');
@@ -609,6 +636,109 @@ if (!pdfBersih) {
                 ? '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">Jeda</span>'
                 : `<i class="fa-solid ${tts.aktif ? 'fa-play' : 'fa-volume-high'}"></i><span class="hidden sm:inline">${tts.aktif ? 'Lanjutkan' : 'Bacakan'}</span>`;
             document.getElementById('btn-tts-stop').classList.toggle('hidden', !tts.aktif);
+        }
+
+        // =====================================================
+        // PEMBACA MODUL SLIDE
+        // Tata letak otomatis: potret (HP/layar tegak) atau lanskap (desktop).
+        // Narasi: audio MP3 suara neural dari admin; jika belum ada, pakai suara perangkat.
+        // =====================================================
+        const sl = { daftar: [], idx: 0, main: false, audio: new Audio(), sesi: 0 };
+
+        async function mulaiModeSlide() {
+            document.getElementById('wadah-buku').classList.add('hidden');
+            const { data, error } = await supabaseClient.from('slide').select('*').eq('id_buku', bookId).order('urutan', { ascending: true });
+            if (error || !data || !data.length) { alert('Modul slide ini belum memiliki isi.'); return keluarKeBeranda(); }
+            sl.daftar = data;
+            document.getElementById('wadah-slide').classList.remove('hidden');
+            tampilSlide(0);
+
+            window.addEventListener('resize', () => tampilSlide(sl.idx, true));
+            document.addEventListener('keydown', e => {
+                if (document.getElementById('wadah-slide').classList.contains('hidden')) return;
+                if (!document.getElementById('modalSelesai').classList.contains('hidden')) return;
+                if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); geserSlide(1); }
+                else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); geserSlide(-1); }
+                else if (e.key === ' ') { e.preventDefault(); toggleNarasi(); }
+            });
+            // Geser (swipe) di layar sentuh
+            let awal = null;
+            const panggung = document.getElementById('sl-bingkai');
+            panggung.addEventListener('touchstart', e => { const t = e.touches[0]; awal = { x: t.clientX, y: t.clientY }; }, { passive: true });
+            panggung.addEventListener('touchend', e => {
+                if (!awal) return;
+                const t = e.changedTouches[0], dx = t.clientX - awal.x, dy = t.clientY - awal.y;
+                awal = null;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) geserSlide(dx < 0 ? 1 : -1);
+            }, { passive: true });
+            sl.audio.addEventListener('ended', () => selesaiNarasi(sl.sesi));
+        }
+
+        function tampilSlide(i, hanyaTataLetak) {
+            const total = sl.daftar.length;
+            sl.idx = Math.max(0, Math.min(i, total - 1));
+            const data = sl.daftar[sl.idx];
+            SlideRender.render(document.getElementById('sl-panggung'), data, SlideRender.orientasiLayar(), { nomor: sl.idx + 1, total });
+            if (hanyaTataLetak) return;
+
+            document.getElementById('sl-progres').style.width = ((sl.idx + 1) / total * 100) + '%';
+            document.getElementById('sl-hitung').textContent = `${sl.idx + 1} / ${total}`;
+            document.getElementById('sl-prev').disabled = sl.idx === 0;
+            const terakhir = sl.idx === total - 1;
+            document.getElementById('sl-next').innerHTML = terakhir ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-chevron-right"></i>';
+            document.getElementById('sl-next').classList.toggle('!bg-emerald-600', terakhir);
+            const btnSelesai = document.getElementById('btn-selesai');
+            btnSelesai.classList.toggle('hidden', !terakhir); btnSelesai.classList.toggle('flex', terakhir);
+
+            // Muat gambar slide berikutnya lebih dulu
+            const berikut = sl.daftar[sl.idx + 1];
+            if (berikut && berikut.gambar_url) { const img = new Image(); img.src = berikut.gambar_url; }
+            if (sl.main) putarNarasi();
+        }
+
+        function geserSlide(arah) {
+            if (arah > 0 && sl.idx === sl.daftar.length - 1) { hentikanNarasi(); return tampilkanKonfirmasiSelesai(); }
+            if (arah < 0 && sl.idx === 0) return;
+            tampilSlide(sl.idx + arah);
+        }
+
+        function putarNarasi() {
+            const data = sl.daftar[sl.idx], sesi = ++sl.sesi;
+            sl.audio.pause();
+            if (ttsDidukung) speechSynthesis.cancel();
+            sl.main = true; perbaruiTombolPlay();
+            if (data.audio_url) {
+                sl.audio.src = data.audio_url;
+                sl.audio.play().catch(() => { sl.main = false; perbaruiTombolPlay(); });
+            } else if (ttsDidukung) {
+                const u = new SpeechSynthesisUtterance(SlideRender.teksUcapan(data));
+                u.lang = 'id-ID';
+                const suara = pilihSuaraIndonesia(); if (suara) u.voice = suara;
+                u.rate = prefBaca.kecepatan || 1;
+                u.onend = () => selesaiNarasi(sesi);
+                speechSynthesis.speak(u);
+            } else { sl.main = false; perbaruiTombolPlay(); }
+        }
+
+        function selesaiNarasi(sesi) {
+            if (sesi !== sl.sesi || !sl.main) return;
+            const otomatis = document.getElementById('sl-otomatis').checked;
+            if (otomatis && sl.idx < sl.daftar.length - 1) setTimeout(() => { if (sesi === sl.sesi && sl.main) tampilSlide(sl.idx + 1); }, 700);
+            else { sl.main = false; perbaruiTombolPlay(); if (otomatis && sl.idx === sl.daftar.length - 1) tampilkanKonfirmasiSelesai(); }
+        }
+
+        function hentikanNarasi() {
+            sl.main = false; sl.sesi++;
+            sl.audio.pause();
+            if (ttsDidukung) speechSynthesis.cancel();
+            perbaruiTombolPlay();
+        }
+
+        function toggleNarasi() { sl.main ? hentikanNarasi() : putarNarasi(); }
+
+        function perbaruiTombolPlay() {
+            const b = document.getElementById('sl-play');
+            if (b) b.innerHTML = sl.main ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-0.5"></i>';
         }
     </script>
 </body>

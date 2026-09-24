@@ -13,6 +13,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="config.js"></script>
     <script src="admin-auth.js"></script>
+    <link rel="stylesheet" href="slide.css">
+    <script src="slide-render.js"></script>
     <script>const adminSiap = AdminAuth.requireAdmin();</script>
     
     <style>
@@ -76,7 +78,7 @@
                <section id="modul" class="tab-content">
                     <div class="flex justify-between mb-6">
                         <h2 class="text-2xl font-bold">Manajemen Konten</h2>
-                        <button onclick="document.getElementById('modalTambahModul').classList.remove('hidden')" class="bg-rose-600 text-white px-4 py-2 rounded-lg font-bold">Buat Konten Baru</button>
+                        <button onclick="document.getElementById('modalTambahModul').classList.remove('hidden'); toggleFormModul('tambah')" class="bg-rose-600 text-white px-4 py-2 rounded-lg font-bold">Buat Konten Baru</button>
                     </div>
                     <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
                         <table class="w-full text-left">
@@ -160,7 +162,7 @@
 
     <!-- Modal Tambah Modul -->
     <div id="modalTambahModul" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-lg modal-enter overflow-hidden"><div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Tambah Wadah Baru</h3><button onclick="tutupModal('modalTambahModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="p-6 space-y-4"><select id="tipeKonten" onchange="toggleFormModul('tambah')" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul PDF">📖 Modul Pembelajaran (Hanya PDF)</option><option value="Hanya Kuis">📝 Kuis Modul Latihan Mandiri</option><option value="Evaluasi Global">🌟 Evaluasi Global (Pre/Post Test Utama)</option></select><input type="text" id="judulBuku" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg"><select id="kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tautkan ke kuis lanjutan (Opsional) --</option></select><div id="areaFilePDF_tambah"><label class="block text-sm font-medium mb-1">Upload File PDF</label><input type="file" id="filePdf" accept="application/pdf" class="w-full border p-2 rounded-lg"></div><div id="statusUpload" class="hidden p-3 rounded-lg text-sm font-medium"></div></div><div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalTambahModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanKontenBaru()" id="btnUpload" class="w-2/3 bg-rose-600 text-white font-bold py-2.5 rounded-lg">Buat Konten</button></div></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg modal-enter overflow-hidden"><div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Tambah Wadah Baru</h3><button onclick="tutupModal('modalTambahModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="p-6 space-y-4"><select id="tipeKonten" onchange="toggleFormModul('tambah')" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul Slide">📑 Modul Slide (dibuat per slide + suara)</option><option value="Modul PDF">📖 Modul Pembelajaran (PDF)</option><option value="Hanya Kuis">📝 Kuis Modul Latihan Mandiri</option><option value="Evaluasi Global">🌟 Evaluasi Global (Pre/Post Test Utama)</option></select><input type="text" id="judulBuku" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg"><select id="kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tautkan ke kuis lanjutan (Opsional) --</option></select><div id="areaFilePDF_tambah"><label class="block text-sm font-medium mb-1">Upload File PDF</label><input type="file" id="filePdf" accept="application/pdf" class="w-full border p-2 rounded-lg"></div><div id="statusUpload" class="hidden p-3 rounded-lg text-sm font-medium"></div></div><div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalTambahModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanKontenBaru()" id="btnUpload" class="w-2/3 bg-rose-600 text-white font-bold py-2.5 rounded-lg">Buat Konten</button></div></div>
     </div>
 
     <!-- Modal Edit Modul -->
@@ -169,7 +171,7 @@
             <div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Edit Modul & Konten</h3><button onclick="tutupModal('modalEditModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="edit-modul-id">
-                <select id="edit-tipeKonten" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul PDF">📖 Modul PDF</option><option value="Hanya Kuis">📝 Hanya Kuis</option><option value="Evaluasi Global">🌟 Evaluasi Global</option></select>
+                <select id="edit-tipeKonten" onchange="toggleFormModul('edit')" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul Slide">📑 Modul Slide</option><option value="Modul PDF">📖 Modul PDF</option><option value="Hanya Kuis">📝 Hanya Kuis</option><option value="Evaluasi Global">🌟 Evaluasi Global</option></select>
                 <input type="text" id="edit-modul-judul" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg font-bold">
                 <select id="edit-kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tidak ditautkan ke Kuis manapun --</option></select>
                 <div id="areaFilePDF_edit" class="pt-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
@@ -179,6 +181,85 @@
                 </div>
             </div>
             <div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalEditModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanEditModul()" id="btnEditModul" class="w-2/3 bg-rose-600 text-white font-bold py-2.5 rounded-lg">Simpan Perubahan</button></div>
+        </div>
+    </div>
+
+    <!-- Modal Editor Slide -->
+    <div id="modalEditorSlide" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[120] flex items-stretch justify-center p-0 md:p-4">
+        <div class="bg-white w-full max-w-[1400px] md:rounded-2xl overflow-hidden flex flex-col modal-enter">
+            <header class="px-5 py-3 border-b bg-slate-50 flex flex-wrap items-center gap-3">
+                <div class="flex-1 min-w-[12rem]">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Editor Modul Slide</p>
+                    <h3 id="es-judul-modul" class="font-bold text-lg truncate">-</h3>
+                </div>
+                <label class="text-xs font-bold text-slate-500 flex items-center gap-2">Suara narasi
+                    <select id="es-suara" onchange="simpanPilihanSuara(this.value)" class="border rounded-lg p-2 text-sm font-bold text-slate-700 bg-white">
+                        <option value="wanita">Wanita (Gadis)</option><option value="pria">Pria (Ardi)</option>
+                    </select>
+                </label>
+                <button onclick="buatSuaraSemua()" id="es-btn-suara-semua" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua</button>
+                <a id="es-lihat" target="_blank" rel="noopener" class="bg-white border hover:bg-slate-100 px-3 py-2 rounded-lg text-sm font-bold text-slate-700"><i class="fa-solid fa-eye mr-1"></i> Lihat sbg Siswa</a>
+                <button onclick="tutupEditorSlide()" class="text-slate-400 hover:text-red-500 px-2" title="Tutup"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </header>
+
+            <div class="flex-1 min-h-0 flex flex-col lg:flex-row">
+                <aside class="lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r bg-slate-50 flex flex-col min-h-0">
+                    <div id="es-daftar" class="flex lg:flex-col gap-2 p-3 overflow-x-auto lg:overflow-y-auto flex-1"></div>
+                    <div class="p-3 border-t"><button onclick="tambahSlide()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-lg font-bold text-sm"><i class="fa-solid fa-plus mr-1"></i> Tambah Slide</button></div>
+                </aside>
+
+                <section id="es-kosong" class="hidden flex-1 flex flex-col items-center justify-center text-slate-400 p-10 text-center">
+                    <i class="fa-regular fa-images text-5xl mb-3 text-slate-300"></i>
+                    <p class="font-medium">Modul ini belum punya slide.</p>
+                    <p class="text-sm">Klik <b>Tambah Slide</b> untuk mulai.</p>
+                </section>
+
+                <section id="es-kerja" class="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-2 overflow-y-auto">
+                    <div class="p-5 space-y-4 xl:border-r">
+                        <div class="flex items-center justify-between">
+                            <h4 id="es-nomor" class="font-black text-slate-800">Slide 1</h4>
+                            <span id="es-status-simpan" class="text-xs font-bold text-slate-400"></span>
+                        </div>
+                        <div>
+                            <label for="es-in-judul" class="block text-xs font-bold text-slate-500 mb-1">Judul Slide</label>
+                            <input id="es-in-judul" oninput="formBerubah()" class="w-full p-2.5 border rounded-lg font-bold" placeholder="Contoh: Apa itu HIV?">
+                        </div>
+                        <div>
+                            <label for="es-in-isi" class="block text-xs font-bold text-slate-500 mb-1">Isi Slide</label>
+                            <textarea id="es-in-isi" oninput="formBerubah()" rows="9" class="w-full p-3 border rounded-lg text-sm leading-relaxed" placeholder="Tulis penjelasan di sini..."></textarea>
+                            <p class="text-[11px] text-slate-400 mt-1">Baris diawali <code class="bg-slate-100 px-1 rounded">- </code> menjadi poin · baris kosong = paragraf baru · <code class="bg-slate-100 px-1 rounded">**teks**</code> = tebal</p>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Gambar (opsional)</label>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <img id="es-gambar-prev" alt="" class="hidden w-28 h-20 object-cover rounded-lg border">
+                                <label class="cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg text-sm font-bold text-slate-700"><i class="fa-solid fa-image mr-1"></i> <span id="es-label-gambar">Pilih Gambar</span>
+                                    <input type="file" id="es-in-gambar" accept="image/*" class="hidden" onchange="unggahGambarSlide(this)">
+                                </label>
+                                <button id="es-hapus-gambar" onclick="hapusGambarSlide()" class="hidden text-red-500 hover:text-red-700 text-sm font-bold"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>
+                            </div>
+                        </div>
+                        <div class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/50 space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="font-bold text-sm text-slate-700"><i class="fa-solid fa-volume-high text-indigo-500 mr-1"></i> Suara Narasi</span>
+                                <span id="es-audio-status" class="text-xs font-bold"></span>
+                            </div>
+                            <audio id="es-audio" controls preload="none" class="w-full hidden"></audio>
+                            <button onclick="buatSuaraSlide()" id="es-btn-suara" class="w-full bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini</button>
+                        </div>
+                        <button onclick="simpanSlideAktif()" id="es-btn-simpan" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold disabled:opacity-50"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Slide</button>
+                    </div>
+
+                    <div class="p-5 bg-slate-100 flex flex-col items-center gap-3 min-h-[420px]">
+                        <div class="flex bg-white rounded-full p-1 border text-xs font-bold" id="es-orientasi">
+                            <button onclick="aturPratinjau('lanskap')" data-o="lanskap" class="px-4 py-1.5 rounded-full"><i class="fa-solid fa-desktop mr-1"></i> Desktop</button>
+                            <button onclick="aturPratinjau('potret')" data-o="potret" class="px-4 py-1.5 rounded-full"><i class="fa-solid fa-mobile-screen mr-1"></i> HP</button>
+                        </div>
+                        <div id="es-bingkai" class="bg-white shadow-xl rounded-xl overflow-hidden border border-slate-200"><div id="es-pratinjau" class="w-full h-full"></div></div>
+                        <p class="text-[11px] text-slate-400">Pratinjau langsung — tampilan siswa menyesuaikan orientasi layar otomatis.</p>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 
@@ -470,7 +551,7 @@
             dbBukuList = (data || []).filter(b => b.tipe_konten !== 'Pengantar Sistem'); // Sembunyikan Intro dari tabel list
             
             dbBukuList.forEach(b => {
-                let icon = b.tipe_konten === 'Evaluasi Global' ? '🌟' : (b.tipe_konten === 'Hanya Kuis' ? '📝' : '📖');
+                let icon = b.tipe_konten === 'Evaluasi Global' ? '🌟' : (b.tipe_konten === 'Hanya Kuis' ? '📝' : (b.tipe_konten === 'Modul Slide' ? '📑' : '📖'));
                 const isAktif = b.is_active === true;
                 const toggleHtml = `
                     <label class="flex items-center justify-center cursor-pointer">
@@ -487,13 +568,14 @@
                         <td class="py-3 px-6 font-bold">${esc(b.judul)}</td>
                         <td class="py-3 px-6 text-center">${toggleHtml}</td>
                         <td class="py-3 px-6 text-center">
+                            ${b.tipe_konten === 'Modul Slide' ? `<button onclick="bukaEditorSlide('${b.id}')" class="text-indigo-600 bg-indigo-50 px-2.5 py-2 rounded mr-1 text-xs font-bold" title="Kelola slide & suara"><i class="fa-solid fa-images mr-1"></i>Slide</button>` : ''}
                             <button onclick="bukaModalEditModul('${encData(b)}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="hapusModul('${b.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
                     
                 ddKuis.innerHTML += `<option value="${b.id}">${icon} Target: ${esc(b.judul)}</option>`;
-                if (b.tipe_konten !== 'Modul PDF') optTaut += `<option value="${b.id}">Kuis: ${esc(b.judul)}</option>`;
+                if (b.tipe_konten !== 'Modul PDF' && b.tipe_konten !== 'Modul Slide') optTaut += `<option value="${b.id}">Kuis: ${esc(b.judul)}</option>`;
             });
             
             ddEditSinkron.innerHTML = optTaut; 
@@ -502,6 +584,12 @@
 
         async function toggleStatusModul(id, statusSaatIni) { await supabaseClient.from('buku').update({ is_active: !statusSaatIni }).eq('id', id); fetchDaftarBukuAdmin(); }
         
+        // Tampilkan input PDF hanya untuk tipe Modul PDF
+        function toggleFormModul(mode) {
+            const tipe = document.getElementById(mode === 'tambah' ? 'tipeKonten' : 'edit-tipeKonten').value;
+            document.getElementById(mode === 'tambah' ? 'areaFilePDF_tambah' : 'areaFilePDF_edit').classList.toggle('hidden', tipe !== 'Modul PDF');
+        }
+
         async function simpanKontenBaru() {
             const tipe = document.getElementById('tipeKonten').value; 
             const judul = document.getElementById('judulBuku').value; 
@@ -542,6 +630,14 @@
                 
                 if(tipe === 'Evaluasi Global') { 
                     await supabaseClient.from('buku').insert([{judul:'Pre-Test: '+judul, tipe_konten:tipe},{judul:'Post-Test: '+judul, tipe_konten:tipe}]); 
+                } else if (tipe === 'Modul Slide') {
+                    // Modul slide: buat wadahnya lalu langsung buka editor slide
+                    const { data: baru, error } = await supabaseClient.from('buku').insert([{ judul, tipe_konten: tipe, id_kuis_terkait: sinkron || null }]).select().single();
+                    if (error) throw error;
+                    tutupModal('modalTambahModul'); btn.disabled = false; document.getElementById('statusUpload').classList.add('hidden');
+                    document.getElementById('judulBuku').value = '';
+                    await fetchDaftarBukuAdmin();
+                    return bukaEditorSlide(baru.id);
                 } else { 
                     await supabaseClient.from('buku').insert([{judul, tipe_konten:tipe, file_url:pUrl, cover_url:cUrl, id_kuis_terkait:sinkron}]); 
                 }
@@ -604,6 +700,252 @@
         async function hapusSemuaKuisModul(id) { if(confirm("Kosongkan soal?")) { await supabaseClient.from('kuis').delete().eq('id_buku', id); window.location.reload(); } }
 
         
+
+        // ===================================
+        // 5. EDITOR MODUL SLIDE
+        // ===================================
+        const es = { buku: null, slides: [], aktif: -1, berubah: false, orientasi: 'lanskap', sibuk: false };
+        const esEl = id => document.getElementById(id);
+
+        function simpanPilihanSuara(v) { try { localStorage.setItem('esSuara', v); } catch (e) {} }
+
+        async function bukaEditorSlide(idBuku) {
+            const [{ data: buku, error: e1 }, { data: slides, error: e2 }] = await Promise.all([
+                supabaseClient.from('buku').select('id, judul, cover_url').eq('id', idBuku).single(),
+                supabaseClient.from('slide').select('*').eq('id_buku', idBuku).order('urutan', { ascending: true })
+            ]);
+            if (e1 || e2) return alert('Gagal memuat slide: ' + (e1 || e2).message);
+            Object.assign(es, { buku, slides: slides || [], aktif: -1, berubah: false });
+            esEl('es-judul-modul').textContent = buku.judul;
+            esEl('es-lihat').href = `buku.html?id=${buku.id}`;
+            try { esEl('es-suara').value = localStorage.getItem('esSuara') || 'wanita'; } catch (e) {}
+            esEl('modalEditorSlide').classList.remove('hidden');
+            aturPratinjau(es.orientasi);
+            pilihSlide(es.slides.length ? 0 : -1, true);
+        }
+
+        async function tutupEditorSlide() {
+            if (es.berubah && !confirm('Ada perubahan slide yang belum disimpan. Tutup tanpa menyimpan?')) return;
+            es.berubah = false;
+            esEl('es-audio').pause();
+            tutupModal('modalEditorSlide');
+        }
+
+        function renderDaftarSlide() {
+            esEl('es-daftar').innerHTML = es.slides.map((sl, i) => `
+                <div class="shrink-0 w-44 lg:w-auto rounded-xl border ${i === es.aktif ? 'border-rose-400 bg-white shadow-sm' : 'border-transparent bg-white/60 hover:bg-white'} p-2.5 cursor-pointer" onclick="pilihSlide(${i})">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-md ${i === es.aktif ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600'} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
+                        <span class="text-sm font-bold text-slate-700 truncate flex-1">${esc(sl.judul || 'Tanpa judul')}</span>
+                        <i class="fa-solid fa-volume-high text-xs ${sl.audio_url ? 'text-emerald-500' : 'text-slate-300'}" title="${sl.audio_url ? 'Suara siap' : 'Belum ada suara'}"></i>
+                    </div>
+                    <div class="flex gap-1 mt-2 justify-end">
+                        <button onclick="event.stopPropagation(); pindahSlide(${i}, -1)" ${i === 0 ? 'disabled' : ''} class="w-7 h-7 rounded bg-slate-100 text-slate-500 text-xs disabled:opacity-30" title="Naikkan"><i class="fa-solid fa-arrow-up"></i></button>
+                        <button onclick="event.stopPropagation(); pindahSlide(${i}, 1)" ${i === es.slides.length - 1 ? 'disabled' : ''} class="w-7 h-7 rounded bg-slate-100 text-slate-500 text-xs disabled:opacity-30" title="Turunkan"><i class="fa-solid fa-arrow-down"></i></button>
+                        <button onclick="event.stopPropagation(); hapusSlide(${i})" class="w-7 h-7 rounded bg-red-50 text-red-500 text-xs" title="Hapus slide"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`).join('');
+            esEl('es-btn-suara-semua').disabled = !es.slides.length;
+        }
+
+        async function pilihSlide(i, paksa) {
+            if (!paksa && i === es.aktif) return;
+            if (es.berubah && es.aktif >= 0) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            es.aktif = i;
+            const ada = i >= 0 && es.slides[i];
+            esEl('es-kosong').classList.toggle('hidden', !!ada);
+            esEl('es-kerja').classList.toggle('hidden', !ada);
+            renderDaftarSlide();
+            if (!ada) return;
+            const sl = es.slides[i];
+            esEl('es-nomor').textContent = `Slide ${i + 1} dari ${es.slides.length}`;
+            esEl('es-in-judul').value = sl.judul || '';
+            esEl('es-in-isi').value = sl.isi || '';
+            es.gambarForm = sl.gambar_url || null;
+            es.berubah = false;
+            tampilkanGambarForm(); tampilkanStatusAudio(); tandaiSimpan('');
+            renderPratinjau();
+        }
+
+        function formBerubah() { es.berubah = true; tandaiSimpan('Belum disimpan', 'text-amber-600'); renderPratinjau(); }
+        function tandaiSimpan(teks, warna = 'text-slate-400') { const el = esEl('es-status-simpan'); el.textContent = teks; el.className = 'text-xs font-bold ' + warna; }
+
+        function tampilkanGambarForm() {
+            const ada = !!es.gambarForm;
+            esEl('es-gambar-prev').classList.toggle('hidden', !ada);
+            if (ada) esEl('es-gambar-prev').src = es.gambarForm;
+            esEl('es-hapus-gambar').classList.toggle('hidden', !ada);
+            esEl('es-label-gambar').textContent = ada ? 'Ganti Gambar' : 'Pilih Gambar';
+        }
+
+        function tampilkanStatusAudio() {
+            const sl = es.slides[es.aktif], audio = esEl('es-audio'), st = esEl('es-audio-status');
+            if (sl && sl.audio_url) {
+                audio.src = sl.audio_url; audio.classList.remove('hidden');
+                st.textContent = '✓ Siap' + (sl.audio_suara ? ' · ' + sl.audio_suara.replace(/^id-ID-/, '').replace(/Neural$/, '') : '');
+                st.className = 'text-xs font-bold text-emerald-600';
+                esEl('es-btn-suara').innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Buat Ulang Suara';
+            } else {
+                audio.removeAttribute('src'); audio.classList.add('hidden');
+                st.textContent = 'Belum ada suara'; st.className = 'text-xs font-bold text-slate-400';
+                esEl('es-btn-suara').innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini';
+            }
+        }
+
+        function aturPratinjau(o) {
+            es.orientasi = o;
+            document.querySelectorAll('#es-orientasi button').forEach(b => {
+                const aktif = b.dataset.o === o;
+                b.classList.toggle('bg-slate-800', aktif); b.classList.toggle('text-white', aktif); b.classList.toggle('text-slate-500', !aktif);
+            });
+            esEl('es-bingkai').className = 'bg-white shadow-xl rounded-xl overflow-hidden border border-slate-200 ' +
+                (o === 'lanskap' ? 'w-full max-w-[640px] aspect-video' : 'w-[260px] aspect-[9/16]');
+            renderPratinjau();
+        }
+
+        function renderPratinjau() {
+            if (es.aktif < 0) return;
+            const data = { judul: esEl('es-in-judul').value, isi: esEl('es-in-isi').value, gambar_url: es.gambarForm };
+            SlideRender.render(esEl('es-pratinjau'), data, es.orientasi, { nomor: es.aktif + 1, total: es.slides.length });
+        }
+
+        async function simpanSlideAktif() {
+            const sl = es.slides[es.aktif];
+            if (!sl) return true;
+            const judul = esEl('es-in-judul').value.trim(), isi = esEl('es-in-isi').value.trim();
+            const payload = { judul, isi, gambar_url: es.gambarForm || null };
+            // Teks berubah -> audio lama tidak cocok lagi, harus dibuat ulang
+            const teksBerubah = judul !== (sl.judul || '') || isi !== (sl.isi || '');
+            if (teksBerubah && sl.audio_url) Object.assign(payload, { audio_url: null, audio_suara: null, audio_hash: null });
+
+            const btn = esEl('es-btn-simpan'); btn.disabled = true; tandaiSimpan('Menyimpan...');
+            const { data, error } = await supabaseClient.from('slide').update(payload).eq('id', sl.id).select().single();
+            btn.disabled = false;
+            if (error) { tandaiSimpan('Gagal menyimpan', 'text-red-600'); alert('Gagal menyimpan slide: ' + error.message); return false; }
+            es.slides[es.aktif] = data; es.berubah = false;
+            tandaiSimpan(teksBerubah && sl.audio_url ? 'Tersimpan · suara perlu dibuat ulang' : 'Tersimpan ✓', teksBerubah && sl.audio_url ? 'text-amber-600' : 'text-emerald-600');
+            // Gambar slide pertama menjadi sampul modul bila belum ada sampul
+            if (es.aktif === 0 && data.gambar_url && !es.buku.cover_url) {
+                await supabaseClient.from('buku').update({ cover_url: data.gambar_url }).eq('id', es.buku.id);
+                es.buku.cover_url = data.gambar_url;
+            }
+            renderDaftarSlide(); tampilkanStatusAudio();
+            return true;
+        }
+
+        async function tambahSlide() {
+            if (es.berubah && es.aktif >= 0) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            const urutan = es.slides.reduce((m, s) => Math.max(m, s.urutan || 0), 0) + 1;
+            const { data, error } = await supabaseClient.from('slide').insert([{ id_buku: es.buku.id, urutan, judul: '', isi: '' }]).select().single();
+            if (error) return alert('Gagal menambah slide: ' + error.message);
+            es.slides.push(data);
+            await pilihSlide(es.slides.length - 1, true);
+            esEl('es-in-judul').focus();
+        }
+
+        async function hapusSlide(i) {
+            if (!confirm(`Hapus slide ${i + 1}${es.slides[i].judul ? ' "' + es.slides[i].judul + '"' : ''}?`)) return;
+            const { error } = await supabaseClient.from('slide').delete().eq('id', es.slides[i].id);
+            if (error) return alert('Gagal menghapus: ' + error.message);
+            es.slides.splice(i, 1);
+            await simpanUrutan();
+            es.berubah = false;
+            pilihSlide(Math.min(i, es.slides.length - 1), true);
+        }
+
+        async function pindahSlide(i, arah) {
+            const j = i + arah;
+            if (j < 0 || j >= es.slides.length) return;
+            if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            [es.slides[i], es.slides[j]] = [es.slides[j], es.slides[i]];
+            await simpanUrutan();
+            pilihSlide(j, true);
+        }
+
+        // Tulis ulang urutan 1..n sesuai susunan di layar
+        async function simpanUrutan() {
+            const perlu = es.slides.map((sl, idx) => ({ sl, urutan: idx + 1 })).filter(x => x.sl.urutan !== x.urutan);
+            await Promise.all(perlu.map(x => supabaseClient.from('slide').update({ urutan: x.urutan }).eq('id', x.sl.id)));
+            perlu.forEach(x => { x.sl.urutan = x.urutan; });
+        }
+
+        // Perkecil gambar besar (maks 1600px) sebelum diunggah agar ringan dibuka di HP
+        function perkecilGambar(file) {
+            return new Promise((resolve) => {
+                const img = new Image(), url = URL.createObjectURL(file);
+                img.onload = () => {
+                    const skala = Math.min(1, 1600 / Math.max(img.width, img.height));
+                    if (skala === 1 && file.size < 600 * 1024) { URL.revokeObjectURL(url); return resolve(file); }
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(img.width * skala); c.height = Math.round(img.height * skala);
+                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                    const tipe = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                    c.toBlob(b => { URL.revokeObjectURL(url); resolve(b || file); }, tipe, 0.85);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+                img.src = url;
+            });
+        }
+
+        async function unggahGambarSlide(input) {
+            const file = input.files[0]; input.value = '';
+            if (!file) return;
+            if (!file.type.startsWith('image/')) return alert('File harus berupa gambar.');
+            esEl('es-label-gambar').textContent = 'Mengunggah...';
+            try {
+                const blob = await perkecilGambar(file);
+                const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+                const path = `slide/${es.buku.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+                const { error } = await supabaseClient.storage.from('pdf-buku').upload(path, blob, { contentType: blob.type || 'image/jpeg' });
+                if (error) throw error;
+                es.gambarForm = supabaseClient.storage.from('pdf-buku').getPublicUrl(path).data.publicUrl;
+                tampilkanGambarForm(); formBerubah();
+            } catch (err) { alert('Gagal mengunggah gambar: ' + err.message); tampilkanGambarForm(); }
+        }
+
+        function hapusGambarSlide() { es.gambarForm = null; tampilkanGambarForm(); formBerubah(); }
+
+        async function panggilTTS(slide) {
+            const { data, error } = await supabaseClient.functions.invoke('tts-slide', { body: { slide_id: slide.id, suara: esEl('es-suara').value } });
+            if (error) {
+                let pesan = error.message;
+                try { const j = await error.context.json(); pesan = j.error || pesan; } catch (e) {}
+                throw new Error(pesan);
+            }
+            return data;
+        }
+
+        async function buatSuaraSlide() {
+            const sl = es.slides[es.aktif];
+            if (!sl) return;
+            if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            if (!(es.slides[es.aktif].judul || es.slides[es.aktif].isi)) return alert('Isi judul atau teks slide dulu sebelum membuat suara.');
+            const btn = esEl('es-btn-suara'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuat suara...';
+            try {
+                const hasil = await panggilTTS(es.slides[es.aktif]);
+                Object.assign(es.slides[es.aktif], { audio_url: hasil.audio_url, audio_suara: hasil.suara });
+                renderDaftarSlide(); tampilkanStatusAudio();
+                esEl('es-audio').play().catch(() => {});
+            } catch (err) { alert('Gagal membuat suara: ' + err.message); tampilkanStatusAudio(); }
+            finally { btn.disabled = false; }
+        }
+
+        async function buatSuaraSemua() {
+            if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            const target = es.slides.filter(sl => !sl.audio_url && (sl.judul || sl.isi));
+            if (!target.length) return alert('Semua slide yang berisi teks sudah memiliki suara.');
+            if (!confirm(`Buat suara untuk ${target.length} slide yang belum punya suara?`)) return;
+            const btn = esEl('es-btn-suara-semua'); btn.disabled = true;
+            let sukses = 0;
+            for (const [n, sl] of target.entries()) {
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${n + 1}/${target.length}`;
+                try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); }
+                catch (err) { alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}`); break; }
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua';
+            tampilkanStatusAudio();
+            if (sukses) alert(`✅ Suara berhasil dibuat untuk ${sukses} slide.`);
+        }
     </script>
 </body>
 </html>
