@@ -1,0 +1,16 @@
+{
+  "name": "KITA SEBAYA - Edukasi Pencegahan HIV/AIDS",
+  "short_name": "KITA SEBAYA",
+  "description": "Modul interaktif, kuis, dan rapor belajar pencegahan HIV/AIDS.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c1b33",
+  "theme_color": "#0c1b33",
+  "lang": "id",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

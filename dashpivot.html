@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rekap Kuis - Pagination & Waktu</title>
+    <title>Rekap Kuis (Pivot) - KITA SEBAYA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="configdash.js?v=7"></script> 
+    <script src="config.js"></script>
+    <script src="admin-auth.js"></script>
+    <script>const adminSiap = AdminAuth.requireAdmin();</script>
     <style>
         .sticky-col-left { position: sticky; left: 0; z-index: 10; }
         .sticky-col-right { position: sticky; right: 0; z-index: 10; }
@@ -64,6 +66,7 @@
     </div>
 
     <script>
+        const esc = AdminAuth.escapeHtml;
         let dataTabs = {}; 
         let sortedDimensions = [];
         let currentBukuTitle = '';
@@ -71,6 +74,7 @@
         
         // State Pagination
         let currentPage = 1;
+        let loadingHtmlAsli = '';
         const rowsPerPage = 10; 
 
        // 1. Ambil dan Render Tab Buku
@@ -91,8 +95,8 @@
                 data.forEach(buku => {
                     const judul = buku.judul_buku || buku.judul || ('Buku ' + buku.id);
                     
-                    // PERBAIKAN: Sembunyikan "Pengaturan Slide Intro Aplikasi"
-                    if (judul.toLowerCase().includes('pengaturan slide intro aplikasi')) {
+                    // Sembunyikan data pengaturan slide intro (bukan modul)
+                    if (buku.tipe_konten === 'Pengantar Sistem' || judul.toLowerCase().includes('pengaturan slide intro aplikasi')) {
                         return; // Lewati data ini, jangan buatkan tombol
                     }
 
@@ -152,6 +156,9 @@
         // 2. Load Data Kuis
         async function loadDataKuis(idBuku) {
             const loading = document.getElementById('loading');
+            // Kembalikan isi loading (bisa tertimpa pesan kosong/error dari pemilihan sebelumnya)
+            if (!loadingHtmlAsli) loadingHtmlAsli = loading.innerHTML;
+            loading.innerHTML = loadingHtmlAsli;
             const teksLoading = document.getElementById('teks-loading');
             
             document.getElementById('pesan-awal').classList.add('hidden');
@@ -202,7 +209,7 @@
                     
                     const { data: profilData, error: errProfil } = await window.supabaseClient
                         .from('profiles')
-                        .select('id, nama_lengkap, kota, kategori, jenis_kelamin, tanggal_lahir')
+                        .select('id, nama_lengkap, sekolah, kelas, jenis_kelamin, tanggal_lahir')
                         .in('id', userIds);
                     if (errProfil) throw errProfil;
 
@@ -226,8 +233,8 @@
                                         nama: userProfil.nama_lengkap || 'User Tidak Diketahui',
                                         umur: hitungUmur(userProfil.tanggal_lahir),
                                         jk: formatGender(userProfil.jenis_kelamin),
-                                        kota: userProfil.kota || '-',
-                                        kategori: userProfil.kategori || '-',
+                                        sekolah: userProfil.sekolah || '-',
+                                        kelas: userProfil.kelas || '-',
                                         waktu: formatWaktu(riwayat.created_at),
                                         jawaban: {}, 
                                         totalSkor: 0
@@ -258,7 +265,7 @@
 
             } catch (err) {
                 console.error("Error:", err);
-                loading.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-lg">Gagal memuat data: ${err.message}</div>`;
+                loading.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-lg">Gagal memuat data: ${esc(err.message)}</div>`;
             }
         }
 
@@ -305,11 +312,11 @@
                             <th class="px-4 py-3 border-r sticky-col-left bg-gray-100 min-w-[150px] uppercase">Waktu & Nama</th>
                             <th class="px-2 py-3 border-r bg-gray-100 uppercase text-center">Umur</th>
                             <th class="px-2 py-3 border-r bg-gray-100 uppercase text-center">L/P</th>
-                            <th class="px-3 py-3 border-r bg-gray-100 uppercase">Kota / Kategori</th>`;
+                            <th class="px-3 py-3 border-r bg-gray-100 uppercase">Sekolah / Kelas</th>`;
 
             listPertanyaan.forEach((tanya, index) => {
                 const teksPendek = tanya.length > 20 ? tanya.substring(0, 20) + '...' : tanya;
-                html += `<th class="px-3 py-2 border-r text-center font-semibold bg-white" title="${tanya}">Q${index + 1}<br><span class="font-normal text-gray-500 capitalize text-[10px]">${teksPendek}</span></th>`;
+                html += `<th class="px-3 py-2 border-r text-center font-semibold bg-white" title="${esc(tanya)}">Q${index + 1}<br><span class="font-normal text-gray-500 capitalize text-[10px]">${esc(teksPendek)}</span></th>`;
             });
 
             html += `<th class="px-4 py-3 bg-blue-50 text-center sticky-col-right uppercase border-l">Total Skor</th></tr></thead><tbody>`;
@@ -322,11 +329,11 @@
                     html += `<tr class="border-b hover:bg-blue-50/50 transition-colors bg-white">
                         <td class="px-4 py-3 border-r sticky-col-left bg-white">
                             <div class="text-[10px] text-gray-400 mb-0.5">${user.waktu}</div>
-                            <div class="font-medium text-gray-900">${user.nama}</div>
+                            <div class="font-medium text-gray-900">${esc(user.nama)}</div>
                         </td>
                         <td class="px-2 py-3 border-r text-center text-gray-600">${user.umur}</td>
                         <td class="px-2 py-3 border-r text-center text-gray-600 font-semibold">${user.jk}</td>
-                        <td class="px-3 py-3 border-r text-gray-500 text-xs">${user.kota} <br> <span class="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-700">${user.kategori}</span></td>`;
+                        <td class="px-3 py-3 border-r text-gray-500 text-xs">${esc(user.sekolah)} <br> <span class="text-[10px] bg-gray-200 px-2 py-0.5 rounded text-gray-700">${esc(user.kelas)}</span></td>`;
                     
                     listPertanyaan.forEach(tanya => {
                         const skor = user.jawaban[tanya] !== undefined ? user.jawaban[tanya] : '<span class="text-gray-300">-</span>';
@@ -387,8 +394,8 @@
                         "Nama Lengkap": user.nama,
                         "Umur": user.umur,
                         "L/P": user.jk,
-                        "Kota": user.kota,
-                        "Kategori": user.kategori
+                        "Sekolah": user.sekolah,
+                        "Kelas": user.kelas
                     };
 
                     listPertanyaan.forEach(tanya => {
@@ -416,7 +423,12 @@
             XLSX.writeFile(workbook, namaFile);
         }
 
-        window.onload = loadDaftarBuku;
+        window.addEventListener('DOMContentLoaded', async () => {
+            const sesi = await adminSiap;
+            if (!sesi) return;
+            window.supabaseClient = sesi.client;
+            loadDaftarBuku();
+        });
     </script>
 </body>
 </html>

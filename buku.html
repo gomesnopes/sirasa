@@ -10,12 +10,16 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-        window.DFLIP = window.DFLIP || {};
-        window.DFLIP.defaults = { webgl: false, soundEnable: true, hideControls: "download,print,more,share,fullscreen,toggle,play" };
+        // Lokasi aset DearFlip (suara balik halaman, library) — tanpa ini dicari di root situs dan 404.
+        var dFlipLocation = "https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/";
     </script>
     <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
+    <script>
+        // dflip.min.js menimpa DFLIP.defaults saat dimuat, jadi pengaturan harus diterapkan SETELAHNYA.
+        Object.assign(DFLIP.defaults, { webgl: true, soundEnable: true, hideControls: "download,print,more,share,fullscreen,toggle,play" });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
 
@@ -28,17 +32,75 @@
         ._df_book { height: 100vh !important; width: 100vw !important; margin: 0 !important; }
         input[type="radio"]:checked + span { color: #e11d48; font-weight: bold; }
         .radio-card:has(input[type="radio"]:checked) { border-color: #e11d48; background-color: #fff1f2; }
+
+        /* ===== Mode Baca Teks ===== */
+        #panel-teks { --bg:#ffffff; --fg:#1e293b; --muted:#64748b; --bar:#f8fafc; --line:#e2e8f0; --hl:#fef3c7; --aksen:#e11d48; background:var(--bg); color:var(--fg); }
+        #panel-teks.tema-sepia { --bg:#f7f0e1; --fg:#3f301d; --muted:#86725a; --bar:#efe5cf; --line:#dccfb2; --hl:#f1dca0; --aksen:#b45309; }
+        #panel-teks.tema-gelap { --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8; --bar:#1e293b; --line:#334155; --hl:#3b3517; --aksen:#fb7185; }
+        #panel-teks .panel-bar { background:var(--bar); border-color:var(--line); }
+        #panel-teks .btn-bar { display:inline-flex; align-items:center; justify-content:center; gap:.4rem; min-width:2.5rem; height:2.5rem; padding:0 .75rem; border-radius:.6rem; border:1px solid var(--line); background:var(--bg); color:var(--fg); font-weight:700; font-size:.85rem; transition:all .15s; }
+        #panel-teks .btn-bar:hover:not(:disabled) { border-color:var(--aksen); color:var(--aksen); }
+        #panel-teks .hidden { display:none !important; }
+        #panel-teks .btn-bar:disabled { opacity:.35; cursor:not-allowed; }
+        #panel-teks .btn-bar.aktif { background:var(--aksen); border-color:var(--aksen); color:#fff; }
+        #panel-teks select, #panel-teks input { background:var(--bg); color:var(--fg); border:1px solid var(--line); }
+        #teks-isi { font-family: Georgia, 'Times New Roman', serif; }
+        #teks-isi p, #teks-isi h3 { margin-bottom:1.1em; line-height:1.85; border-radius:6px; transition:background .2s, box-shadow .2s; cursor:default; }
+        #teks-isi h3 { font-family: ui-sans-serif, system-ui, sans-serif; font-weight:800; font-size:1.2em; line-height:1.4; margin-top:.4em; }
+        #teks-isi.bisa-klik p, #teks-isi.bisa-klik h3 { cursor:pointer; }
+        #teks-isi .sedang-dibaca { background:var(--hl); box-shadow:0 0 0 6px var(--hl); }
+        #teks-isi .teks-meta { font-family: ui-sans-serif, system-ui, sans-serif; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen relative">
 
     <div id="nav-atas" class="absolute top-4 left-4 right-4 flex justify-between z-[60] pointer-events-none">
-        <button onclick="keluarKeBeranda()" class="pointer-events-auto bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm border border-slate-600"><i class="fa-solid fa-arrow-left"></i> Keluar</button>
+        <div class="flex gap-2">
+            <button onclick="keluarKeBeranda()" class="pointer-events-auto bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm border border-slate-600"><i class="fa-solid fa-arrow-left"></i> Keluar</button>
+            <button id="btn-mode-teks" onclick="bukaModeTeks()" class="hidden pointer-events-auto bg-white/90 backdrop-blur hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-white" title="Baca isi modul sebagai teks & dengarkan dibacakan"><i class="fa-solid fa-align-left text-rose-600"></i> <span>Mode Baca Teks</span></button>
+        </div>
         <button id="btn-selesai" onclick="tampilkanKonfirmasiSelesai()" class="hidden pointer-events-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-emerald-500"><i class="fa-solid fa-check-double"></i> Selesai Membaca</button>
     </div>
 
     <div id="wadah-buku" class="w-full h-full flex items-center justify-center absolute inset-0 z-10 transition-opacity duration-500">
         <div class="text-white flex flex-col items-center gap-3"><i class="fa-solid fa-spinner fa-spin text-3xl text-rose-500"></i><p class="font-medium">Menyiapkan modul...</p></div>
+    </div>
+
+    <!-- PANEL MODE BACA TEKS -->
+    <div id="panel-teks" class="hidden fixed inset-0 z-[70] flex flex-col" role="dialog" aria-label="Mode baca teks">
+        <header class="panel-bar shrink-0 border-b px-3 md:px-6 py-2.5 flex flex-wrap items-center gap-2">
+            <button onclick="tutupModeTeks()" class="btn-bar" title="Kembali ke tampilan flipbook"><i class="fa-solid fa-book-open"></i><span class="hidden sm:inline">Flipbook</span></button>
+            <div class="flex-1 min-w-[8rem] px-1">
+                <p class="text-[10px] uppercase tracking-widest font-bold" style="color:var(--muted)">Mode Baca Teks</p>
+                <h2 id="teks-judul" class="font-bold truncate text-sm md:text-base"></h2>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button onclick="ubahUkuranTeks(-1)" id="btn-font-kecil" class="btn-bar" title="Perkecil teks">A<span class="text-[10px]">−</span></button>
+                <button onclick="ubahUkuranTeks(1)" id="btn-font-besar" class="btn-bar" title="Perbesar teks">A<span class="text-[10px]">+</span></button>
+                <button onclick="gantiTemaTeks()" id="btn-tema" class="btn-bar" title="Ganti tema baca"><i class="fa-solid fa-circle-half-stroke"></i></button>
+            </div>
+            <div id="kontrol-tts" class="hidden items-center gap-1.5">
+                <button onclick="toggleTTS()" id="btn-tts" class="btn-bar" title="Bacakan halaman ini (klik paragraf untuk mulai dari situ)"><i class="fa-solid fa-volume-high"></i><span class="hidden sm:inline">Bacakan</span></button>
+                <button onclick="hentikanTTS()" id="btn-tts-stop" class="btn-bar hidden" title="Hentikan"><i class="fa-solid fa-stop"></i></button>
+                <select id="tts-kecepatan" onchange="ubahKecepatanTTS(this.value)" class="h-10 rounded-lg px-2 text-sm font-bold" title="Kecepatan suara">
+                    <option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option>
+                </select>
+            </div>
+        </header>
+
+        <main id="teks-scroll" class="flex-1 overflow-y-auto">
+            <article id="teks-isi" class="max-w-2xl mx-auto px-5 md:px-8 py-8 md:py-12"></article>
+        </main>
+
+        <footer class="panel-bar shrink-0 border-t px-3 md:px-6 py-2.5 flex items-center justify-between gap-2">
+            <button onclick="navHalamanTeks(-1)" id="btn-teks-prev" class="btn-bar"><i class="fa-solid fa-chevron-left"></i><span class="hidden sm:inline">Sebelumnya</span></button>
+            <div class="flex items-center gap-2 text-sm font-bold">
+                <span style="color:var(--muted)">Hal.</span>
+                <input id="input-hal-teks" type="number" min="1" value="1" onchange="lompatHalamanTeks(this.value)" class="w-16 h-10 rounded-lg text-center font-bold" aria-label="Nomor halaman">
+                <span style="color:var(--muted)">/ <span id="total-hal-teks">-</span></span>
+            </div>
+            <button onclick="navHalamanTeks(1)" id="btn-teks-next" class="btn-bar"><span class="hidden sm:inline">Berikutnya</span><i class="fa-solid fa-chevron-right"></i></button>
+        </footer>
     </div>
 
     <div id="wadah-ujian" class="w-full h-full bg-[#f8fafc] flex items-start justify-center p-4 md:p-8 absolute inset-0 z-20 hidden overflow-y-auto">
@@ -104,16 +166,20 @@ if (!pdfBersih) {
     return keluarKeBeranda();
 }
                 document.getElementById('wadah-buku').innerHTML = `<div class="_df_book" id="df_container" source="${pdfBersih}"></div>`;
+                const btnModeTeks = document.getElementById('btn-mode-teks');
+                btnModeTeks.classList.remove('hidden'); btnModeTeks.classList.add('flex');
 
                 window.DFLIP.defaults.onFlip = function(flipbook) {
                     let halSekarang = flipbook.target._activePage || flipbook.target.page; let totalHal = flipbook.target.pageCount || flipbook.options.pageCount;
+                    if (halSekarang) halFlipbook = halSekarang;
                     let btnSelesai = document.getElementById('btn-selesai');
                     if (halSekarang && totalHal && halSekarang >= totalHal) {
                         btnSelesai.classList.remove('hidden'); btnSelesai.classList.add('flex');
                         if (!kuisSudahDipicu) { kuisSudahDipicu = true; setTimeout(() => { tampilkanKonfirmasiSelesai(); }, 800); }
                     } else { btnSelesai.classList.add('hidden'); btnSelesai.classList.remove('flex'); kuisSudahDipicu = false; }
                 };
-                if(window.DFLIP && window.DFLIP.parseBooks) window.DFLIP.parseBooks();
+                // Tunggu jQuery ready agar DearFlip sudah menyetel lokasi asetnya.
+                if(window.DFLIP && window.DFLIP.parseBooks) jQuery(() => window.DFLIP.parseBooks());
             } catch (err) { alert("Gagal memuat modul."); keluarKeBeranda(); }
         });
 
@@ -144,6 +210,7 @@ if (!pdfBersih) {
             document.getElementById('btn-lanjut-kuis').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyiapkan Evaluasi...';
             await simpanDurasiBaca(); 
             tutupModalSelesai();
+            tutupModeTeks();
             
             document.getElementById('nav-atas').classList.add('hidden');
             document.getElementById('wadah-buku').classList.add('opacity-0');
@@ -253,6 +320,265 @@ if (!pdfBersih) {
                     
                 document.body.insertAdjacentHTML('beforeend', htmlSukses);
             } catch (err) { alert("Gagal mengirim data: " + err.message); btn.disabled = false; btn.innerHTML = `Coba Kirim Ulang`; }
+        }
+
+        // =====================================================
+        // MODE BACA TEKS & BACAKAN (TEXT-TO-SPEECH)
+        // Mengambil teks dari PDF per halaman (pdf.js), menampilkannya
+        // dalam format yang nyaman dibaca, dan bisa dibacakan (Web Speech API).
+        // =====================================================
+        const UKURAN_TEKS = [15, 17, 19, 22, 26];
+        const TEMA_TEKS = ['terang', 'sepia', 'gelap'];
+        const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/';
+        const ttsDidukung = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+
+        let pdfTeks = null; let cacheTeks = {}; let halTeks = 1; let totalHalTeks = 0; let halFlipbook = 1;
+        const tts = { aktif: false, jeda: false, antrian: [], idx: 0, sesi: 0, suara: null };
+        let prefBaca = muatPrefBaca();
+
+        function escapeHtml(t) { return String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+        function muatPrefBaca() {
+            const bawaan = { ukuran: 1, tema: 'terang', kecepatan: 1 };
+            try { return Object.assign(bawaan, JSON.parse(localStorage.getItem('prefBacaTeks') || '{}')); } catch (e) { return bawaan; }
+        }
+        function simpanPrefBaca() { try { localStorage.setItem('prefBacaTeks', JSON.stringify(prefBaca)); } catch (e) {} }
+
+        function terapkanPrefBaca() {
+            const panel = document.getElementById('panel-teks');
+            TEMA_TEKS.forEach(t => panel.classList.remove('tema-' + t));
+            if (prefBaca.tema !== 'terang') panel.classList.add('tema-' + prefBaca.tema);
+            prefBaca.ukuran = Math.min(Math.max(prefBaca.ukuran, 0), UKURAN_TEKS.length - 1);
+            document.getElementById('teks-isi').style.fontSize = UKURAN_TEKS[prefBaca.ukuran] + 'px';
+            document.getElementById('btn-font-kecil').disabled = prefBaca.ukuran === 0;
+            document.getElementById('btn-font-besar').disabled = prefBaca.ukuran === UKURAN_TEKS.length - 1;
+            document.getElementById('tts-kecepatan').value = String(prefBaca.kecepatan);
+        }
+        function ubahUkuranTeks(d) { prefBaca.ukuran += d; terapkanPrefBaca(); simpanPrefBaca(); }
+        function gantiTemaTeks() { prefBaca.tema = TEMA_TEKS[(TEMA_TEKS.indexOf(prefBaca.tema) + 1) % TEMA_TEKS.length]; terapkanPrefBaca(); simpanPrefBaca(); }
+        function ubahKecepatanTTS(v) { prefBaca.kecepatan = parseFloat(v) || 1; simpanPrefBaca(); }
+
+        // Pakai pdf.js yang sudah dimuat DearFlip bila ada, agar tidak bentrok.
+        function muatPdfJs() {
+            const siapkan = lib => { if (!lib.GlobalWorkerOptions.workerSrc) lib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${lib.version || '2.16.105'}/pdf.worker.min.js`; return lib; };
+            if (window.pdfjsLib) return Promise.resolve(siapkan(window.pdfjsLib));
+            return new Promise((resolve, reject) => {
+                const el = document.createElement('script');
+                el.src = PDFJS_CDN + 'pdf.min.js';
+                el.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_CDN + 'pdf.worker.min.js'; resolve(window.pdfjsLib); };
+                el.onerror = () => reject(new Error('Gagal memuat pembaca PDF.'));
+                document.head.appendChild(el);
+            });
+        }
+
+        async function bukaModeTeks() {
+            const panel = document.getElementById('panel-teks');
+            const isi = document.getElementById('teks-isi');
+            document.getElementById('teks-judul').textContent = dataBuku ? dataBuku.judul : '';
+            if (ttsDidukung) { document.getElementById('kontrol-tts').classList.remove('hidden'); document.getElementById('kontrol-tts').classList.add('flex'); }
+            terapkanPrefBaca();
+            panel.classList.remove('hidden');
+
+            if (!pdfTeks) {
+                isi.innerHTML = `<div class="text-center py-20" style="color:var(--muted)"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3" style="color:var(--aksen)"></i><p class="font-sans font-medium">Menyiapkan teks modul...</p></div>`;
+                try {
+                    const lib = await muatPdfJs();
+                    pdfTeks = await lib.getDocument(dataBuku.file_url).promise;
+                    totalHalTeks = pdfTeks.numPages;
+                    document.getElementById('total-hal-teks').textContent = totalHalTeks;
+                    document.getElementById('input-hal-teks').max = totalHalTeks;
+                } catch (err) {
+                    console.error(err);
+                    isi.innerHTML = `<div class="text-center py-20 font-sans" style="color:var(--muted)"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3 text-amber-500"></i><p class="font-medium">Teks modul tidak dapat dimuat.</p><p class="text-sm mt-1">Silakan gunakan tampilan flipbook.</p></div>`;
+                    return;
+                }
+            }
+            tampilkanHalamanTeks(Math.min(Math.max(halFlipbook, 1), totalHalTeks));
+        }
+
+        function tutupModeTeks() {
+            hentikanTTS();
+            document.getElementById('panel-teks').classList.add('hidden');
+        }
+
+        async function ambilTeksHalaman(n) {
+            if (cacheTeks[n]) return cacheTeks[n];
+            const page = await pdfTeks.getPage(n);
+            const konten = await page.getTextContent();
+            return (cacheTeks[n] = susunParagraf(konten.items));
+        }
+
+        // Ubah potongan teks PDF (per posisi) menjadi baris lalu paragraf.
+        function susunParagraf(items) {
+            const baris = []; let cur = null;
+            items.forEach(it => {
+                if (typeof it.str !== 'string' || !it.transform) return;
+                const x = it.transform[4], y = it.transform[5];
+                const h = Math.abs(it.transform[3]) || it.height || 10;
+                if (!cur || Math.abs(y - cur.y) > Math.max(h, cur.h) * 0.6) {
+                    cur = { teks: '', y, h, xAkhir: x }; baris.push(cur);
+                } else if (cur.teks && !/\s$/.test(cur.teks) && !/^\s/.test(it.str) && x - cur.xAkhir > h * 0.2) {
+                    cur.teks += ' ';
+                }
+                cur.teks += it.str;
+                cur.h = Math.max(cur.h, h);
+                cur.xAkhir = x + (it.width || 0);
+            });
+
+            const tinggi = baris.map(b => b.h).sort((a, b) => a - b);
+            const median = tinggi.length ? tinggi[Math.floor(tinggi.length / 2)] : 10;
+
+            const paragraf = []; let p = null; let prev = null;
+            const tutup = () => { if (p && p.teks) paragraf.push(p); p = null; };
+            baris.forEach(b => {
+                const t = b.teks.replace(/\s+/g, ' ').trim();
+                if (!t) { tutup(); prev = null; return; }
+                const judul = b.h > median * 1.25;
+                const pisah = !p || !prev
+                    || Math.abs(prev.y - b.y) > prev.h * 1.9
+                    || Math.abs(b.h - prev.h) > prev.h * 0.25
+                    || p.judul !== judul
+                    || /^([•▪●◦\-–]|\d{1,2}[.)])\s/.test(t);
+                if (pisah) { tutup(); p = { teks: t, judul }; }
+                else p.teks = /-$/.test(p.teks) ? p.teks + t : p.teks + ' ' + t;
+                prev = b;
+            });
+            tutup();
+            return paragraf;
+        }
+
+        async function tampilkanHalamanTeks(n, opsi = {}) {
+            n = Math.min(Math.max(parseInt(n) || 1, 1), totalHalTeks);
+            halTeks = n;
+            document.getElementById('input-hal-teks').value = n;
+            document.getElementById('btn-teks-prev').disabled = n <= 1;
+            document.getElementById('btn-teks-next').disabled = n >= totalHalTeks;
+
+            const isi = document.getElementById('teks-isi');
+            if (!cacheTeks[n]) isi.innerHTML = `<div class="text-center py-20" style="color:var(--muted)"><i class="fa-solid fa-spinner fa-spin text-2xl" style="color:var(--aksen)"></i></div>`;
+
+            let para;
+            try { para = await ambilTeksHalaman(n); } catch (e) { console.error(e); para = []; }
+            if (n !== halTeks) return; // pengguna sudah pindah halaman
+
+            let html = `<p class="teks-meta">Halaman ${n} dari ${totalHalTeks}</p>`;
+            if (!para.length) {
+                html += `<div class="text-center py-16 font-sans" style="color:var(--muted)"><i class="fa-regular fa-image text-4xl mb-3"></i><p class="font-medium">Halaman ini berisi gambar atau hasil pindaian, sehingga teksnya tidak dapat ditampilkan.</p><button onclick="tutupModeTeks()" class="btn-bar mt-4 mx-auto"><i class="fa-solid fa-book-open"></i> Lihat di Flipbook</button></div>`;
+            } else {
+                html += para.map((pr, i) => pr.judul ? `<h3 data-i="${i}">${escapeHtml(pr.teks)}</h3>` : `<p data-i="${i}">${escapeHtml(pr.teks)}</p>`).join('');
+            }
+            if (n === totalHalTeks) {
+                html += `<div class="mt-10 p-6 rounded-2xl text-center font-sans border" style="border-color:var(--line); background:var(--bar)">
+                    <i class="fa-solid fa-flag-checkered text-3xl mb-2" style="color:var(--aksen)"></i>
+                    <p class="font-bold mb-4">Anda sudah sampai di halaman terakhir.</p>
+                    <button onclick="tampilkanKonfirmasiSelesai()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold shadow-md transition"><i class="fa-solid fa-check-double mr-2"></i>Selesai Membaca</button>
+                </div>`;
+            }
+            isi.innerHTML = html;
+            isi.classList.toggle('bisa-klik', ttsDidukung && para.length > 0);
+            if (!opsi.pertahankanScroll) document.getElementById('teks-scroll').scrollTop = 0;
+
+            if (n < totalHalTeks) ambilTeksHalaman(n + 1).catch(() => {}); // prefetch
+            if (opsi.lanjutBaca && tts.aktif) mulaiTTS(0);
+        }
+
+        function navHalamanTeks(d) { hentikanTTS(); tampilkanHalamanTeks(halTeks + d); }
+        function lompatHalamanTeks(v) { hentikanTTS(); tampilkanHalamanTeks(v); }
+
+        // Klik paragraf = mulai dibacakan dari paragraf tersebut.
+        document.addEventListener('click', e => {
+            const el = e.target.closest('#teks-isi [data-i]');
+            if (el && ttsDidukung) mulaiTTS(parseInt(el.dataset.i));
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && !document.getElementById('panel-teks').classList.contains('hidden')) tutupModeTeks();
+        });
+
+        // ---------- Text-to-Speech ----------
+        function pilihSuaraIndonesia() {
+            const daftar = speechSynthesis.getVoices();
+            return daftar.find(v => /^id([-_]|$)/i.test(v.lang)) || daftar.find(v => /indonesia/i.test(v.name)) || null;
+        }
+        if (ttsDidukung) {
+            tts.suara = pilihSuaraIndonesia();
+            speechSynthesis.addEventListener('voiceschanged', () => { tts.suara = pilihSuaraIndonesia(); });
+            window.addEventListener('pagehide', () => speechSynthesis.cancel());
+        }
+
+        // Potong teks panjang per kalimat (beberapa browser memutus ucapan yang terlalu panjang).
+        function potongKalimat(teks) {
+            const kalimat = teks.match(/[^.!?;:]+[.!?;:]*\s*/g) || [teks];
+            const hasil = []; let buf = '';
+            kalimat.forEach(k => { if (buf && (buf + k).length > 220) { hasil.push(buf.trim()); buf = ''; } buf += k; });
+            if (buf.trim()) hasil.push(buf.trim());
+            return hasil;
+        }
+
+        function mulaiTTS(dariParagraf = 0) {
+            if (!ttsDidukung) return;
+            const para = cacheTeks[halTeks] || [];
+            speechSynthesis.cancel();
+            tts.sesi++;
+            if (!para.length) {
+                if (halTeks < totalHalTeks) { tts.aktif = true; updateTombolTTS(); return tampilkanHalamanTeks(halTeks + 1, { lanjutBaca: true }); }
+                return hentikanTTS();
+            }
+            tts.aktif = true; tts.jeda = false;
+            tts.antrian = [];
+            para.forEach((pr, i) => { if (i >= dariParagraf) potongKalimat(pr.teks).forEach(k => tts.antrian.push({ i, k })); });
+            tts.idx = 0;
+            updateTombolTTS();
+            ucapkanBerikut(tts.sesi);
+        }
+
+        function ucapkanBerikut(sesi) {
+            if (!tts.aktif || sesi !== tts.sesi) return;
+            if (tts.idx >= tts.antrian.length) {
+                tandaiParagraf(null);
+                if (halTeks < totalHalTeks) tampilkanHalamanTeks(halTeks + 1, { lanjutBaca: true });
+                else hentikanTTS();
+                return;
+            }
+            const { i, k } = tts.antrian[tts.idx];
+            tandaiParagraf(i);
+            const u = new SpeechSynthesisUtterance(k);
+            u.lang = 'id-ID';
+            if (tts.suara) u.voice = tts.suara;
+            u.rate = prefBaca.kecepatan || 1;
+            u.onend = () => { if (sesi !== tts.sesi) return; tts.idx++; ucapkanBerikut(sesi); };
+            u.onerror = e => { if (sesi !== tts.sesi || e.error === 'interrupted' || e.error === 'canceled') return; tts.idx++; ucapkanBerikut(sesi); };
+            speechSynthesis.speak(u);
+        }
+
+        function toggleTTS() {
+            if (!tts.aktif) return mulaiTTS(0);
+            if (tts.jeda) { speechSynthesis.resume(); tts.jeda = false; }
+            else { speechSynthesis.pause(); tts.jeda = true; }
+            updateTombolTTS();
+        }
+
+        function hentikanTTS() {
+            tts.aktif = false; tts.jeda = false; tts.sesi++;
+            if (ttsDidukung) speechSynthesis.cancel();
+            tandaiParagraf(null);
+            updateTombolTTS();
+        }
+
+        function tandaiParagraf(i) {
+            document.querySelectorAll('#teks-isi .sedang-dibaca').forEach(el => el.classList.remove('sedang-dibaca'));
+            if (i === null) return;
+            const el = document.querySelector(`#teks-isi [data-i="${i}"]`);
+            if (el) { el.classList.add('sedang-dibaca'); el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        }
+
+        function updateTombolTTS() {
+            const btn = document.getElementById('btn-tts');
+            const berbicara = tts.aktif && !tts.jeda;
+            btn.classList.toggle('aktif', tts.aktif);
+            btn.innerHTML = berbicara
+                ? '<i class="fa-solid fa-pause"></i><span class="hidden sm:inline">Jeda</span>'
+                : `<i class="fa-solid ${tts.aktif ? 'fa-play' : 'fa-volume-high'}"></i><span class="hidden sm:inline">${tts.aktif ? 'Lanjutkan' : 'Bacakan'}</span>`;
+            document.getElementById('btn-tts-stop').classList.toggle('hidden', !tts.aktif);
         }
     </script>
 </body>

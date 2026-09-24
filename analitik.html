@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
+    <script src="admin-auth.js"></script>
+    <script>const adminSiap = AdminAuth.requireAdmin();</script>
     
     <style>
         .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
@@ -37,7 +39,7 @@
                 <span class="text-sm font-bold text-slate-700">Filter Global:</span>
             </div>
             <select id="filter-kota" class="bg-slate-50 border border-slate-200 text-sm font-bold text-slate-700 rounded-lg px-3 py-2 outline-none w-full md:w-auto">
-                <option value="Semua">Semua Asal Kota</option>
+                <option value="Semua">Semua Sekolah</option>
             </select>
             <div class="flex items-center gap-2 w-full md:w-auto">
                 <input type="date" id="filter-start" class="bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium px-3 py-2 outline-none w-full">
@@ -75,7 +77,7 @@
                     <div class="relative h-48"><canvas id="c-gender"></canvas></div>
                 </div>
                 <div class="bg-white p-5 rounded-xl border shadow-sm">
-                    <h4 class="font-bold text-sm mb-4"><i class="fa-solid fa-users text-slate-500 mr-2"></i>Distribusi Kategori</h4>
+                    <h4 class="font-bold text-sm mb-4"><i class="fa-solid fa-users text-slate-500 mr-2"></i>Distribusi Kelas</h4>
                     <div class="relative h-48"><canvas id="c-kategori"></canvas></div>
                 </div>
                 <div class="bg-white p-5 rounded-xl border shadow-sm">
@@ -198,11 +200,13 @@
         
         const DIMENSI_LIST = ["Pengetahuan", "Efikasi Diri", "Sikap", "Aksesibilitas Media Digital", "Perilaku Pencegahan"];
         const MAX_SCORE_TOTAL = 500; // Asumsi poin maksimal kuis jika dijumlah
-        const TAHUN_SEKARANG = new Date().getFullYear();
+
+        const esc = AdminAuth.escapeHtml;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            if (typeof CONFIG === 'undefined') return alert("config.js tidak terbaca!");
-            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            const sesi = await adminSiap;
+            if (!sesi) return;
+            supabaseClient = sesi.client;
             await fetchSemuaDataMaster();
             terapkanFilter(); 
         });
@@ -223,8 +227,7 @@
         }
 
         function hitungUmur(tglLahir) {
-            if(!tglLahir) return null;
-            return TAHUN_SEKARANG - new Date(tglLahir).getFullYear();
+            return hitungUmurDari(tglLahir); // dari config.js (menghitung bulan & tanggal)
         }
 
         async function fetchSemuaDataMaster() {
@@ -238,14 +241,14 @@
             rawBuku = resB.data || []; 
             rawRiwayat = resR.data || [];
 
-            // Populate Dropdown Kota Global
+            // Populate Dropdown Sekolah Global (daftar CONFIG + sekolah yang ada di data)
             const ddKota = document.getElementById('filter-kota');
-            const kotaUnik = [...new Set(rawProfiles.map(p => p.kota).filter(Boolean))].sort();
-            kotaUnik.forEach(k => ddKota.innerHTML += `<option value="${k}">${k}</option>`);
+            const kotaUnik = [...new Set([...CONFIG.DAFTAR_SEKOLAH, ...rawProfiles.map(p => p.sekolah).filter(Boolean)])].sort();
+            kotaUnik.forEach(k => ddKota.innerHTML += `<option value="${esc(k)}">${esc(k)}</option>`);
 
             // Populate Dropdown Modul
             const ddModul = document.getElementById('select-modul');
-            rawBuku.forEach(b => { if(b.tipe_konten !== 'Pengantar Sistem') ddModul.innerHTML += `<option value="${b.id}">[${b.tipe_konten}] ${b.judul}</option>`; });
+            rawBuku.forEach(b => { if(b.tipe_konten !== 'Pengantar Sistem') ddModul.innerHTML += `<option value="${b.id}">[${esc(b.tipe_konten)}] ${esc(b.judul)}</option>`; });
         }
 
         function terapkanFilter() {
@@ -254,7 +257,7 @@
             const fEnd = document.getElementById('filter-end').value;
 
             // Filter Profil
-            filteredProfiles = rawProfiles.filter(p => fKota === 'Semua' || p.kota === fKota);
+            filteredProfiles = rawProfiles.filter(p => fKota === 'Semua' || p.sekolah === fKota);
             const validUserIds = new Set(filteredProfiles.map(p => p.id));
 
             // Filter Riwayat
@@ -272,7 +275,7 @@
             const ddUser = document.getElementById('select-user');
             const currUser = ddUser.value;
             ddUser.innerHTML = '<option value="">-- Pilih Nama Responden --</option>';
-            filteredProfiles.forEach(u => ddUser.innerHTML += `<option value="${u.id}">${u.nama_lengkap} - ${u.kategori || ''}</option>`);
+            filteredProfiles.forEach(u => ddUser.innerHTML += `<option value="${u.id}">${esc(u.nama_lengkap)} - ${esc([u.kelas, u.sekolah].filter(Boolean).join(', '))}</option>`);
             if(filteredProfiles.some(p => p.id === currUser)) ddUser.value = currUser;
 
             // Render ulang semua tampilan
@@ -289,16 +292,16 @@
             document.getElementById('g-aktif').innerText = filteredProfiles.filter(p => p.total_poin > 0).length;
 
             let genderCount = {'Laki-laki':0, 'Perempuan':0};
-            let catCount = {'Pelajar':0, 'Mahasiswa':0, 'Umum':0};
-            let ageCount = {'< 15 Thn':0, '15-18 Thn':0, '19-22 Thn':0, '> 22 Thn':0, 'Kosong':0};
+            let catCount = {}; CONFIG.DAFTAR_KELAS.forEach(k => catCount[k] = 0);
+            let ageCount = {'≤ 14 Thn':0, '15 Thn':0, '16 Thn':0, '17 Thn':0, '≥ 18 Thn':0, 'Kosong':0};
             
             filteredProfiles.forEach(p => {
                 if(p.jenis_kelamin) genderCount[p.jenis_kelamin] = (genderCount[p.jenis_kelamin]||0)+1;
-                if(p.kategori) catCount[p.kategori] = (catCount[p.kategori]||0)+1;
+                const kelas = p.kelas || 'Belum diisi'; catCount[kelas] = (catCount[kelas]||0)+1;
                 
                 let age = hitungUmur(p.tanggal_lahir);
                 if(age !== null) {
-                    if(age < 15) ageCount['< 15 Thn']++; else if(age <= 18) ageCount['15-18 Thn']++; else if(age <= 22) ageCount['19-22 Thn']++; else ageCount['> 22 Thn']++;
+                    if(age <= 14) ageCount['≤ 14 Thn']++; else if(age >= 18) ageCount['≥ 18 Thn']++; else ageCount[age + ' Thn']++;
                 } else { ageCount['Kosong']++; }
             });
 
@@ -308,7 +311,7 @@
             
             // 2. Chart Kategori
             if(chartInstances.cKat) chartInstances.cKat.destroy();
-            chartInstances.cKat = new Chart(document.getElementById('c-kategori'), { type: 'pie', data: { labels: Object.keys(catCount), datasets: [{ data: Object.values(catCount), backgroundColor: ['#10b981', '#f59e0b', '#64748b'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }});
+            chartInstances.cKat = new Chart(document.getElementById('c-kategori'), { type: 'pie', data: { labels: Object.keys(catCount), datasets: [{ data: Object.values(catCount), backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#64748b', '#94a3b8'] }] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }});
             
             // 3. Chart Usia
             if(chartInstances.cU) chartInstances.cU.destroy();
@@ -319,7 +322,7 @@
             let boardHtml = '';
             top5.forEach((u, i) => {
                 let badge = i === 0 ? '<i class="fa-solid fa-trophy text-yellow-500"></i>' : (i === 1 ? '<i class="fa-solid fa-medal text-slate-400"></i>' : (i === 2 ? '<i class="fa-solid fa-medal text-amber-600"></i>' : `<span class="text-xs font-bold text-slate-400">${i+1}</span>`));
-                boardHtml += `<div class="flex items-center justify-between p-2 bg-white rounded border border-slate-100 shadow-sm"><div class="flex items-center gap-3"><span class="w-6 text-center">${badge}</span><span class="font-bold text-sm text-slate-700 truncate w-24">${u.nama_lengkap}</span></div><span class="text-indigo-600 font-black text-sm">${u.total_poin||0} Poin</span></div>`;
+                boardHtml += `<div class="flex items-center justify-between p-2 bg-white rounded border border-slate-100 shadow-sm"><div class="flex items-center gap-3"><span class="w-6 text-center">${badge}</span><span class="font-bold text-sm text-slate-700 truncate w-24">${esc(u.nama_lengkap)}</span></div><span class="text-indigo-600 font-black text-sm">${u.total_poin||0} Poin</span></div>`;
             });
             document.getElementById('wadah-leaderboard').innerHTML = boardHtml;
 
@@ -328,7 +331,7 @@
             let userRecord = {};
             
             filteredProfiles.forEach(p => { 
-                userRecord[p.id] = { id: p.id, nama: p.nama_lengkap, gender: p.jenis_kelamin || '-', usia: hitungUmur(p.tanggal_lahir) || '-', kategori: p.kategori || '-', kota: p.kota || '-', pre:{}, post:{}, baca:{}, kuis:{} }; 
+                userRecord[p.id] = { id: p.id, nama: p.nama_lengkap, gender: p.jenis_kelamin || '-', usia: hitungUmur(p.tanggal_lahir) ?? '-', tglLahir: p.tanggal_lahir || '', kelas: p.kelas || '-', sekolah: p.sekolah || '-', pre:{}, post:{}, baca:{}, kuis:{} }; 
             });
 
             let totalWaktuDetik = 0; 
@@ -369,17 +372,17 @@
             const arrBaca = Array.from(new Set(rawBuku.filter(b=>b.tipe_konten==='Modul PDF').map(b=>b.judul))).sort(); 
             const arrKuis = Array.from(new Set(rawBuku.filter(b=>b.tipe_konten==='Hanya Kuis').map(b=>b.judul))).sort();
             
-            let hd = `<th class="py-3 px-5 border-r sticky left-0 bg-slate-100 z-10">Nama Responden</th><th class="py-3 px-5 border-r">Kategori</th><th class="py-3 px-5 border-r">Usia</th><th class="py-3 px-5 border-r">Gender</th><th class="py-3 px-5 border-r">Kota</th><th class="py-3 px-5 border-r">N-Gain Total</th>`;
-            arrBaca.forEach(m => hd+=`<th class="py-3 px-5 bg-indigo-50 border-r">Durasi [M]: ${m} (s)</th>`); 
-            arrKuis.forEach(m => hd+=`<th class="py-3 px-5 bg-amber-50 border-r">Durasi [K]: ${m} (s)</th>`); 
+            let hd = `<th class="py-3 px-5 border-r sticky left-0 bg-slate-100 z-10">Nama Responden</th><th class="py-3 px-5 border-r">Sekolah</th><th class="py-3 px-5 border-r">Kelas</th><th class="py-3 px-5 border-r">Usia</th><th class="py-3 px-5 border-r">Gender</th><th class="py-3 px-5 border-r">N-Gain Total</th>`;
+            arrBaca.forEach(m => hd+=`<th class="py-3 px-5 bg-indigo-50 border-r">Durasi [M]: ${esc(m)} (s)</th>`); 
+            arrKuis.forEach(m => hd+=`<th class="py-3 px-5 bg-amber-50 border-r">Durasi [K]: ${esc(m)} (s)</th>`); 
             DIMENSI_LIST.forEach(d => hd+=`<th class="py-3 px-5 bg-emerald-50 border-r">Pre: ${d}</th><th class="py-3 px-5 bg-emerald-50 border-r">Post: ${d}</th><th class="py-3 px-5 bg-emerald-100 border-r">Gain: ${d}</th>`);
             document.getElementById('headMasterData').innerHTML = `<tr>${hd}</tr>`;
             
             const tbody = document.getElementById('tabelMasterData'); tbody.innerHTML='';
             
             Object.values(userRecord).forEach(u => {
-                let rX = { "ID": u.id, "Nama": u.nama, "Kategori": u.kategori, "Usia": u.usia, "Gender": u.gender, "Kota": u.kota }; 
-                let tHtml = `<td class="py-3 px-5 font-bold sticky left-0 bg-white z-10 border-r whitespace-nowrap">${u.nama}</td><td class="py-3 px-5 border-r">${u.kategori}</td><td class="py-3 px-5 border-r text-center">${u.usia}</td><td class="py-3 px-5 border-r">${u.gender}</td><td class="py-3 px-5 border-r">${u.kota}</td>`;
+                let rX = { "ID": u.id, "Nama": u.nama, "Sekolah": u.sekolah, "Kelas": u.kelas, "Tanggal_Lahir": u.tglLahir, "Usia": u.usia, "Gender": u.gender }; 
+                let tHtml = `<td class="py-3 px-5 font-bold sticky left-0 bg-white z-10 border-r whitespace-nowrap">${esc(u.nama)}</td><td class="py-3 px-5 border-r">${esc(u.sekolah)}</td><td class="py-3 px-5 border-r">${esc(u.kelas)}</td><td class="py-3 px-5 border-r text-center">${esc(u.usia)}</td><td class="py-3 px-5 border-r">${esc(u.gender)}</td>`;
 
                 if(Object.keys(u.pre).length > 0) countPreAktif++;
                 if(Object.values(u.baca).some(v => v > 0)) countBacaAktif++;
@@ -502,8 +505,8 @@
             document.getElementById('u-nama').innerText = user.nama_lengkap;
             
             let usia = hitungUmur(user.tanggal_lahir);
-            document.getElementById('u-bio').innerText = `${user.kategori || 'Kategori N/A'} | ${user.jenis_kelamin || 'Gender N/A'} | ${usia !== null ? usia + ' Tahun' : 'Usia N/A'}`;
-            document.getElementById('u-lokasi').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${user.kota || 'Kota N/A'}`;
+            document.getElementById('u-bio').innerText = `${user.kelas || 'Kelas N/A'} | ${user.jenis_kelamin || 'Gender N/A'} | ${usia !== null ? usia + ' Tahun' : 'Usia N/A'}`;
+            document.getElementById('u-lokasi').innerHTML = `<i class="fa-solid fa-school"></i> ${esc(user.sekolah || 'Sekolah N/A')}`;
             document.getElementById('u-poin').innerText = user.total_poin || 0;
 
             const riwayatUser = filteredRiwayat.filter(r => r.id_user === idUser);
@@ -530,7 +533,7 @@
                 let iconT = b.tipe_konten === 'Modul PDF' ? '<i class="fa-solid fa-file-pdf text-rose-500"></i>' : '<i class="fa-solid fa-pen-to-square text-indigo-500"></i>';
                 let aksi = b.tipe_konten === 'Modul PDF' ? `Membaca selama ${r.durasi_baca_detik} detik` : `Mendapat skor ${r.poin_didapat} poin`;
                 
-                wTimeline.innerHTML += `<div class="relative pl-6"><div class="absolute -left-[5px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full border-2 border-white"></div><p class="text-[10px] font-bold text-slate-400 mb-0.5">${timeStr}</p><p class="text-sm font-bold text-slate-700">${iconT} ${b.judul}</p><p class="text-xs text-slate-500">${aksi}</p></div>`;
+                wTimeline.innerHTML += `<div class="relative pl-6"><div class="absolute -left-[5px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full border-2 border-white"></div><p class="text-[10px] font-bold text-slate-400 mb-0.5">${timeStr}</p><p class="text-sm font-bold text-slate-700">${iconT} ${esc(b.judul)}</p><p class="text-xs text-slate-500">${aksi}</p></div>`;
             });
 
             let nGain = "-";
