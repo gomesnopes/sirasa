@@ -202,6 +202,7 @@
         const MAX_SCORE_TOTAL = 500; // Asumsi poin maksimal kuis jika dijumlah
 
         const esc = AdminAuth.escapeHtml;
+        const adalahMateri = b => b.tipe_konten === 'Modul PDF' || b.tipe_konten === 'Modul Slide';
 
         document.addEventListener('DOMContentLoaded', async () => {
             const sesi = await adminSiap;
@@ -348,7 +349,7 @@
                 const dur = r.durasi_baca_detik || 0; const scr = r.poin_didapat || 0; const dim = r.dimensi || 'Umum';
                 
                 totalWaktuDetik += dur;
-                if (r.jenis_tes === 'Membaca Modul PDF') {
+                if (String(r.jenis_tes || '').startsWith('Membaca Modul')) {
                     userRecord[r.id_user].baca[b.judul] = (userRecord[r.id_user].baca[b.judul]||0)+dur;
                 } else {
                     if (b.tipe_konten === 'Evaluasi Global') { 
@@ -369,7 +370,7 @@
             document.getElementById('g-waktu').innerText = Math.floor(totalWaktuDetik / 3600) + ' Jam';
 
             globalMasterExportData = []; 
-            const arrBaca = Array.from(new Set(rawBuku.filter(b=>b.tipe_konten==='Modul PDF').map(b=>b.judul))).sort(); 
+            const arrBaca = Array.from(new Set(rawBuku.filter(adalahMateri).map(b=>b.judul))).sort(); 
             const arrKuis = Array.from(new Set(rawBuku.filter(b=>b.tipe_konten==='Hanya Kuis').map(b=>b.judul))).sort();
             
             let hd = `<th class="py-3 px-5 border-r sticky left-0 bg-slate-100 z-10">Nama Responden</th><th class="py-3 px-5 border-r">Sekolah</th><th class="py-3 px-5 border-r">Kelas</th><th class="py-3 px-5 border-r">Usia</th><th class="py-3 px-5 border-r">Gender</th><th class="py-3 px-5 border-r">N-Gain Total</th>`;
@@ -460,13 +461,13 @@
             
             riwayatModul.forEach(r => { 
                 totalWaktu += (r.durasi_baca_detik || 0); 
-                if(buku && buku.tipe_konten !== 'Modul PDF') scores.push(r.poin_didapat || 0); 
+                if(buku && !adalahMateri(buku)) scores.push(r.poin_didapat || 0); 
             });
 
             document.getElementById('m-interaksi').innerText = userUnique.size;
             document.getElementById('m-waktu').innerText = userUnique.size > 0 ? Math.round(totalWaktu / userUnique.size) + 's' : '0s';
             
-            if (buku && buku.tipe_konten !== 'Modul PDF') {
+            if (buku && !adalahMateri(buku)) {
                 let avgSkor = scores.length > 0 ? Math.round(scores.reduce((a,b)=>a+b, 0) / scores.length) : 0;
                 document.getElementById('m-skor').innerText = avgSkor;
                 
@@ -530,8 +531,8 @@
 
                 let dt = new Date(r.created_at);
                 let timeStr = dt.toLocaleDateString('id-ID') + ' ' + dt.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
-                let iconT = b.tipe_konten === 'Modul PDF' ? '<i class="fa-solid fa-file-pdf text-rose-500"></i>' : '<i class="fa-solid fa-pen-to-square text-indigo-500"></i>';
-                let aksi = b.tipe_konten === 'Modul PDF' ? `Membaca selama ${r.durasi_baca_detik} detik` : `Mendapat skor ${r.poin_didapat} poin`;
+                let iconT = adalahMateri(b) ? `<i class="fa-solid ${b.tipe_konten === 'Modul Slide' ? 'fa-images' : 'fa-file-pdf'} text-rose-500"></i>` : '<i class="fa-solid fa-pen-to-square text-indigo-500"></i>';
+                let aksi = adalahMateri(b) ? `Membaca selama ${r.durasi_baca_detik} detik` : `Mendapat skor ${r.poin_didapat} poin`;
                 
                 wTimeline.innerHTML += `<div class="relative pl-6"><div class="absolute -left-[5px] top-1 w-2.5 h-2.5 bg-slate-300 rounded-full border-2 border-white"></div><p class="text-[10px] font-bold text-slate-400 mb-0.5">${timeStr}</p><p class="text-sm font-bold text-slate-700">${iconT} ${esc(b.judul)}</p><p class="text-xs text-slate-500">${aksi}</p></div>`;
             });
