@@ -1,4 +1,8 @@
 -- =====================================================================
+-- ⚠️ USANG: bagian 1–4 digantikan oleh supabase/2026-09-25_tabel_admins.sql
+--    (admin kini di tabel public.admins, kolom profiles.role dihapus).
+--    Bagian 5 (rekomendasi RLS) masih relevan.
+-- =====================================================================
 -- KITA SEBAYA — Setup peran Admin
 -- Jalankan di: Supabase Dashboard > SQL Editor > New query > Run
 -- Aman dijalankan berulang kali.

@@ -57,7 +57,7 @@
                 </button>
 
                 <p class="text-[11px] text-slate-400 text-center leading-relaxed pt-2">
-                    Hanya akun dengan peran <span class="font-bold text-slate-600">admin</span> yang dapat masuk.
+                    Hanya akun yang terdaftar sebagai <span class="font-bold text-slate-600">admin</span> yang dapat masuk.
                 </p>
             </form>
         </div>
@@ -70,7 +70,7 @@
     <script>
         const PESAN_ALASAN = {
             bukan_admin: ['amber', 'Akun ini tidak memiliki akses admin. Silakan masuk dengan akun admin.'],
-            setup: ['red', 'Kolom "role" belum ada di tabel profiles. Jalankan file supabase/admin_setup.sql di SQL Editor Supabase terlebih dahulu.'],
+            setup: ['red', 'Tabel "admins" belum ada di database. Jalankan file supabase/2026-09-25_tabel_admins.sql di SQL Editor Supabase terlebih dahulu.'],
             galat: ['red', 'Gagal memverifikasi akses admin. Periksa koneksi lalu coba lagi.'],
             keluar: ['emerald', 'Anda telah keluar dari panel admin.']
         };

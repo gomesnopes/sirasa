@@ -1,5 +1,6 @@
 // File: admin-auth.js
 // Penjaga akses halaman admin (admin.html, analitik.html, dashpivot.html).
+// Admin terdaftar di tabel public.admins (terpisah dari profiles responden).
 // Wajib dimuat SETELAH supabase-js dan config.js.
 //
 // Catatan: pengecekan di browser hanya membatasi tampilan. Keamanan data yang
@@ -23,13 +24,13 @@
     }
 
     async function cekAdmin(userId) {
-        const { data, error } = await getClient().from('profiles').select('id, nama_lengkap, role').eq('id', userId).maybeSingle();
+        const { data, error } = await getClient().from('admins').select('user_id, nama').eq('user_id', userId).maybeSingle();
         if (error) {
-            const kolomHilang = /role/i.test(error.message || '') && /column|kolom/i.test(error.message || '');
-            return { ok: false, alasan: kolomHilang ? 'setup' : 'galat', pesan: error.message };
+            const tabelHilang = /admins/i.test(error.message || '') && /exist|find|relation/i.test(error.message || '');
+            return { ok: false, alasan: tabelHilang ? 'setup' : 'galat', pesan: error.message };
         }
-        if (!data || data.role !== 'admin') return { ok: false, alasan: 'bukan_admin' };
-        return { ok: true, profil: data };
+        if (!data) return { ok: false, alasan: 'bukan_admin' };
+        return { ok: true, profil: { id: data.user_id, nama_lengkap: data.nama } };
     }
 
     function keHalamanLogin(alasan) {
