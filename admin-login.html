@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Login Admin - KITA SEBAYA</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="admin-auth.js"></script>
+
+    <style>
+        .modal-enter { animation: zoomIn 0.35s ease-out forwards; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 font-sans text-slate-800 flex items-center justify-center p-4 relative overflow-hidden">
+
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-rose-600 rounded-full filter blur-3xl opacity-20"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-indigo-600 rounded-full filter blur-3xl opacity-20"></div>
+
+    <div class="w-full max-w-md relative z-10 modal-enter">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-slate-950 px-8 py-7 text-white">
+                <div class="w-12 h-12 bg-rose-600 rounded-xl flex items-center justify-center text-xl mb-4 shadow-lg shadow-rose-900/40">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h1 class="text-2xl font-black">Panel Peneliti</h1>
+                <p class="text-slate-400 text-sm mt-1">Masuk dengan akun admin <span class="font-bold text-white">KITA <span class="text-rose-500">SEBAYA</span></span>.</p>
+            </div>
+
+            <form id="form-login" class="p-8 space-y-4" onsubmit="event.preventDefault(); prosesLoginAdmin();">
+                <div id="pesan" class="hidden p-3 rounded-xl text-sm font-medium"></div>
+
+                <div>
+                    <label for="email" class="block text-xs font-bold text-slate-500 mb-1 ml-1">Email Admin</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="email" id="email" autocomplete="username" required class="w-full pl-11 pr-4 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl outline-none transition" placeholder="admin@contoh.com">
+                    </div>
+                </div>
+                <div>
+                    <label for="password" class="block text-xs font-bold text-slate-500 mb-1 ml-1">Kata Sandi</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="password" id="password" autocomplete="current-password" required class="w-full pl-11 pr-12 py-3 bg-slate-50 text-sm border border-slate-200 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl outline-none transition" placeholder="••••••••">
+                        <button type="button" onclick="toggleSandi()" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 text-slate-400 hover:text-slate-700" title="Tampilkan kata sandi"><i id="ikon-sandi" class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Panel Admin
+                </button>
+
+                <p class="text-[11px] text-slate-400 text-center leading-relaxed pt-2">
+                    Hanya akun dengan peran <span class="font-bold text-slate-600">admin</span> yang dapat masuk.
+                </p>
+            </form>
+        </div>
+
+        <a href="index.html" class="mt-6 flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-white transition">
+            <i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda
+        </a>
+    </div>
+
+    <script>
+        const PESAN_ALASAN = {
+            bukan_admin: ['amber', 'Akun ini tidak memiliki akses admin. Silakan masuk dengan akun admin.'],
+            setup: ['red', 'Kolom "role" belum ada di tabel profiles. Jalankan file supabase/admin_setup.sql di SQL Editor Supabase terlebih dahulu.'],
+            galat: ['red', 'Gagal memverifikasi akses admin. Periksa koneksi lalu coba lagi.'],
+            keluar: ['emerald', 'Anda telah keluar dari panel admin.']
+        };
+
+        const params = new URLSearchParams(location.search);
+        const tujuan = AdminAuth.halamanAman(params.get('next'), 'admin.html');
+
+        function tampilPesan(warna, teks) {
+            const el = document.getElementById('pesan');
+            el.className = `p-3 rounded-xl text-sm font-medium bg-${warna}-50 text-${warna}-700 border border-${warna}-200`;
+            el.textContent = teks;
+        }
+
+        function toggleSandi() {
+            const input = document.getElementById('password');
+            const tampil = input.type === 'password';
+            input.type = tampil ? 'text' : 'password';
+            document.getElementById('ikon-sandi').className = `fa-solid ${tampil ? 'fa-eye-slash' : 'fa-eye'}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (PESAN_ALASAN[params.get('alasan')]) tampilPesan(...PESAN_ALASAN[params.get('alasan')]);
+
+            // Jika sudah login sebagai admin, langsung masuk.
+            try {
+                const { data: { session } } = await AdminAuth.getClient().auth.getSession();
+                if (session) {
+                    const hasil = await AdminAuth.cekAdmin(session.user.id);
+                    if (hasil.ok) return location.replace(tujuan);
+                    document.getElementById('email').value = session.user.email || '';
+                }
+            } catch (err) { console.error(err); }
+        });
+
+        async function prosesLoginAdmin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+            const teksAsli = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memverifikasi...';
+
+            try {
+                const client = AdminAuth.getClient();
+                const { data, error } = await client.auth.signInWithPassword({ email, password });
+                if (error) throw new Error('Email atau kata sandi salah.');
+
+                const hasil = await AdminAuth.cekAdmin(data.user.id);
+                if (!hasil.ok) {
+                    await client.auth.signOut();
+                    const [warna, teks] = PESAN_ALASAN[hasil.alasan] || PESAN_ALASAN.galat;
+                    tampilPesan(warna, teks);
+                    return;
+                }
+
+                tampilPesan('emerald', `Selamat datang, ${hasil.profil.nama_lengkap || 'Admin'}! Mengalihkan...`);
+                location.replace(tujuan);
+            } catch (err) {
+                tampilPesan('red', err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = teksAsli;
+            }
+        }
+    </script>
+</body>
+</html>

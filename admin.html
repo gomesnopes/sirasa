@@ -12,6 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="config.js"></script>
+    <script src="admin-auth.js"></script>
+    <script>const adminSiap = AdminAuth.requireAdmin();</script>
     
     <style>
         .tab-content { display: none; } 
@@ -45,18 +47,31 @@
         <header class="bg-white h-16 border-b border-slate-200 flex items-center px-6 shrink-0 z-10 shadow-sm">
             <button onclick="toggleSidebar()" class="text-slate-500 hover:text-rose-600 transition p-2 bg-slate-100 rounded-lg"><i class="fa-solid fa-bars text-xl"></i></button>
             <h1 class="ml-4 font-bold text-slate-700 hidden sm:block">Panel Peneliti - KITA SEBAYA</h1>
+            <div class="ml-auto flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <p id="admin-nama" class="text-sm font-bold text-slate-700 leading-tight">Admin</p>
+                    <p id="admin-email" class="text-[11px] text-slate-400"></p>
+                </div>
+                <button onclick="AdminAuth.logout()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 text-sm font-bold transition" title="Keluar dari panel admin"><i class="fa-solid fa-right-from-bracket"></i> <span class="hidden md:inline">Keluar</span></button>
+            </div>
         </header>
 
         <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 w-full">
             <div class="max-w-[1500px] mx-auto">
                 
-                <!-- TAB DASHBOARD ANALITIK -->
-                <!-- TAB DASHBOARD ANALITIK (VIA IFRAME) -->
-<section id="dashboard" class="tab-content active h-[calc(100vh-8rem)]">
-    <iframe src="analitik.html" class="w-full h-full border-0 rounded-xl shadow-inner bg-slate-50" title="Dasbor Analitik"></iframe>
-</section>
+                <!-- TAB DASHBOARD ANALITIK (VIA IFRAME): Analitik Riset & Rekap Kuis Pivot -->
+                <section id="dashboard" class="tab-content active">
+                    <div class="flex gap-2 mb-4 bg-white p-1.5 rounded-xl border shadow-sm w-full sm:w-fit overflow-x-auto">
+                        <button onclick="switchAnalitik('analitik')" id="sub-analitik" class="sub-analitik-btn px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition bg-slate-800 text-white"><i class="fa-solid fa-chart-simple mr-2"></i>Analitik Riset</button>
+                        <button onclick="switchAnalitik('dashpivot')" id="sub-dashpivot" class="sub-analitik-btn px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition text-slate-500 hover:bg-slate-100"><i class="fa-solid fa-table-cells mr-2"></i>Rekap Kuis (Pivot)</button>
+                    </div>
+                    <div class="h-[calc(100vh-12rem)]">
+                        <iframe id="frame-analitik" src="analitik.html" class="w-full h-full border-0 rounded-xl shadow-inner bg-slate-50" title="Dasbor Analitik Riset"></iframe>
+                        <iframe id="frame-dashpivot" data-src="dashpivot.html" class="hidden w-full h-full border-0 rounded-xl shadow-inner bg-slate-50" title="Rekap Kuis Pivot"></iframe>
+                    </div>
+                </section>
 
-                <section id="pengguna" class="tab-content"><h2 class="text-2xl font-bold mb-6">Data Responden</h2><div class="bg-white rounded-xl border shadow-sm overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-100 border-b text-sm"><tr><th class="py-4 px-6">Nama Lengkap</th><th class="py-4 px-6">Kategori</th><th class="py-4 px-6">Gender</th><th class="py-4 px-6">Kota</th><th class="py-4 px-6 text-center">Aksi</th></tr></thead><tbody id="tabelPengguna" class="text-sm divide-y"></tbody></table></div></section>
+                <section id="pengguna" class="tab-content"><h2 class="text-2xl font-bold mb-6">Data Responden</h2><div class="bg-white rounded-xl border shadow-sm overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-100 border-b text-sm"><tr><th class="py-4 px-6">Nama Lengkap</th><th class="py-4 px-6">Sekolah</th><th class="py-4 px-6">Kelas</th><th class="py-4 px-6">Gender</th><th class="py-4 px-6 text-center">Umur</th><th class="py-4 px-6 text-center">Aksi</th></tr></thead><tbody id="tabelPengguna" class="text-sm divide-y"></tbody></table></div></section>
                 
                <section id="modul" class="tab-content">
                     <div class="flex justify-between mb-6">
@@ -130,11 +145,12 @@
                 </div>
                 <!-- AKHIR BLOK TAMBAHAN -->
 
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Asal Sekolah</label><select id="edit-user-sekolah" class="w-full p-2.5 border rounded-lg"></select></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Kategori</label><select id="edit-user-kategori" class="w-full p-2.5 border rounded-lg"><option value="Pelajar">Pelajar</option><option value="Mahasiswa">Mahasiswa</option><option value="Umum">Umum</option></select></div>
+                    <div><label class="block text-xs font-bold text-slate-500 mb-1">Kelas</label><select id="edit-user-kelas" class="w-full p-2.5 border rounded-lg"></select></div>
                     <div><label class="block text-xs font-bold text-slate-500 mb-1">Gender</label><select id="edit-user-gender" class="w-full p-2.5 border rounded-lg"><option value="Laki-laki">Laki-laki</option><option value="Perempuan">Perempuan</option></select></div>
                 </div>
-                <div><label class="block text-xs font-bold text-slate-500 mb-1">Asal Kota</label><input type="text" id="edit-user-kota" class="w-full p-2.5 border rounded-lg"></div>
+                <div><label class="block text-xs font-bold text-slate-500 mb-1">Tanggal Lahir</label><input type="date" id="edit-user-tgl" class="w-full p-2.5 border rounded-lg"></div>
                 <div><label class="block text-xs font-bold text-slate-500 mb-1">Total Poin / XP (Manual)</label><input type="number" id="edit-user-poin" class="w-full p-2.5 border bg-emerald-50 text-emerald-700 font-bold rounded-lg"></div>
             </div>
             <div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalDetailUser')" class="w-1/2 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanEditUser()" class="w-1/2 bg-blue-600 text-white font-bold py-2.5 rounded-lg">Perbarui</button></div>
@@ -210,11 +226,31 @@
         const DIMENSI_LIST = ["Pengetahuan", "Efikasi Diri", "Sikap", "Aksesibilitas Media Digital", "Perilaku Pencegahan"];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof CONFIG === 'undefined') return alert("config.js tidak terbaca!");
-            supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        const esc = AdminAuth.escapeHtml;
+        // Serialisasi objek untuk atribut onclick='...' (encodeURIComponent tidak meng-encode tanda petik tunggal).
+        const encData = obj => encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sesi = await adminSiap;
+            if (!sesi) return;
+            supabaseClient = sesi.client;
+            document.getElementById('admin-nama').textContent = sesi.profil.nama_lengkap || 'Admin';
+            document.getElementById('admin-email').textContent = sesi.session.user.email || '';
             inisialisasiAdmin();
         });
+
+        // Sub-tab analitik: iframe dashpivot baru dimuat saat pertama kali dibuka.
+        function switchAnalitik(nama) {
+            ['analitik', 'dashpivot'].forEach(n => {
+                const aktif = n === nama;
+                const frame = document.getElementById('frame-' + n);
+                if (aktif && !frame.getAttribute('src') && frame.dataset.src) frame.src = frame.dataset.src;
+                frame.classList.toggle('hidden', !aktif);
+                const btn = document.getElementById('sub-' + n);
+                btn.classList.toggle('bg-slate-800', aktif); btn.classList.toggle('text-white', aktif);
+                btn.classList.toggle('text-slate-500', !aktif); btn.classList.toggle('hover:bg-slate-100', !aktif);
+            });
+        }
 
         // TAMBAHAN: Eksekusi fetchPengaturan
        async function inisialisasiAdmin() { 
@@ -241,28 +277,39 @@
             if (!data) return;
             
             data.forEach(u => {
-                const ava = `<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mr-3">${(u.nama_lengkap||'U').charAt(0)}</div>`; 
+                const ava = `<div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs mr-3">${esc((u.nama_lengkap||'U').charAt(0))}</div>`; 
                 tbody.innerHTML += `
                     <tr class="border-b">
-                        <td class="py-3 px-6 flex items-center">${ava} ${u.nama_lengkap}</td>
-                        <td class="py-3 px-6">${u.kategori}</td>
-                        <td class="py-3 px-6">${u.jenis_kelamin}</td>
-                        <td class="py-3 px-6">${u.kota||'-'}</td>
+                        <td class="py-3 px-6 flex items-center">${ava} ${esc(u.nama_lengkap)}${u.role === 'admin' ? ' <span class="ml-2 text-[10px] font-bold bg-rose-100 text-rose-600 px-2 py-0.5 rounded">ADMIN</span>' : ''}</td>
+                        <td class="py-3 px-6">${esc(u.sekolah||'-')}</td>
+                        <td class="py-3 px-6">${esc(u.kelas||'-')}</td>
+                        <td class="py-3 px-6">${esc(u.jenis_kelamin||'-')}</td>
+                        <td class="py-3 px-6 text-center">${hitungUmurDari(u.tanggal_lahir) ?? '-'}</td>
                         <td class="py-3 px-6 text-center">
-                            <button onclick="bukaModalDetailUser('${encodeURIComponent(JSON.stringify(u))}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="bukaModalDetailUser('${encData(u)}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="hapusUser('${u.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
             });
         }
         
+        // Pilih nilai pada <select>; tambahkan opsi bila nilai lama tidak ada di daftar CONFIG.
+        function pilihNilai(id, nilai) {
+            const el = document.getElementById(id);
+            if (nilai && ![...el.options].some(o => o.value === nilai)) el.add(new Option(nilai, nilai));
+            el.value = nilai || '';
+        }
+
         function bukaModalDetailUser(str) { 
             const u = JSON.parse(decodeURIComponent(str)); 
             document.getElementById('edit-user-id').value = u.id; 
             document.getElementById('edit-user-nama').value = u.nama_lengkap; 
-            document.getElementById('edit-user-kategori').value = u.kategori; 
-            document.getElementById('edit-user-gender').value = u.jenis_kelamin; 
-            document.getElementById('edit-user-kota').value = u.kota; 
+            isiPilihan('edit-user-sekolah', CONFIG.DAFTAR_SEKOLAH, '-- Pilih Sekolah --');
+            isiPilihan('edit-user-kelas', CONFIG.DAFTAR_KELAS, '-- Pilih Kelas --');
+            pilihNilai('edit-user-sekolah', u.sekolah);
+            pilihNilai('edit-user-kelas', u.kelas);
+            document.getElementById('edit-user-gender').value = u.jenis_kelamin || 'Laki-laki'; 
+            document.getElementById('edit-user-tgl').value = u.tanggal_lahir || ''; 
             document.getElementById('edit-user-poin').value = u.total_poin || 0;
             
             // Kosongkan form kredensial tiap kali modal dibuka
@@ -285,13 +332,15 @@
     
     try {
         // 1. Update Profile Tabel Publik (Tetap pakai Anon Key)
-        await supabaseClient.from('profiles').update({
+        const { error: errProfil } = await supabaseClient.from('profiles').update({
             nama_lengkap: document.getElementById('edit-user-nama').value, 
-            kategori: document.getElementById('edit-user-kategori').value, 
+            sekolah: document.getElementById('edit-user-sekolah').value || null, 
+            kelas: document.getElementById('edit-user-kelas').value || null, 
             jenis_kelamin: document.getElementById('edit-user-gender').value, 
-            kota: document.getElementById('edit-user-kota').value,
+            tanggal_lahir: document.getElementById('edit-user-tgl').value || null,
             total_poin: parseInt(document.getElementById('edit-user-poin').value) || 0
         }).eq('id', id); 
+        if (errProfil) throw errProfil;
         
         // 2. Update Auth via Google Apps Script (Hanya Eksekusi Jika Form Email/Pass Diisi)
         if (emailBaru || passwordBaru) {
@@ -363,9 +412,9 @@
                         <div class="absolute -top-3 left-4 bg-indigo-600 text-white text-xs font-bold px-2 py-1 rounded">Slide ${i+1}</div>
                         <div class="mt-2">
                             <label class="block text-xs font-bold text-slate-500 mb-1">Judul Utama</label>
-                            <input type="text" id="intro-judul-${i}" class="w-full p-2.5 border border-slate-300 rounded-lg mb-3" value="${s.judul}">
+                            <input type="text" id="intro-judul-${i}" class="w-full p-2.5 border border-slate-300 rounded-lg mb-3" value="${esc(s.judul)}">
                             <label class="block text-xs font-bold text-slate-500 mb-1">Deskripsi Tambahan</label>
-                            <textarea id="intro-desc-${i}" class="w-full p-2.5 border border-slate-300 rounded-lg" rows="2">${s.desc}</textarea>
+                            <textarea id="intro-desc-${i}" class="w-full p-2.5 border border-slate-300 rounded-lg" rows="2">${esc(s.desc)}</textarea>
                         </div>
                     </div>
                 `;
@@ -435,16 +484,16 @@
                 tabel.innerHTML += `
                     <tr class="border-b">
                         <td class="py-3 px-6">${icon} ${b.tipe_konten}</td>
-                        <td class="py-3 px-6 font-bold">${b.judul}</td>
+                        <td class="py-3 px-6 font-bold">${esc(b.judul)}</td>
                         <td class="py-3 px-6 text-center">${toggleHtml}</td>
                         <td class="py-3 px-6 text-center">
-                            <button onclick="bukaModalEditModul('${encodeURIComponent(JSON.stringify(b))}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="bukaModalEditModul('${encData(b)}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
                             <button onclick="hapusModul('${b.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>`;
                     
-                ddKuis.innerHTML += `<option value="${b.id}">${icon} Target: ${b.judul}</option>`;
-                if (b.tipe_konten !== 'Modul PDF') optTaut += `<option value="${b.id}">Kuis: ${b.judul}</option>`;
+                ddKuis.innerHTML += `<option value="${b.id}">${icon} Target: ${esc(b.judul)}</option>`;
+                if (b.tipe_konten !== 'Modul PDF') optTaut += `<option value="${b.id}">Kuis: ${esc(b.judul)}</option>`;
             });
             
             ddEditSinkron.innerHTML = optTaut; 
@@ -538,19 +587,19 @@
         // ===================================
         function bukaModalKuisTambah() { document.getElementById('modalTambahKuis').classList.remove('hidden'); renderDynamicOptions(); }
         function renderDynamicOptions() { const j=document.getElementById('formKuisJumlahOpsi').value; const w=document.getElementById('wadahDynamicOptions'); w.innerHTML=''; for(let i=0;i<j;i++){ w.innerHTML+=`<div class="flex gap-2 mb-2"><span class="w-8 bg-slate-200 text-center font-bold p-2">${LABELS[i]}</span><input type="text" id="opt_${LABELS[i]}" class="w-full p-2 border" placeholder="Teks"><input type="number" id="poin_${LABELS[i]}" class="w-20 p-2 border" value="${i===0?1:0}"></div>`; } }
-        function tambahKeDraft() { const p=document.getElementById('formKuisPertanyaan').value, d=document.getElementById('formKuisDimensi').value, j=document.getElementById('formKuisJumlahOpsi').value; if(!p)return alert("Isi soal!"); let opsi={}, maxP=0, jwb='A'; for(let i=0;i<j;i++){ let t=document.getElementById(`opt_${LABELS[i]}`).value, po=parseInt(document.getElementById(`poin_${LABELS[i]}`).value); opsi[LABELS[i]]={teks:t, poin:po}; if(po>maxP){maxP=po; jwb=LABELS[i];} } draftKuisArray.push({pertanyaan:p, opsi_jawaban:opsi, jawaban_benar:jwb, poin_reward:maxP, dimensi:d, jenis_kuis:'Pilihan Ganda'}); document.getElementById('draftCount').innerText=draftKuisArray.length; document.getElementById('draftList').innerHTML+=`<p class="truncate border-b py-1">${p}</p>`; document.getElementById('formKuisPertanyaan').value=''; }
+        function tambahKeDraft() { const p=document.getElementById('formKuisPertanyaan').value, d=document.getElementById('formKuisDimensi').value, j=document.getElementById('formKuisJumlahOpsi').value; if(!p)return alert("Isi soal!"); let opsi={}, maxP=0, jwb='A'; for(let i=0;i<j;i++){ let t=document.getElementById(`opt_${LABELS[i]}`).value, po=parseInt(document.getElementById(`poin_${LABELS[i]}`).value); opsi[LABELS[i]]={teks:t, poin:po}; if(po>maxP){maxP=po; jwb=LABELS[i];} } draftKuisArray.push({pertanyaan:p, opsi_jawaban:opsi, jawaban_benar:jwb, poin_reward:maxP, dimensi:d, jenis_kuis:'Pilihan Ganda'}); document.getElementById('draftCount').innerText=draftKuisArray.length; document.getElementById('draftList').innerHTML+=`<p class="truncate border-b py-1">${esc(p)}</p>`; document.getElementById('formKuisPertanyaan').value=''; }
         async function simpanKuisKeDatabase() { const b=document.getElementById('formKuisBuku').value; if(!b)return alert("Pilih wadah"); await supabaseClient.from('kuis').insert(draftKuisArray.map(s=>({...s, id_buku:b}))); window.location.reload(); }
         
         async function fetchDaftarKuis() {
             const {data} = await supabaseClient.from('kuis').select('id_buku'); let m={}; if(data) data.forEach(q => m[q.id_buku]=(m[q.id_buku]||0)+1);
             const tb = document.getElementById('tabelKuis'); tb.innerHTML='';
-            dbBukuList.forEach(b => { if(m[b.id]) tb.innerHTML += `<tr class="border-b"><td class="py-3 px-6 font-bold">${b.judul}</td><td class="py-3 px-6 text-center">${m[b.id]} Soal</td><td class="py-3 px-6 text-center"><button onclick="bukaListSoal('${b.id}','${b.judul}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-list"></i> Lihat/Edit</button><button onclick="hapusSemuaKuisModul('${b.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
+            dbBukuList.forEach(b => { if(m[b.id]) tb.innerHTML += `<tr class="border-b"><td class="py-3 px-6 font-bold">${esc(b.judul)}</td><td class="py-3 px-6 text-center">${m[b.id]} Soal</td><td class="py-3 px-6 text-center"><button onclick="bukaListSoal('${b.id}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-list"></i> Lihat/Edit</button><button onclick="hapusSemuaKuisModul('${b.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button></td></tr>`; });
         }
-        async function bukaListSoal(idBuku, judul) { document.getElementById('title-modal-list').innerText = "Soal: " + judul; const {data} = await supabaseClient.from('kuis').select('*').eq('id_buku', idBuku); const w = document.getElementById('wadah-list-soal'); w.innerHTML=''; data.forEach(q => { w.innerHTML += `<div class="p-3 border rounded flex justify-between bg-slate-50"><p class="text-sm truncate w-3/4">${q.pertanyaan}</p><button onclick="bukaModalEditSoal('${encodeURIComponent(JSON.stringify(q))}')" class="text-indigo-600 font-bold text-xs bg-white px-3 border rounded shadow-sm">Edit</button></div>`; }); document.getElementById('modalListSoal').classList.remove('hidden'); }
+        async function bukaListSoal(idBuku) { const judul = (dbBukuList.find(b => String(b.id) === String(idBuku)) || {}).judul || ''; document.getElementById('title-modal-list').innerText = "Soal: " + judul; const {data} = await supabaseClient.from('kuis').select('*').eq('id_buku', idBuku); const w = document.getElementById('wadah-list-soal'); w.innerHTML=''; data.forEach(q => { w.innerHTML += `<div class="p-3 border rounded flex justify-between bg-slate-50"><p class="text-sm truncate w-3/4">${esc(q.pertanyaan)}</p><button onclick="bukaModalEditSoal('${encData(q)}')" class="text-indigo-600 font-bold text-xs bg-white px-3 border rounded shadow-sm">Edit</button></div>`; }); document.getElementById('modalListSoal').classList.remove('hidden'); }
         
         let currentEditSoalOpsi = null; 
         function bukaModalEditSoal(qStr) { const q = JSON.parse(decodeURIComponent(qStr)); document.getElementById('edit-soal-id').value = q.id; document.getElementById('edit-soal-dimensi').value = q.dimensi || 'Umum'; document.getElementById('edit-soal-teks').value = q.pertanyaan; currentEditSoalOpsi = q.opsi_jawaban || {}; document.getElementById('edit-soal-jumlah-opsi').value = Object.keys(currentEditSoalOpsi).length || 3; renderEditDynamicOptions(q.jawaban_benar); document.getElementById('modalEditSoal').classList.remove('hidden'); }
-        function renderEditDynamicOptions(kunciJawabanAsli = 'A') { const j = document.getElementById('edit-soal-jumlah-opsi').value; const w = document.getElementById('edit-wadahDynamicOptions'); w.innerHTML = ''; for(let i=0; i<j; i++) { const abjad = LABELS[i]; let teks = ''; let poin = 0; if (currentEditSoalOpsi && currentEditSoalOpsi[abjad]) { const opt = currentEditSoalOpsi[abjad]; teks = typeof opt === 'string' ? opt : opt.teks; poin = typeof opt === 'string' ? (abjad === kunciJawabanAsli ? 10 : 0) : parseInt(opt.poin || 0); } else if (i === 0) { poin = 1; } w.innerHTML += `<div class="flex gap-2 mb-2"><span class="w-8 bg-slate-200 text-center font-bold p-2">${abjad}</span><input type="text" id="edit-opt_${abjad}" class="w-full p-2 border rounded" placeholder="Teks opsi" value="${teks}"><input type="number" id="edit-poin_${abjad}" class="w-20 p-2 border rounded" value="${poin}"></div>`; } }
+        function renderEditDynamicOptions(kunciJawabanAsli = 'A') { const j = document.getElementById('edit-soal-jumlah-opsi').value; const w = document.getElementById('edit-wadahDynamicOptions'); w.innerHTML = ''; for(let i=0; i<j; i++) { const abjad = LABELS[i]; let teks = ''; let poin = 0; if (currentEditSoalOpsi && currentEditSoalOpsi[abjad]) { const opt = currentEditSoalOpsi[abjad]; teks = typeof opt === 'string' ? opt : opt.teks; poin = typeof opt === 'string' ? (abjad === kunciJawabanAsli ? 10 : 0) : parseInt(opt.poin || 0); } else if (i === 0) { poin = 1; } w.innerHTML += `<div class="flex gap-2 mb-2"><span class="w-8 bg-slate-200 text-center font-bold p-2">${abjad}</span><input type="text" id="edit-opt_${abjad}" class="w-full p-2 border rounded" placeholder="Teks opsi" value="${esc(teks)}"><input type="number" id="edit-poin_${abjad}" class="w-20 p-2 border rounded" value="${poin}"></div>`; } }
         async function simpanEditSoal() { const id = document.getElementById('edit-soal-id').value; const p = document.getElementById('edit-soal-teks').value; const d = document.getElementById('edit-soal-dimensi').value; const j = document.getElementById('edit-soal-jumlah-opsi').value; if(!p) return alert("Kosong!"); let opsi = {}; let maxP=0; let jwb='A'; for(let i=0; i<j; i++) { const t = document.getElementById(`edit-opt_${LABELS[i]}`).value; const po = parseInt(document.getElementById(`edit-poin_${LABELS[i]}`).value); if(!t) return alert(`Teks opsi ${LABELS[i]} kosong!`); opsi[LABELS[i]] = {teks: t, poin: po}; if(po > maxP) { maxP=po; jwb=LABELS[i]; } } await supabaseClient.from('kuis').update({ pertanyaan: p, dimensi: d, opsi_jawaban: opsi, jawaban_benar: jwb, poin_reward: maxP }).eq('id', id); tutupModal('modalEditSoal'); tutupModal('modalListSoal'); fetchDaftarKuis(); }
         async function hapusSemuaKuisModul(id) { if(confirm("Kosongkan soal?")) { await supabaseClient.from('kuis').delete().eq('id_buku', id); window.location.reload(); } }
 

@@ -1,0 +1,5 @@
+# Konfigurasi GitHub Pages (Jekyll).
+# Folder berawalan "_" (mis. _arsip/) otomatis tidak diterbitkan.
+exclude:
+  - supabase
+  - README.md

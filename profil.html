@@ -2,7 +2,14 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1d3a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <title>Profil & Rapor Belajar - KITA SEBAYA</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,6 +18,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <link rel="stylesheet" href="app.css">
 
     <style>
         .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
@@ -25,8 +33,17 @@
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <nav class="glass-nav shadow-sm border-b border-slate-200 px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-40 transition-all">
-        <a href="dashboard" class="flex items-center gap-3 cursor-pointer group text-slate-500 hover:text-rose-600 transition">
+    <!-- Header mobile (ala aplikasi) -->
+    <header class="md:hidden relative text-white app-safe-top overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-[#0b1d3a] via-[#123a6b] to-[#1b5f9f]"></div>
+        <div class="relative z-10 px-5 pt-5 pb-20 flex items-center gap-3">
+            <a href="dashboard.html" class="app-tap w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1 class="font-bold text-lg">Rapor Belajarmu</h1>
+        </div>
+    </header>
+
+    <nav class="hidden md:flex glass-nav shadow-sm border-b border-slate-200 px-4 md:px-8 py-4 justify-between items-center sticky top-0 z-40 transition-all">
+        <a href="dashboard.html" class="flex items-center gap-3 cursor-pointer group text-slate-500 hover:text-rose-600 transition">
             <div class="w-10 h-10 bg-slate-100 group-hover:bg-rose-100 rounded-xl flex items-center justify-center text-xl transition transform">
                 <i class="fa-solid fa-arrow-left"></i>
             </div>
@@ -37,7 +54,7 @@
         </h1>
     </nav>
 
-    <main class="flex-1 max-w-[1200px] w-full mx-auto px-4 md:px-8 py-8 space-y-8">
+    <main class="flex-1 max-w-[1200px] w-full mx-auto px-4 md:px-8 py-8 space-y-6 md:space-y-8 -mt-24 md:mt-0 relative z-10">
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
             
@@ -46,10 +63,12 @@
                 
                 <div id="avatar-inisial" class="relative z-10 w-24 h-24 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black text-slate-300 uppercase mt-4">?</div>
                 <h2 id="teks-nama" class="relative z-10 text-xl font-black text-slate-800 mt-4 text-center">-</h2>
-                <p id="teks-email" class="relative z-10 text-sm text-slate-500 mb-2">-</p>
-                <div class="flex gap-2 mt-2 mb-6 relative z-10">
-                    <span id="teks-kategori" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold uppercase">-</span>
+                <p id="teks-email" class="relative z-10 text-sm text-slate-500 mb-1">-</p>
+                <p id="teks-sekolah" class="relative z-10 text-xs font-bold text-slate-600 text-center"><i class="fa-solid fa-school text-slate-400 mr-1"></i>-</p>
+                <div class="flex flex-wrap justify-center gap-2 mt-3 mb-6 relative z-10">
+                    <span id="teks-kelas" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold uppercase">-</span>
                     <span id="teks-gender" class="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-xs font-bold uppercase">-</span>
+                    <span id="teks-umur" class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold uppercase">-</span>
                 </div>
 
                 <button onclick="bukaModalEdit()" class="relative z-10 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-slate-200 shadow-sm mt-auto">
@@ -110,12 +129,24 @@
         </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 mt-auto py-8 text-center">
+    <div class="app-nav-spacer md:hidden"></div>
+    <nav class="app-bottom-nav md:hidden">
+        <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
+            <a href="dashboard.html" class="nav-item app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
+            <div class="flex flex-col items-center">
+                <a href="dashboard.html" class="app-fab app-tap" aria-label="Kembali belajar"><img src="assets/logo-ks.png" alt="" class="w-9 h-9 object-contain brightness-0 invert"></a>
+                <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Belajar</span>
+            </div>
+            <a href="profil.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-chart-simple text-lg"></i>Rapor</a>
+        </div>
+    </nav>
+
+    <footer class="hidden md:block bg-white border-t border-slate-200 mt-auto py-8 text-center">
         <p class="text-slate-500 text-sm font-medium">© 2026 KITA SEBAYA. Dibangun untuk mengedukasi generasi peduli kesehatan.</p>
     </footer>
 
-    <div id="modalEditProfil" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm modal-enter overflow-hidden flex flex-col border border-slate-100">
+    <div id="modalEditProfil" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
+        <div class="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-sm modal-enter app-sheet max-h-[92dvh] overflow-y-auto flex flex-col border border-slate-100 app-safe-bottom">
             <div class="bg-slate-50 px-6 py-5 border-b flex justify-between items-center">
                 <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-user-pen text-rose-500 mr-2"></i> Edit Data Diri</h3>
                 <button onclick="tutupModalEdit()" class="text-slate-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
@@ -135,17 +166,23 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Lengkap</label>
                     <input type="text" id="input-nama" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 transition text-sm font-semibold text-slate-700">
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asal Sekolah</label>
+                    <select id="input-sekolah" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm font-medium"></select>
+                </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori</label>
-                        <select id="input-kategori" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm font-medium">
-                            <option value="Pelajar">Pelajar</option>
-                            <option value="Mahasiswa">Mahasiswa</option>
-                            <option value="Umum">Umum</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kelas</label>
+                        <select id="input-kelas" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm font-medium"></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Gender</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal Lahir</label>
+                        <input type="date" id="input-tgl" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm font-medium">
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Jenis Kelamin</label>
                         <select id="input-gender" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm font-medium">
                             <option value="Laki-laki">Laki-laki</option>
                             <option value="Perempuan">Perempuan</option>
@@ -171,13 +208,16 @@
         try {
             if (typeof CONFIG === 'undefined') throw new Error("config.js tidak terbaca!");
             supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            isiPilihan('input-sekolah', CONFIG.DAFTAR_SEKOLAH, '-- Pilih Sekolah --');
+            isiPilihan('input-kelas', CONFIG.DAFTAR_KELAS, '-- Pilih Kelas --');
+            document.getElementById('input-tgl').max = new Date().toISOString().slice(0, 10);
             inisialisasiProfil();
         } catch (err) { console.error("Error inisialisasi:", err); }
 
         async function inisialisasiProfil() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
-                window.location.href = 'dashboard';
+                window.location.href = 'index.html';
                 return;
             }
             loggedInUser = session.user;
@@ -195,20 +235,33 @@
 
                 // Set Teks Header (Kartu Profil)
                 document.getElementById('teks-nama').innerText = profil.nama_lengkap;
-                document.getElementById('teks-kategori').innerText = profil.kategori;
-                document.getElementById('teks-gender').innerText = profil.jenis_kelamin;
+                const umur = hitungUmurDari(profil.tanggal_lahir);
+                document.getElementById('teks-sekolah').innerHTML = '<i class="fa-solid fa-school text-slate-400 mr-1"></i>';
+                document.getElementById('teks-sekolah').append(profil.sekolah || 'Sekolah belum diisi');
+                document.getElementById('teks-kelas').innerText = profil.kelas || 'Kelas -';
+                document.getElementById('teks-gender').innerText = profil.jenis_kelamin || '-';
+                document.getElementById('teks-umur').innerText = umur !== null ? umur + ' tahun' : 'Umur -';
                 document.getElementById('avatar-inisial').innerText = profil.nama_lengkap.charAt(0);
                 document.getElementById('avatar-inisial').className = "relative z-10 w-24 h-24 bg-gradient-to-tr from-rose-500 to-indigo-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black text-white uppercase mt-4";
                 
                 // Set Data di Modal Edit
                 document.getElementById('input-nama').value = profil.nama_lengkap;
-                document.getElementById('input-kategori').value = profil.kategori;
-                document.getElementById('input-gender').value = profil.jenis_kelamin;
+                pilihNilai('input-sekolah', profil.sekolah);
+                pilihNilai('input-kelas', profil.kelas);
+                document.getElementById('input-tgl').value = profil.tanggal_lahir || '';
+                document.getElementById('input-gender').value = profil.jenis_kelamin || 'Laki-laki';
                 
                 // Set Quick Stat Total XP
                 document.getElementById('stat-xp').innerText = profil.total_poin;
 
             } catch (e) { console.error("Gagal load profil:", e); }
+        }
+
+        // Pilih nilai pada <select>; tambahkan opsi bila nilai lama tidak ada di daftar CONFIG.
+        function pilihNilai(id, nilai) {
+            const el = document.getElementById(id);
+            if (nilai && ![...el.options].some(o => o.value === nilai)) el.add(new Option(nilai, nilai));
+            el.value = nilai || '';
         }
 
         // ==========================================
@@ -229,14 +282,18 @@
 
         async function simpanProfil(btn) {
             const nama = document.getElementById('input-nama').value;
-            const kategori = document.getElementById('input-kategori').value;
+            const sekolah = document.getElementById('input-sekolah').value;
+            const kelas = document.getElementById('input-kelas').value;
+            const tanggalLahir = document.getElementById('input-tgl').value || null;
             const gender = document.getElementById('input-gender').value;
 
             if(!nama) return alert("Nama tidak boleh kosong!");
+            if(!sekolah || !kelas) return alert("Sekolah dan kelas wajib dipilih!");
 
             btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
             try {
-                await supabaseClient.from('profiles').update({ nama_lengkap: nama, kategori: kategori, jenis_kelamin: gender }).eq('id', loggedInUser.id);
+                const { error } = await supabaseClient.from('profiles').update({ nama_lengkap: nama, sekolah, kelas, tanggal_lahir: tanggalLahir, jenis_kelamin: gender }).eq('id', loggedInUser.id);
+                if (error) throw error;
                 loadDataProfil(); 
                 tutupModalEdit(); // Modal otomatis tertutup saat sukses
             } catch(e) {
