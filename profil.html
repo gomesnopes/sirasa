@@ -75,9 +75,6 @@
                 <button onclick="bukaModalEdit()" class="relative z-10 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-slate-200 shadow-sm mt-auto">
                     <i class="fa-solid fa-pen-to-square"></i> Edit Profil
                 </button>
-                <button onclick="prosesLogout()" class="relative z-10 w-full mt-2 bg-white hover:bg-rose-50 text-rose-600 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-rose-100">
-                    <i class="fa-solid fa-power-off"></i> Keluar Akun
-                </button>
             </div>
 
             <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
@@ -157,15 +154,6 @@
             </div>
             
             <div class="p-6 space-y-4">
-                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-700 font-medium flex gap-2 items-start shadow-sm">
-                    <i class="fa-solid fa-lock mt-0.5"></i>
-                    <p>Alamat email dan kata sandi dikunci oleh sistem. Hubungi peneliti jika perlu mengubahnya.</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email (Terkunci)</label>
-                    <input type="email" id="input-email" disabled class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl cursor-not-allowed font-medium text-sm">
-                </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Lengkap</label>
                     <input type="text" id="input-nama" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 transition text-sm font-semibold text-slate-700">
@@ -191,6 +179,30 @@
                             <option value="Laki-laki">Laki-laki</option>
                             <option value="Perempuan">Perempuan</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Keamanan akun: ubah email / kata sandi -->
+                <div class="pt-4 mt-2 border-t border-slate-100 space-y-3">
+                    <p class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-shield-halved text-[#1769b3]"></i> Keamanan Akun</p>
+                    <div>
+                        <label for="input-email" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Email</label>
+                        <input type="email" id="input-email" autocomplete="email" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 transition text-sm font-medium">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="input-sandi-baru" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sandi Baru</label>
+                            <input type="password" id="input-sandi-baru" autocomplete="new-password" minlength="6" placeholder="Opsional" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                        </div>
+                        <div>
+                            <label for="input-sandi-ulang" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ulangi Sandi</label>
+                            <input type="password" id="input-sandi-ulang" autocomplete="new-password" placeholder="Opsional" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 text-sm">
+                        </div>
+                    </div>
+                    <div id="wadah-sandi-lama" class="hidden">
+                        <label for="input-sandi-lama" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kata Sandi Saat Ini <span class="text-rose-500">*</span></label>
+                        <input type="password" id="input-sandi-lama" autocomplete="current-password" class="w-full px-4 py-2.5 bg-amber-50 border border-amber-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+                        <p class="text-[11px] text-slate-500 mt-1">Wajib diisi untuk mengubah email atau kata sandi.</p>
                     </div>
                 </div>
             </div>
@@ -271,14 +283,21 @@
         // ==========================================
         // FUNGSI MODAL EDIT PROFIL
         // ==========================================
-        async function prosesLogout() {
-            if (!(await Dialog.confirm('Yakin ingin keluar dari akun? Progres belajarmu tetap tersimpan.', { judul: 'Keluar Akun', teksOk: 'Ya, Keluar', tipe: 'peringatan' }))) return;
-            await supabaseClient.auth.signOut();
-            try { sessionStorage.removeItem('introSudahDilihat'); } catch (e) {}
-            window.location.href = 'index.html';
+
+        function perluSandiLama() {
+            const emailBaru = document.getElementById('input-email').value.trim().toLowerCase();
+            const ubahEmail = emailBaru && emailBaru !== (loggedInUser.email || '').toLowerCase();
+            const ubahSandi = !!document.getElementById('input-sandi-baru').value;
+            const perlu = ubahEmail || ubahSandi;
+            document.getElementById('wadah-sandi-lama').classList.toggle('hidden', !perlu);
+            return { perlu, ubahEmail, ubahSandi, emailBaru };
         }
+        ['input-email', 'input-sandi-baru'].forEach(id => document.getElementById(id).addEventListener('input', perluSandiLama));
 
         function bukaModalEdit() {
+            document.getElementById('input-email').value = loggedInUser.email || '';
+            ['input-sandi-baru', 'input-sandi-ulang', 'input-sandi-lama'].forEach(id => { document.getElementById(id).value = ''; });
+            perluSandiLama();
             document.getElementById('modalEditProfil').classList.remove('hidden');
         }
 
@@ -292,23 +311,55 @@
         });
 
         async function simpanProfil(btn) {
-            const nama = document.getElementById('input-nama').value;
+            const nama = document.getElementById('input-nama').value.trim();
             const sekolah = document.getElementById('input-sekolah').value;
             const kelas = document.getElementById('input-kelas').value;
             const tanggalLahir = document.getElementById('input-tgl').value || null;
             const gender = document.getElementById('input-gender').value;
+            const { perlu, ubahEmail, ubahSandi, emailBaru } = perluSandiLama();
+            const sandiBaru = document.getElementById('input-sandi-baru').value;
+            const sandiUlang = document.getElementById('input-sandi-ulang').value;
+            const sandiLama = document.getElementById('input-sandi-lama').value;
 
-            if(!nama) return Dialog.alert("Nama tidak boleh kosong!");
-            if(!sekolah || !kelas) return Dialog.alert("Sekolah dan kelas wajib dipilih!");
+            if (!nama) return Dialog.alert("Nama tidak boleh kosong!");
+            if (!sekolah || !kelas) return Dialog.alert("Sekolah dan kelas wajib dipilih!");
+            if (ubahEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailBaru)) return Dialog.alert("Format email tidak valid.");
+            if (ubahSandi && sandiBaru.length < 6) return Dialog.alert("Kata sandi baru minimal 6 karakter.");
+            if (ubahSandi && sandiBaru !== sandiUlang) return Dialog.alert("Ulangi kata sandi baru dengan benar — keduanya belum sama.");
+            if (perlu && !sandiLama) { document.getElementById('input-sandi-lama').focus(); return Dialog.alert("Masukkan kata sandi saat ini untuk mengubah email atau kata sandi.", { tipe: "peringatan" }); }
 
             btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
             try {
                 const { error } = await supabaseClient.from('profiles').update({ nama_lengkap: nama, sekolah, kelas, tanggal_lahir: tanggalLahir, jenis_kelamin: gender }).eq('id', loggedInUser.id);
-                if (error) throw error;
-                loadDataProfil(); 
-                tutupModalEdit(); // Modal otomatis tertutup saat sukses
-            } catch(e) {
-                Dialog.alert("Gagal memperbarui profil.");
+                if (error) throw new Error("Gagal memperbarui data diri.");
+
+                let pesanAkun = '';
+                if (perlu) {
+                    // Pastikan yang mengubah adalah pemilik akun
+                    const { error: errCek } = await supabaseClient.auth.signInWithPassword({ email: loggedInUser.email, password: sandiLama });
+                    if (errCek) throw new Error("Kata sandi saat ini salah. Data diri sudah tersimpan, tetapi email/kata sandi belum diubah.");
+
+                    const perubahan = {};
+                    if (ubahEmail) perubahan.email = emailBaru;
+                    if (ubahSandi) perubahan.password = sandiBaru;
+                    const { data, error: errAkun } = await supabaseClient.auth.updateUser(perubahan);
+                    if (errAkun) throw new Error("Data diri tersimpan, tetapi gagal mengubah akun: " + errAkun.message);
+
+                    if (ubahSandi) pesanAkun += 'Kata sandi berhasil diganti. ';
+                    if (ubahEmail) {
+                        const menunggu = data && data.user && data.user.new_email;
+                        pesanAkun += menunggu || (data && data.user && data.user.email !== emailBaru)
+                            ? `Tautan konfirmasi telah dikirim ke ${emailBaru}. Email baru aktif setelah tautan itu dibuka.`
+                            : 'Email berhasil diganti.';
+                        if (data && data.user) loggedInUser = data.user;
+                    }
+                }
+                await loadDataProfil();
+                document.getElementById('teks-email').innerText = loggedInUser.email;
+                tutupModalEdit();
+                Dialog.alert('✅ Profil berhasil diperbarui. ' + pesanAkun);
+            } catch (e) {
+                Dialog.alert(e.message || "Gagal memperbarui profil.", { tipe: "bahaya", judul: "Gagal Menyimpan" });
             } finally {
                 btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-save"></i> Simpan`;
             }
