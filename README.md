@@ -79,6 +79,12 @@ Keduanya punya kuota gratis bulanan; di atas kuota dikenai biaya per karakter �
 tombol ▶ memutar narasi dan *Lanjut otomatis* memindahkan slide setelah narasi selesai. Slide tanpa audio
 dibacakan dengan suara perangkat terbaik sebagai cadangan.
 
+## Dengarkan Materi di Flipbook (modul PDF)
+- Tombol **🔊 Dengarkan** di sebelah *Mode Baca Teks*: isi halaman yang sedang tampil dibacakan tanpa mengubah tampilan flipbook.
+- Setelah satu halaman selesai, flipbook **dibalik otomatis** dan pembacaan berlanjut; jika siswa membalik sendiri, pembacaan ikut pindah.
+- Pemutar kecil di bawah layar: status halaman, jeda/lanjut, berhenti. Halaman berupa gambar dilewati otomatis.
+- Memakai suara perangkat terbaik yang tersedia (sama seperti Mode Baca Teks).
+
 ## Fitur Mode Baca Teks (modul PDF)
 - Tombol **Mode Baca Teks** di pojok kiri atas saat membaca modul PDF.
 - Teks diambil dari PDF per halaman (pdf.js) dan disusun ulang jadi paragraf; judul terdeteksi otomatis.

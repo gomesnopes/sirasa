@@ -57,16 +57,28 @@
 </head>
 <body class="flex flex-col min-h-screen relative">
 
-    <div id="nav-atas" class="absolute top-4 left-4 right-4 flex justify-between z-[60] pointer-events-none">
-        <div class="flex gap-2">
-            <button onclick="keluarKeBeranda()" class="pointer-events-auto bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm border border-slate-600"><i class="fa-solid fa-arrow-left"></i> Keluar</button>
-            <button id="btn-mode-teks" onclick="bukaModeTeks()" class="hidden pointer-events-auto bg-white/90 backdrop-blur hover:bg-white text-slate-800 px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-white" title="Baca isi modul sebagai teks & dengarkan dibacakan"><i class="fa-solid fa-align-left text-rose-600"></i> <span>Mode Baca Teks</span></button>
+    <div id="nav-atas" class="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 flex justify-between gap-1.5 sm:gap-2 z-[60] pointer-events-none">
+        <div class="flex gap-1.5 sm:gap-2">
+            <button onclick="keluarKeBeranda()" class="pointer-events-auto bg-slate-800/80 backdrop-blur hover:bg-slate-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold shadow-lg transition flex items-center gap-2 text-sm border border-slate-600" aria-label="Keluar"><i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Keluar</span></button>
+            <button id="btn-mode-teks" onclick="bukaModeTeks()" class="hidden pointer-events-auto bg-white/90 backdrop-blur hover:bg-white text-slate-800 px-3 sm:px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-white" title="Baca isi modul sebagai teks & dengarkan dibacakan"><i class="fa-solid fa-align-left text-rose-600"></i> <span class="sm:hidden">Teks</span><span class="hidden sm:inline">Mode Baca Teks</span></button>
+            <button id="btn-dengar" onclick="mulaiDengarkan()" class="hidden pointer-events-auto bg-[#1769b3] hover:bg-[#135a9a] text-white px-3 sm:px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-[#1769b3]" title="Dengarkan isi halaman dibacakan tanpa mengubah tampilan"><i class="fa-solid fa-volume-high"></i> <span>Dengarkan</span></button>
         </div>
-        <button id="btn-selesai" onclick="tampilkanKonfirmasiSelesai()" class="hidden pointer-events-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-emerald-500"><i class="fa-solid fa-check-double"></i> Selesai Membaca</button>
+        <button id="btn-selesai" onclick="tampilkanKonfirmasiSelesai()" class="hidden pointer-events-auto bg-emerald-600 hover:bg-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg font-bold shadow-lg transition items-center gap-2 text-sm border border-emerald-500"><i class="fa-solid fa-check-double"></i> <span class="sm:hidden">Selesai</span><span class="hidden sm:inline">Selesai Membaca</span></button>
     </div>
 
     <div id="wadah-buku" class="w-full h-full flex items-center justify-center absolute inset-0 z-10 transition-opacity duration-500">
         <div class="text-white flex flex-col items-center gap-3"><i class="fa-solid fa-spinner fa-spin text-3xl text-rose-500"></i><p class="font-medium">Menyiapkan modul...</p></div>
+    </div>
+
+    <!-- PEMUTAR "DENGARKAN" UNTUK FLIPBOOK -->
+    <div id="pemutar-dengar" class="hidden fixed left-1/2 -translate-x-1/2 bottom-20 md:bottom-24 z-[65] w-[calc(100%-2rem)] max-w-md bg-slate-900/95 backdrop-blur text-white rounded-2xl shadow-2xl px-4 py-3 items-center gap-3 border border-white/10" role="region" aria-label="Pemutar suara materi">
+        <span class="w-10 h-10 rounded-xl bg-[#1769b3] flex items-center justify-center shrink-0"><i id="dengar-ikon" class="fa-solid fa-volume-high"></i></span>
+        <div class="min-w-0 flex-1">
+            <p id="dengar-status" class="text-sm font-bold truncate">Menyiapkan suara...</p>
+            <p id="dengar-sub" class="text-[11px] text-white/60 truncate">Halaman dibalik otomatis</p>
+        </div>
+        <button onclick="toggleJedaDengar()" id="dengar-jeda" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center shrink-0" aria-label="Jeda"><i class="fa-solid fa-pause"></i></button>
+        <button onclick="hentikanDengar()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-600 flex items-center justify-center shrink-0" aria-label="Berhenti mendengarkan"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <!-- PEMBACA MODUL SLIDE -->
@@ -228,14 +240,19 @@ if (!pdfBersih) {
                 document.getElementById('wadah-buku').innerHTML = `<div class="_df_book" id="df_container" source="${pdfBersih}"></div>`;
                 const btnModeTeks = document.getElementById('btn-mode-teks');
                 btnModeTeks.classList.remove('hidden'); btnModeTeks.classList.add('flex');
+                if (ttsDidukung) { const b = document.getElementById('btn-dengar'); b.classList.remove('hidden'); b.classList.add('flex'); }
+                window.DFLIP.defaults.onReady = function(flipbook) { flipApp = flipbook; };
 
                 window.DFLIP.defaults.onFlip = function(flipbook) {
                     let halSekarang = flipbook.target._activePage || flipbook.target.page; let totalHal = flipbook.target.pageCount || flipbook.options.pageCount;
+                    flipApp = flipbook;
                     if (halSekarang) halFlipbook = halSekarang;
+                    // Siswa membalik halaman sendiri saat mendengarkan -> pembacaan ikut pindah
+                    if (dengar.aktif && !dengar.kitaMembalik && halSekarang && !halamanTerlihat(dengar.hal)) { dengar.hal = halSekarang; bacaHalamanDengar(); }
                     let btnSelesai = document.getElementById('btn-selesai');
                     if (halSekarang && totalHal && halSekarang >= totalHal) {
                         btnSelesai.classList.remove('hidden'); btnSelesai.classList.add('flex');
-                        if (!kuisSudahDipicu) { kuisSudahDipicu = true; setTimeout(() => { tampilkanKonfirmasiSelesai(); }, 800); }
+                        if (!kuisSudahDipicu && !dengar.aktif) { kuisSudahDipicu = true; setTimeout(() => { tampilkanKonfirmasiSelesai(); }, 800); }
                     } else { btnSelesai.classList.add('hidden'); btnSelesai.classList.remove('flex'); kuisSudahDipicu = false; }
                 };
                 // Tunggu jQuery ready agar DearFlip sudah menyetel lokasi asetnya.
@@ -268,7 +285,7 @@ if (!pdfBersih) {
             try { await supabaseClient.from('riwayat_kuis').insert([{ id_user: loggedInUser.id, id_buku: bookId, poin_didapat: 0, durasi_baca_detik: Math.floor((Date.now() - waktuMulaiMembaca) / 1000), jenis_tes: dataBuku && dataBuku.tipe_konten === 'Modul Slide' ? "Membaca Modul Slide" : "Membaca Modul PDF", dimensi: "Aktivitas" }]); } catch(e) {}
         }
 
-        async function keluarKeBeranda() { document.body.style.cursor = 'wait'; hentikanNarasi(); await simpanDurasiBaca(); window.location.href = 'dashboard.html'; }
+        async function keluarKeBeranda() { document.body.style.cursor = 'wait'; hentikanNarasi(); hentikanDengar(); await simpanDurasiBaca(); window.location.href = 'dashboard.html'; }
 
         async function transisiKeKuis(targetIdKuis, judulTarget) {
             document.getElementById('btn-lanjut-kuis').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyiapkan Evaluasi...';
@@ -276,6 +293,7 @@ if (!pdfBersih) {
             tutupModalSelesai();
             tutupModeTeks();
             hentikanNarasi();
+            hentikanDengar();
             document.getElementById('wadah-slide').classList.add('hidden');
             
             document.getElementById('nav-atas').classList.add('hidden');
@@ -540,6 +558,19 @@ if (!pdfBersih) {
             });
         }
 
+        // Muat dokumen PDF untuk ekstraksi teks (sekali saja)
+        async function siapkanPdfTeks() {
+            if (pdfTeks) return true;
+            try {
+                const lib = await muatPdfJs();
+                pdfTeks = await lib.getDocument(dataBuku.file_url).promise;
+                totalHalTeks = pdfTeks.numPages;
+                document.getElementById('total-hal-teks').textContent = totalHalTeks;
+                document.getElementById('input-hal-teks').max = totalHalTeks;
+                return true;
+            } catch (err) { console.error(err); return false; }
+        }
+
         async function bukaModeTeks() {
             const panel = document.getElementById('panel-teks');
             const isi = document.getElementById('teks-isi');
@@ -548,16 +579,10 @@ if (!pdfBersih) {
             terapkanPrefBaca();
             panel.classList.remove('hidden');
 
+            hentikanDengar();
             if (!pdfTeks) {
                 isi.innerHTML = `<div class="text-center py-20" style="color:var(--muted)"><i class="fa-solid fa-spinner fa-spin text-3xl mb-3" style="color:var(--aksen)"></i><p class="font-sans font-medium">Menyiapkan teks modul...</p></div>`;
-                try {
-                    const lib = await muatPdfJs();
-                    pdfTeks = await lib.getDocument(dataBuku.file_url).promise;
-                    totalHalTeks = pdfTeks.numPages;
-                    document.getElementById('total-hal-teks').textContent = totalHalTeks;
-                    document.getElementById('input-hal-teks').max = totalHalTeks;
-                } catch (err) {
-                    console.error(err);
+                if (!(await siapkanPdfTeks())) {
                     isi.innerHTML = `<div class="text-center py-20 font-sans" style="color:var(--muted)"><i class="fa-solid fa-triangle-exclamation text-3xl mb-3 text-amber-500"></i><p class="font-medium">Teks modul tidak dapat dimuat.</p><p class="text-sm mt-1">Silakan gunakan tampilan flipbook.</p></div>`;
                     return;
                 }
@@ -875,6 +900,107 @@ if (!pdfBersih) {
         function perbaruiTombolPlay() {
             const b = document.getElementById('sl-play');
             if (b) b.innerHTML = sl.main ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-0.5"></i>';
+        }
+
+        // =====================================================
+        // DENGARKAN (FLIPBOOK) — bacakan isi halaman tanpa mengubah tampilan.
+        // Teks diambil dari PDF (pdf.js), dibacakan per kalimat, lalu flipbook
+        // dibalik otomatis ke halaman berikutnya.
+        // =====================================================
+        let flipApp = null;
+        const dengar = { aktif: false, jeda: false, hal: 1, sesi: 0, kitaMembalik: false };
+
+        // Apakah halaman n sedang tampil (mode 2 halaman menampilkan sepasang halaman)
+        function halamanTerlihat(n) {
+            const aktif = flipApp && flipApp.target ? (flipApp.target._activePage || halFlipbook) : halFlipbook;
+            const ganda = flipApp && flipApp.target && flipApp.target.pageMode === 2;
+            if (!ganda) return n === aktif;
+            const kiri = aktif % 2 === 0 ? aktif : aktif - 1;
+            return n === aktif || n === kiri || n === kiri + 1;
+        }
+
+        function aturPemutar(status, sub) {
+            const el = document.getElementById('pemutar-dengar');
+            el.classList.remove('hidden'); el.classList.add('flex');
+            document.getElementById('dengar-status').textContent = status;
+            if (sub !== undefined) document.getElementById('dengar-sub').textContent = sub;
+            document.getElementById('dengar-jeda').innerHTML = dengar.jeda ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-pause"></i>';
+            document.getElementById('dengar-ikon').className = dengar.jeda ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high fa-beat-fade';
+        }
+
+        async function mulaiDengarkan() {
+            if (!ttsDidukung) return Dialog.alert('Browser ini belum mendukung fitur membacakan teks.', { tipe: 'peringatan' });
+            if (dengar.aktif) return toggleJedaDengar();
+            dengar.aktif = true; dengar.jeda = false;
+            aturPemutar('Menyiapkan suara...', 'Mengambil teks halaman');
+            if (!(await siapkanPdfTeks())) {
+                hentikanDengar();
+                return Dialog.alert('Teks modul ini tidak dapat dibacakan.', { tipe: 'bahaya' });
+            }
+            dengar.hal = Math.min(Math.max(halFlipbook || 1, 1), totalHalTeks);
+            bacaHalamanDengar();
+        }
+
+        async function bacaHalamanDengar() {
+            if (!dengar.aktif) return;
+            const sesi = ++dengar.sesi;
+            speechSynthesis.cancel();
+            dengar.jeda = false;
+            aturPemutar(`Membacakan hal. ${dengar.hal}/${totalHalTeks}`, 'Halaman dibalik otomatis');
+
+            let para = [];
+            try { para = await ambilTeksHalaman(dengar.hal); } catch (e) { console.error(e); }
+            if (sesi !== dengar.sesi) return;
+            const kalimat = para.flatMap(p => potongKalimat(p.teks));
+            if (!kalimat.length) {
+                aturPemutar(`Halaman ${dengar.hal} berisi gambar`, 'Dilewati, lanjut ke halaman berikutnya');
+                return setTimeout(() => lanjutHalamanDengar(sesi), 1500);
+            }
+            let i = 0;
+            const ucapkan = () => {
+                if (sesi !== dengar.sesi || !dengar.aktif) return;
+                if (i >= kalimat.length) return lanjutHalamanDengar(sesi);
+                const u = new SpeechSynthesisUtterance(kalimat[i]);
+                u.lang = 'id-ID';
+                const suara = pilihSuaraIndonesia(); if (suara) u.voice = suara;
+                u.rate = prefBaca.kecepatan || 1;
+                u.onend = () => { if (sesi !== dengar.sesi) return; i++; ucapkan(); };
+                u.onerror = e => { if (sesi !== dengar.sesi || e.error === 'interrupted' || e.error === 'canceled') return; i++; ucapkan(); };
+                speechSynthesis.speak(u);
+            };
+            ucapkan();
+        }
+
+        function lanjutHalamanDengar(sesi) {
+            if (sesi !== dengar.sesi || !dengar.aktif) return;
+            if (dengar.hal >= totalHalTeks) {
+                hentikanDengar();
+                return tampilkanKonfirmasiSelesai();
+            }
+            dengar.hal++;
+            // Balik flipbook bila halaman berikutnya belum terlihat (mode 2 halaman bisa sudah tampil)
+            if (flipApp && !halamanTerlihat(dengar.hal)) {
+                dengar.kitaMembalik = true;
+                try { flipApp.gotoPage(dengar.hal); } catch (e) { console.error(e); }
+                setTimeout(() => { dengar.kitaMembalik = false; }, 1500);
+                return setTimeout(bacaHalamanDengar, 900); // beri waktu animasi balik halaman
+            }
+            bacaHalamanDengar();
+        }
+
+        function toggleJedaDengar() {
+            if (!dengar.aktif) return;
+            if (dengar.jeda) { speechSynthesis.resume(); dengar.jeda = false; }
+            else { speechSynthesis.pause(); dengar.jeda = true; }
+            aturPemutar(dengar.jeda ? `Dijeda di halaman ${dengar.hal}` : `Membacakan hal. ${dengar.hal}/${totalHalTeks}`);
+        }
+
+        function hentikanDengar() {
+            if (!dengar.aktif && document.getElementById('pemutar-dengar').classList.contains('hidden')) return;
+            dengar.aktif = false; dengar.jeda = false; dengar.sesi++;
+            if (ttsDidukung) speechSynthesis.cancel();
+            const el = document.getElementById('pemutar-dengar');
+            el.classList.add('hidden'); el.classList.remove('flex');
         }
     </script>
 </body>
