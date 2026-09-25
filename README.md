@@ -33,7 +33,7 @@ Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript
 - `admins` — akun admin/peneliti (`user_id`, `nama`). RLS tanpa policy tulis: hanya bisa diubah dari SQL Editor.
   Admin tidak punya baris di `profiles`, jadi tidak muncul di peringkat maupun analitik.
 - `buku` — modul/konten (`judul`, `tipe_konten`: *Modul PDF* / *Hanya Kuis* / *Evaluasi Global* / *Pengantar Sistem*, `file_url`, `cover_url`, `is_active`, `id_kuis_terkait`)
-- `slide` — isi modul bertipe *Modul Slide* (`id_buku`, `urutan`, `judul`, `isi`, `gambar_url`, `audio_url`, `audio_suara`)
+- `slide` — isi modul bertipe *Modul Slide* (`id_buku`, `urutan`, `jenis`, `ikon`, `judul`, `isi`, `kunci`, `penjelasan`, `gambar_url`, `audio_url`, `audio_jawaban_url`, `audio_suara`)
 - `kuis` — soal (`id_buku`, `pertanyaan`, `dimensi`, `opsi_jawaban` JSON berisi `{teks, poin}`)
 - `riwayat_kuis` — aktivitas & jawaban (`id_user`, `id_buku`, `poin_didapat`, `durasi_baca_detik`, `jenis_tes`, `dimensi`, `detail_jawaban`)
 - Storage bucket `pdf-buku` — file PDF & sampul
@@ -62,8 +62,20 @@ dengan tombol tengah "Belajar" (membuka misi berikutnya yang belum selesai). Tam
 
 ## Modul Slide + Suara Narasi Natural
 **Membuat modul (admin):** Konten & Modul → *Buat Konten Baru* → tipe **Modul Slide** → editor slide terbuka.
-Tiap slide berisi judul, isi (baris `- ` = poin, `**teks**` = tebal), dan gambar opsional (otomatis diperkecil).
-Pratinjau bisa diganti *Desktop* (lanskap) / *HP* (potret). Gambar slide pertama menjadi sampul modul.
+Tiap slide punya **jenis** (Materi, Sampul, Kartu Mitos/Fakta, Penutup), **ikon mono** (nama ikon Font Awesome,
+mis. `virus`, `shield-heart`), judul, isi, dan gambar opsional (otomatis diperkecil). Format isi:
+
+| Tulis | Hasil |
+|---|---|
+| `- teks` | poin berbutir |
+| `[droplet] Darah` | kotak ikon (grid) |
+| `! teks` | kotak sorotan "Ingat, ya!" |
+| `Sumber: ...` | catatan sumber kecil (tidak dibacakan) |
+| `**teks**` | tebal |
+
+**Kartu Mitos/Fakta:** isi = pernyataan, pilih kunci (Mitos/Fakta) dan tulis penjelasan. Siswa menebak, kartu
+dibalik 3D, lalu penjelasan dibacakan (audio terpisah `audio_jawaban_url`).
+Pratinjau bisa diganti *Desktop* / *HP* dan dirender pada ukuran layar sungguhan. Gambar slide pertama menjadi sampul modul.
 
 **Suara narasi:** klik *Buat Suara Slide Ini* atau *Buat Suara Semua*. Edge Function `tts-slide` membuat MP3
 sekali saja lalu menyimpannya di Storage (`pdf-buku/slide-audio/`); siswa hanya memutar file itu.
@@ -75,9 +87,14 @@ Jika teks slide diubah, audionya otomatis dikosongkan dan perlu dibuat ulang.
 - **Google Cloud**: `GOOGLE_TTS_API_KEY` (aktifkan *Cloud Text-to-Speech API*). Suara id-ID terbaik dipilih otomatis.
 Keduanya punya kuota gratis bulanan; di atas kuota dikenai biaya per karakter — cek harga terbaru di situs penyedia.
 
-**Membaca (siswa):** tata letak otomatis potret di HP & lanskap di desktop; geser/panah untuk pindah slide;
-tombol ▶ memutar narasi dan *Lanjut otomatis* memindahkan slide setelah narasi selesai. Slide tanpa audio
-dibacakan dengan suara perangkat terbaik sebagai cadangan.
+**Membaca (siswa):** kartu kaca (glassmorphism) di atas latar animasi ringan, efek balik halaman antarslide,
+progres ala *Story* di atas layar. Layar awal meminta *Mulai dengan Suara* (browser hanya mengizinkan suara setelah
+ketukan); setelah itu narasi berjalan dan slide maju otomatis (tombol ⏩), kecepatan 0,75×–1,5×, teks panjang
+ikut digulir mengikuti suara. Slide tanpa audio dibacakan dengan suara perangkat sebagai cadangan.
+Hemat daya: blur kaca dimatikan di HP lemah, animasi berhenti saat tab tidak dibuka / "kurangi gerakan" aktif.
+
+**Contoh:** modul *Minggu 2 - HIV/AIDS (Slide)* (15 slide dari Materi 1, status nonaktif sebagai draf).
+Aktifkan di admin untuk menggantikan modul PDF Minggu 2.
 
 ## Dengarkan Materi di Flipbook (modul PDF)
 - Tombol **🔊 Dengarkan** di sebelah *Mode Baca Teks*: isi halaman yang sedang tampil dibacakan tanpa mengubah tampilan flipbook.

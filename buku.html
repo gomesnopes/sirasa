@@ -23,6 +23,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="dialog.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="slide.css">
     <script src="slide-render.js"></script>
 
@@ -35,6 +37,19 @@
         ._df_book { height: 100vh !important; width: 100vw !important; margin: 0 !important; }
         input[type="radio"]:checked + span { color: #e11d48; font-weight: bold; }
         .radio-card:has(input[type="radio"]:checked) { border-color: #e11d48; background-color: #fff1f2; }
+
+
+        /* ===== Pemutar Modul Slide ===== */
+        .sl-kontrol { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 12px 40px rgba(2,8,23,.35); font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif; }
+        .sl-hemat .sl-kontrol { -webkit-backdrop-filter: none; backdrop-filter: none; background: #1b3764; }
+        .sl-tb { width: 2.75rem; height: 2.75rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: rgba(255,255,255,.85); transition: background .15s, color .15s; }
+        .sl-tb:hover:not(:disabled) { background: rgba(255,255,255,.14); color: #fff; }
+        .sl-tb:disabled { opacity: .3; }
+        .sl-tb.aktif { color: #fda4af; }
+        .sl-tb.selesai { background: #059669; color: #fff; }
+        .sl-seg { flex: 1; height: 3px; border-radius: 99px; background: rgba(255,255,255,.22); overflow: hidden; }
+        .sl-seg > i { display: block; height: 100%; width: 0; background: #fff; border-radius: 99px; }
+        body.mode-slide #nav-atas { top: 1.2rem; }
 
         /* ===== Mode Baca Teks ===== */
         #panel-teks { --bg:#ffffff; --fg:#1e293b; --muted:#64748b; --bar:#f8fafc; --line:#e2e8f0; --hl:#fef3c7; --aksen:#e11d48; background:var(--bg); color:var(--fg); }
@@ -81,24 +96,32 @@
         <button onclick="hentikanDengar()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-rose-600 flex items-center justify-center shrink-0" aria-label="Berhenti mendengarkan"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <!-- PEMBACA MODUL SLIDE -->
-    <div id="wadah-slide" class="hidden fixed inset-0 z-10 flex flex-col bg-[#0b1d3a] select-none">
-        <div class="h-1 bg-white/10 shrink-0"><div id="sl-progres" class="h-full bg-rose-500 transition-all duration-300" style="width:0%"></div></div>
-        <div class="flex-1 min-h-0 flex items-center justify-center px-2 pt-16 pb-2 md:px-6 md:pt-20 md:pb-3">
-            <div id="sl-bingkai" class="w-full h-full max-w-[1280px] rounded-2xl overflow-hidden shadow-2xl bg-white">
-                <div id="sl-panggung" class="w-full h-full"></div>
+    <!-- PEMBACA MODUL SLIDE (kartu kaca + latar animasi + balik halaman) -->
+    <div id="wadah-slide" class="sl-latar hidden fixed inset-0 z-10 flex flex-col select-none text-white">
+        <span class="sl-gumpal g1"></span><span class="sl-gumpal g2"></span><span class="sl-gumpal g3"></span>
+        <!-- Progres ala Story: satu segmen per slide -->
+        <div id="sl-segmen" class="absolute top-0 inset-x-0 z-[61] flex gap-1 px-3 sm:px-4 pt-2" aria-hidden="true"></div>
+        <div class="flex-1 min-h-0 flex items-center justify-center px-3 pt-[4.25rem] pb-2 md:px-8 md:pt-20 md:pb-3">
+            <div id="sl-panggung" class="sl-panggung w-full h-full max-w-[1200px] max-h-[760px]" aria-live="polite"></div>
+        </div>
+        <div class="shrink-0 px-3 md:px-6 pt-1 flex justify-center" style="padding-bottom: max(env(safe-area-inset-bottom), 14px)">
+            <div class="sl-kontrol flex items-center gap-1.5 sm:gap-3 rounded-full p-1.5 sm:px-3">
+                <button onclick="aturKecepatan()" id="sl-kecepatan" class="sl-tb w-12 text-xs font-extrabold tabular-nums" title="Kecepatan suara">1×</button>
+                <button onclick="geserSlide(-1)" id="sl-prev" class="sl-tb" aria-label="Slide sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+                <button onclick="toggleNarasi()" id="sl-play" class="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-900/40 flex items-center justify-center text-xl transition" aria-label="Putar narasi"><i class="fa-solid fa-play ml-0.5"></i></button>
+                <button onclick="geserSlide(1)" id="sl-next" class="sl-tb" aria-label="Slide berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+                <button onclick="toggleOtomatis()" id="sl-otomatis" class="sl-tb aktif" title="Lanjut otomatis setelah narasi selesai" aria-pressed="true"><i class="fa-solid fa-forward"></i></button>
             </div>
         </div>
-        <div class="shrink-0 px-3 md:px-6 pt-1 pb-3 flex items-center justify-between gap-2 text-white" style="padding-bottom: max(env(safe-area-inset-bottom), 12px)">
-            <button onclick="geserSlide(-1)" id="sl-prev" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg disabled:opacity-30" aria-label="Slide sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
-            <div class="flex items-center gap-3 md:gap-5">
-                <label class="flex items-center gap-2 text-[11px] md:text-xs font-bold text-white/70 cursor-pointer" title="Pindah slide otomatis setelah narasi selesai">
-                    <input type="checkbox" id="sl-otomatis" checked class="accent-rose-500 w-4 h-4"> <span>Lanjut otomatis</span>
-                </label>
-                <button onclick="toggleNarasi()" id="sl-play" class="w-14 h-14 rounded-full bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-900/40 flex items-center justify-center text-xl" aria-label="Putar narasi"><i class="fa-solid fa-play ml-0.5"></i></button>
-                <span id="sl-hitung" class="text-sm font-bold text-white/80 tabular-nums w-14 text-center">1 / 1</span>
+        <!-- Layar mulai: browser hanya mengizinkan suara setelah siswa mengetuk -->
+        <div id="sl-mulai" class="hidden absolute inset-0 z-[62] flex items-end sm:items-center justify-center p-4 bg-[#07142b]/55">
+            <div class="sl-kontrol w-full max-w-sm rounded-3xl p-6 text-center">
+                <p class="text-[11px] font-extrabold tracking-[.2em] uppercase text-white/60">Modul Belajar</p>
+                <h2 id="sl-mulai-judul" class="text-2xl font-extrabold mt-1 mb-1"></h2>
+                <p id="sl-mulai-info" class="text-sm text-white/70 mb-5"></p>
+                <button onclick="mulaiBelajar(true)" class="w-full bg-rose-600 hover:bg-rose-500 rounded-2xl py-3.5 font-extrabold text-base shadow-lg shadow-rose-900/40 flex items-center justify-center gap-2"><i class="fa-solid fa-headphones"></i> Mulai dengan Suara</button>
+                <button onclick="mulaiBelajar(false)" class="w-full mt-2 rounded-2xl py-3 font-bold text-sm text-white/80 hover:bg-white/10">Baca tanpa suara</button>
             </div>
-            <button onclick="geserSlide(1)" id="sl-next" class="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-lg" aria-label="Slide berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
     </div>
 
@@ -801,30 +824,52 @@ if (!pdfBersih) {
 
         // =====================================================
         // PEMBACA MODUL SLIDE
+        // Kartu kaca di atas latar animasi; pindah slide dengan efek balik halaman.
         // Tata letak otomatis: potret (HP/layar tegak) atau lanskap (desktop).
-        // Narasi: audio MP3 suara neural dari admin; jika belum ada, pakai suara perangkat.
+        // Narasi: MP3 suara neural yang dibuat sekali oleh admin; jika belum ada, suara perangkat.
+        // Kartu Mitos/Fakta: narasi pernyataan -> siswa menebak -> kartu dibalik -> penjelasan dibacakan.
         // =====================================================
-        const sl = { daftar: [], idx: 0, main: false, audio: new Audio(), sesi: 0 };
+        const sl = { daftar: [], idx: 0, main: false, audio: new Audio(), sesi: 0, otomatis: true, kecepatan: 1, jawaban: {}, menungguJawaban: false, animasi: false };
+        const KECEPATAN = [1, 1.25, 1.5, 0.75];
 
         async function mulaiModeSlide() {
             document.getElementById('wadah-buku').classList.add('hidden');
             const { data, error } = await supabaseClient.from('slide').select('*').eq('id_buku', bookId).order('urutan', { ascending: true });
             if (error || !data || !data.length) { await Dialog.alert('Modul slide ini belum memiliki isi.'); return keluarKeBeranda(); }
             sl.daftar = data;
-            document.getElementById('wadah-slide').classList.remove('hidden');
+            try { sl.kecepatan = parseFloat(localStorage.getItem('slKecepatan')) || 1; sl.otomatis = localStorage.getItem('slOtomatis') !== '0'; } catch (e) {}
+            const wadah = document.getElementById('wadah-slide');
+            // HP lemah: matikan blur kaca agar tetap lancar
+            if ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2)) wadah.classList.add('sl-hemat');
+            document.addEventListener('visibilitychange', () => wadah.classList.toggle('sl-diam', document.hidden));
+            wadah.classList.remove('hidden');
+            document.body.classList.add('mode-slide');
+            document.getElementById('sl-segmen').innerHTML = data.map(() => '<div class="sl-seg"><i></i></div>').join('');
+            perbaruiTombolKecepatan(); perbaruiTombolOtomatis();
             tampilSlide(0);
 
-            window.addEventListener('resize', () => tampilSlide(sl.idx, true));
+            const suaraSiap = data.filter(s => s.audio_url).length;
+            document.getElementById('sl-mulai-judul').textContent = dataBuku.judul;
+            document.getElementById('sl-mulai-info').textContent = `${data.length} slide · ${suaraSiap === data.length ? 'dengan narasi suara' : 'dibacakan otomatis'}`;
+            document.getElementById('sl-mulai').classList.remove('hidden');
+
+            let lebarTerakhir = window.innerWidth, tinggiTerakhir = window.innerHeight;
+            window.addEventListener('resize', () => {
+                // Abaikan perubahan tinggi kecil (bilah alamat HP muncul/hilang)
+                if (window.innerWidth === lebarTerakhir && Math.abs(window.innerHeight - tinggiTerakhir) < 120) return;
+                lebarTerakhir = window.innerWidth; tinggiTerakhir = window.innerHeight;
+                renderHalaman(document.querySelector('#sl-panggung .sl-halaman:last-child'));
+            });
             document.addEventListener('keydown', e => {
-                if (document.getElementById('wadah-slide').classList.contains('hidden')) return;
-                if (!document.getElementById('modalSelesai').classList.contains('hidden')) return;
+                if (wadah.classList.contains('hidden')) return;
+                if (!document.getElementById('modalSelesai').classList.contains('hidden') || !document.getElementById('sl-mulai').classList.contains('hidden')) return;
                 if (e.key === 'ArrowRight' || e.key === 'PageDown') { e.preventDefault(); geserSlide(1); }
                 else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); geserSlide(-1); }
-                else if (e.key === ' ') { e.preventDefault(); toggleNarasi(); }
+                else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); toggleNarasi(); }
             });
             // Geser (swipe) di layar sentuh
             let awal = null;
-            const panggung = document.getElementById('sl-bingkai');
+            const panggung = document.getElementById('sl-panggung');
             panggung.addEventListener('touchstart', e => { const t = e.touches[0]; awal = { x: t.clientX, y: t.clientY }; }, { passive: true });
             panggung.addEventListener('touchend', e => {
                 if (!awal) return;
@@ -832,60 +877,124 @@ if (!pdfBersih) {
                 awal = null;
                 if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) geserSlide(dx < 0 ? 1 : -1);
             }, { passive: true });
+            panggung.addEventListener('sl-jawab', e => jawabMitosFakta(e.detail));
             sl.audio.addEventListener('ended', () => selesaiNarasi(sl.sesi));
+            sl.audio.addEventListener('timeupdate', () => { if (sl.audio.duration) isiSegmen(sl.audio.currentTime / sl.audio.duration); });
         }
 
-        function tampilSlide(i, hanyaTataLetak) {
+        function mulaiBelajar(denganSuara) {
+            document.getElementById('sl-mulai').classList.add('hidden');
+            if (denganSuara) putarNarasi();
+        }
+
+        function renderHalaman(el) {
+            if (!el) return;
+            const data = sl.daftar[sl.idx];
+            const meta = { nomor: sl.idx + 1, total: sl.daftar.length, terjawab: sl.jawaban[sl.idx] };
+            if (data.jenis === 'mitos-fakta') {
+                const kartu = sl.daftar.filter(s => s.jenis === 'mitos-fakta');
+                meta.label = `Kartu ${kartu.indexOf(data) + 1} / ${kartu.length}`;
+            }
+            SlideRender.render(el, data, SlideRender.orientasiLayar(), meta);
+            el.classList.add('sl-halaman');
+            if (document.getElementById('wadah-slide').classList.contains('sl-hemat')) el.classList.add('sl-hemat');
+        }
+
+        function tampilSlide(i, arah = 0) {
             const total = sl.daftar.length;
             sl.idx = Math.max(0, Math.min(i, total - 1));
-            const data = sl.daftar[sl.idx];
-            SlideRender.render(document.getElementById('sl-panggung'), data, SlideRender.orientasiLayar(), { nomor: sl.idx + 1, total });
-            if (hanyaTataLetak) return;
+            sl.menungguJawaban = false;
+            const panggung = document.getElementById('sl-panggung');
+            const lama = panggung.querySelector('.sl-halaman:last-child');
+            const baru = document.createElement('div');
+            panggung.appendChild(baru);
+            renderHalaman(baru);
+            if (lama && arah) {
+                // Efek balik halaman: maju = halaman lama dibalik ke kiri; mundur = halaman baru kembali dari kiri
+                lama.classList.add(arah > 0 ? 'keluar-maju' : 'keluar-mundur');
+                baru.classList.add(arah > 0 ? 'masuk-maju' : 'masuk-mundur');
+                if (arah > 0) panggung.insertBefore(baru, lama);
+                sl.animasi = true;
+                setTimeout(() => { lama.remove(); baru.classList.remove('masuk-maju', 'masuk-mundur'); sl.animasi = false; }, 720);
+            } else if (lama) lama.remove();
 
-            document.getElementById('sl-progres').style.width = ((sl.idx + 1) / total * 100) + '%';
-            document.getElementById('sl-hitung').textContent = `${sl.idx + 1} / ${total}`;
+            document.querySelectorAll('#sl-segmen .sl-seg > i').forEach((seg, n) => { seg.style.width = n < sl.idx ? '100%' : '0%'; });
             document.getElementById('sl-prev').disabled = sl.idx === 0;
-            const terakhir = sl.idx === total - 1;
-            document.getElementById('sl-next').innerHTML = terakhir ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-chevron-right"></i>';
-            document.getElementById('sl-next').classList.toggle('!bg-emerald-600', terakhir);
+            const terakhir = sl.idx === total - 1, next = document.getElementById('sl-next');
+            next.innerHTML = terakhir ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-chevron-right"></i>';
+            next.classList.toggle('selesai', terakhir);
+            next.setAttribute('aria-label', terakhir ? 'Selesai' : 'Slide berikutnya');
             const btnSelesai = document.getElementById('btn-selesai');
             btnSelesai.classList.toggle('hidden', !terakhir); btnSelesai.classList.toggle('flex', terakhir);
 
-            // Muat gambar slide berikutnya lebih dulu
+            // Muat gambar & audio slide berikutnya lebih dulu
             const berikut = sl.daftar[sl.idx + 1];
             if (berikut && berikut.gambar_url) { const img = new Image(); img.src = berikut.gambar_url; }
-            if (sl.main) putarNarasi();
+            if (berikut && berikut.audio_url) { const a = new Audio(); a.preload = 'auto'; a.src = berikut.audio_url; }
+            if (sl.main) putarNarasi(); else isiSegmen(0);
+        }
+
+        function isiSegmen(rasio) {
+            const seg = document.querySelectorAll('#sl-segmen .sl-seg > i')[sl.idx];
+            if (seg) seg.style.width = Math.min(100, rasio * 100) + '%';
+            // Teks panjang ikut digulir pelan mengikuti narasi (mulai setelah 15% agar judul sempat terbaca)
+            if (sl.main && rasio > 0 && !sl.animasi) {
+                const teks = document.querySelector('#sl-panggung .sl-halaman:last-child .sl-teks');
+                const sisa = teks ? teks.scrollHeight - teks.clientHeight : 0;
+                if (sisa > 8 && !teks.matches(':hover')) teks.scrollTop = sisa * Math.max(0, Math.min(1, (rasio - .15) / .75));
+            }
         }
 
         function geserSlide(arah) {
-            if (arah > 0 && sl.idx === sl.daftar.length - 1) { hentikanNarasi(); return tampilkanKonfirmasiSelesai(); }
+            if (sl.animasi) return;
+            if (arah > 0 && sl.idx === sl.daftar.length - 1) { hentikanNarasi(); isiSegmen(1); return tampilkanKonfirmasiSelesai(); }
             if (arah < 0 && sl.idx === 0) return;
-            tampilSlide(sl.idx + arah);
+            tampilSlide(sl.idx + arah, arah);
+        }
+
+        // Putar satu potong narasi: MP3 bila ada, jika tidak pakai suara perangkat
+        function ucapkan(url, teks, sesi) {
+            sl.audio.pause();
+            if (ttsDidukung) speechSynthesis.cancel();
+            if (url) {
+                sl.audio.src = url; sl.audio.playbackRate = sl.kecepatan;
+                sl.audio.play().catch(() => { sl.main = false; perbaruiTombolPlay(); });
+            } else if (ttsDidukung && teks) {
+                const u = new SpeechSynthesisUtterance(teks);
+                u.lang = 'id-ID';
+                const suara = pilihSuaraIndonesia(); if (suara) u.voice = suara;
+                u.rate = sl.kecepatan;
+                u.onend = () => selesaiNarasi(sesi);
+                speechSynthesis.speak(u);
+                // Perkiraan progres untuk suara perangkat (±14 karakter per detik)
+                const mulai = Date.now(), perkiraan = teks.length / 14 / sl.kecepatan * 1000;
+                const jalan = () => { if (sesi !== sl.sesi || !sl.main) return; isiSegmen((Date.now() - mulai) / perkiraan); requestAnimationFrame(jalan); };
+                requestAnimationFrame(jalan);
+            } else { sl.main = false; perbaruiTombolPlay(); }
         }
 
         function putarNarasi() {
             const data = sl.daftar[sl.idx], sesi = ++sl.sesi;
-            sl.audio.pause();
-            if (ttsDidukung) speechSynthesis.cancel();
             sl.main = true; perbaruiTombolPlay();
-            if (data.audio_url) {
-                sl.audio.src = data.audio_url;
-                sl.audio.play().catch(() => { sl.main = false; perbaruiTombolPlay(); });
-            } else if (ttsDidukung) {
-                const u = new SpeechSynthesisUtterance(SlideRender.teksUcapan(data));
-                u.lang = 'id-ID';
-                const suara = pilihSuaraIndonesia(); if (suara) u.voice = suara;
-                u.rate = prefBaca.kecepatan || 1;
-                u.onend = () => selesaiNarasi(sesi);
-                speechSynthesis.speak(u);
-            } else { sl.main = false; perbaruiTombolPlay(); }
+            const sudahDijawab = data.jenis === 'mitos-fakta' && sl.jawaban[sl.idx];
+            if (sudahDijawab) return ucapkan(data.audio_jawaban_url, SlideRender.teksJawaban(data), sesi);
+            sl.menungguJawaban = data.jenis === 'mitos-fakta';
+            ucapkan(data.audio_url, SlideRender.teksUcapan(data), sesi);
+        }
+
+        function jawabMitosFakta({ pilihan }) {
+            sl.jawaban[sl.idx] = pilihan;
+            sl.menungguJawaban = false;
+            if (sl.main) ucapkan(sl.daftar[sl.idx].audio_jawaban_url, SlideRender.teksJawaban(sl.daftar[sl.idx]), ++sl.sesi);
         }
 
         function selesaiNarasi(sesi) {
             if (sesi !== sl.sesi || !sl.main) return;
-            const otomatis = document.getElementById('sl-otomatis').checked;
-            if (otomatis && sl.idx < sl.daftar.length - 1) setTimeout(() => { if (sesi === sl.sesi && sl.main) tampilSlide(sl.idx + 1); }, 700);
-            else { sl.main = false; perbaruiTombolPlay(); if (otomatis && sl.idx === sl.daftar.length - 1) tampilkanKonfirmasiSelesai(); }
+            isiSegmen(1);
+            // Kartu Mitos/Fakta menunggu tebakan siswa sebelum lanjut
+            if (sl.menungguJawaban && !sl.jawaban[sl.idx]) return;
+            if (sl.otomatis && sl.idx < sl.daftar.length - 1) setTimeout(() => { if (sesi === sl.sesi && sl.main) geserSlide(1); }, 900);
+            else { sl.main = false; perbaruiTombolPlay(); if (sl.otomatis && sl.idx === sl.daftar.length - 1) setTimeout(tampilkanKonfirmasiSelesai, 600); }
         }
 
         function hentikanNarasi() {
@@ -899,7 +1008,29 @@ if (!pdfBersih) {
 
         function perbaruiTombolPlay() {
             const b = document.getElementById('sl-play');
-            if (b) b.innerHTML = sl.main ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-0.5"></i>';
+            if (!b) return;
+            b.innerHTML = sl.main ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play ml-0.5"></i>';
+            b.setAttribute('aria-label', sl.main ? 'Jeda narasi' : 'Putar narasi');
+        }
+
+        function aturKecepatan() {
+            sl.kecepatan = KECEPATAN[(KECEPATAN.indexOf(sl.kecepatan) + 1) % KECEPATAN.length] || 1;
+            try { localStorage.setItem('slKecepatan', sl.kecepatan); } catch (e) {}
+            perbaruiTombolKecepatan();
+            sl.audio.playbackRate = sl.kecepatan;
+            if (sl.main && !sl.daftar[sl.idx].audio_url) putarNarasi(); // suara perangkat perlu diulang agar kecepatan berlaku
+        }
+        function perbaruiTombolKecepatan() { document.getElementById('sl-kecepatan').textContent = String(sl.kecepatan).replace('.', ',') + '×'; }
+
+        function toggleOtomatis() {
+            sl.otomatis = !sl.otomatis;
+            try { localStorage.setItem('slOtomatis', sl.otomatis ? '1' : '0'); } catch (e) {}
+            perbaruiTombolOtomatis();
+        }
+        function perbaruiTombolOtomatis() {
+            const b = document.getElementById('sl-otomatis');
+            b.classList.toggle('aktif', sl.otomatis); b.setAttribute('aria-pressed', sl.otomatis);
+            b.title = sl.otomatis ? 'Lanjut otomatis: aktif' : 'Lanjut otomatis: mati';
         }
 
         // =====================================================
