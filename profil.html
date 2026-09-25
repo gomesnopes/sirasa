@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/icon-192.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-    <title>Profil & Rapor Belajar - SIRASA</title>
+    <title>Profil & Rapor Belajar - Macaya</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,28 +45,28 @@
         </div>
     </header>
 
-    <!-- Sidebar desktop (sama dengan Beranda) -->
-    <aside class="d-sidebar d-font hidden md:flex fixed inset-y-0 left-0 z-40 w-60 xl:w-72 flex-col text-white">
-        <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
-            <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-            <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
-        </a>
-        <nav class="px-4 space-y-1.5">
-            <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
-            <a href="dashboard.html" class="d-nav"><i class="fa-solid fa-house"></i> Beranda</a>
-            <a href="dashboard.html#materi" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</a>
-            <a href="profil.html" class="d-nav aktif"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
-        </nav>
-    </aside>
+    <!-- Bilah atas + tab desktop (sama dengan Beranda) -->
+    <header class="d-header d-font hidden md:block">
+        <div class="max-w-[1320px] mx-auto px-6 lg:px-8 xl:px-12 h-[4.5rem] flex items-center justify-between gap-6">
+            <a href="dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                <span class="w-10 h-10 bg-[#0b1d3a] rounded-xl p-2 shadow-md"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+                <span class="font-black text-2xl tracking-tight text-[#0b1d3a]">Maca<span class="text-[#1769b3]">ya</span></span>
+            </a>
+            <nav class="d-tabs" aria-label="Navigasi utama">
+                <a href="dashboard.html" class="d-tab"><i class="fa-solid fa-house"></i> Beranda</a>
+                <a href="profil.html" class="d-tab aktif" aria-current="page"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
+            </nav>
+            <a href="dashboard.html" class="shrink-0 inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-4 py-2.5 rounded-full text-sm shadow-md transition"><i class="fa-solid fa-play text-xs"></i> Lanjut Belajar</a>
+        </div>
+    </header>
 
-    <main class="flex-1 w-full px-4 md:pl-[calc(15rem+2rem)] xl:pl-[calc(18rem+3rem)] md:pr-8 xl:pr-12 pt-8 pb-8 md:pb-12 -mt-24 md:mt-0 relative z-10 d-font-md">
-      <div class="max-w-[1200px] mx-auto space-y-6 md:space-y-8">
+    <main class="flex-1 w-full px-4 md:px-6 lg:px-8 xl:px-12 pt-8 pb-8 md:pb-12 -mt-24 md:mt-0 relative z-10 d-font-md">
+      <div class="max-w-[1320px] mx-auto space-y-6 md:space-y-8">
         <div class="hidden md:flex items-end justify-between gap-4">
             <div>
                 <p class="text-sm font-semibold text-slate-400">Pantau XP, waktu belajar, dan peningkatan pemahamanmu</p>
                 <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Rapor Belajar</h1>
             </div>
-            <a href="dashboard.html" class="inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-sky-900/15 transition"><i class="fa-solid fa-play"></i> Lanjut Belajar</a>
         </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">

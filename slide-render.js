@@ -1,5 +1,5 @@
 // File: slide-render.js
-// Perender satu slide modul SIRASA (pasangan slide.css). Dipakai buku.html
+// Perender satu slide modul Macaya (pasangan slide.css). Dipakai buku.html
 // (pembaca siswa) dan admin.html (pratinjau editor) agar tampilannya identik.
 //
 // Format teks isi slide (sederhana, ramah admin):
@@ -55,15 +55,29 @@
         return html;
     }
 
+    // ---------- Kamus ejaan (tabel kamus_ucapan), mis. HIV -> "ha i ve" ----------
+    let KAMUS = [];
+    const escRe = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    function aturKamus(daftar) {
+        KAMUS = (daftar || []).filter(k => k && k.kata && k.ucapan)
+            .sort((a, b) => b.kata.length - a.kata.length) // kata terpanjang dulu (ODHIV sebelum HIV)
+            .map(k => ({ pola: new RegExp(`(?<![\\p{L}\\p{N}])${escRe(k.kata.trim())}(?![\\p{L}\\p{N}])`, 'gu'), ucapan: k.ucapan.trim() }));
+    }
+    async function muatKamus(client) {
+        try { const { data } = await client.from('kamus_ucapan').select('kata, ucapan'); aturKamus(data); } catch (e) { /* tanpa kamus tetap jalan */ }
+        return KAMUS.length;
+    }
+    const terapkanKamus = t => KAMUS.reduce((hasil, k) => hasil.replace(k.pola, k.ucapan), String(t || ''));
+
     // ---------- Teks untuk dibacakan (harus sama dengan Edge Function tts-slide) ----------
     function rapikanUcapan(t) {
-        return String(t || '')
+        return terapkanKamus(String(t || '')
             .replace(/\*\*/g, '')
             .replace(/HIV\/AIDS/g, 'HIV dan AIDS')
             .replace(/(\S)\s*\/\s*(\S)/g, '$1 atau $2')
             .replace(/≠/g, ' tidak sama dengan ')
             .replace(/\s*(…|\.\.\.)\s*$/, ':').replace(/…|\.\.\./g, ', ')
-            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
+            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ''))
             .replace(/\s+/g, ' ').trim();
     }
     const akhiriTitik = b => (/[.!?:;]$/.test(b) ? b : b + '.');
@@ -158,5 +172,5 @@
         }
     }
 
-    window.SlideRender = { isiKeHtml, teksUcapan, teksJawaban, orientasiLayar, render, esc };
+    window.SlideRender = { isiKeHtml, teksUcapan, teksJawaban, orientasiLayar, render, esc, aturKamus, muatKamus, terapkanKamus };
 })();
