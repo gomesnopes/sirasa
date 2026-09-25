@@ -69,9 +69,12 @@
                         <div class="w-9 h-9 bg-white rounded-xl p-1 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></div>
                         <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
                     </div>
-                    <p class="text-[11px] leading-snug text-sky-50/90">Selesaikan misi modul &amp; kumpulkan XP. Jadilah agen peduli kesehatan!</p>
+                    <p class="text-[11px] leading-snug text-sky-50/90">Satu materi hari ini, satu langkah lebih paham. Yuk lanjutkan misimu!</p>
                 </div>
-                <img src="assets/hero-mobile.png" alt="" class="w-28 h-36 object-contain object-bottom drop-shadow-2xl -mb-24 relative z-0">
+                <div class="relative w-32 h-32 -mb-20 shrink-0" aria-hidden="true">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Woman%20student/Medium/3D/woman_student_3d_medium.png" alt="" class="absolute inset-0 w-full h-full object-contain drop-shadow-2xl">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Red%20heart/3D/red_heart_3d.png" alt="" class="absolute -left-4 top-0 w-10 -rotate-12 drop-shadow-lg">
+                </div>
             </div>
         </header>
 
@@ -114,11 +117,6 @@
                 <div class="flex items-end justify-between gap-2">
                     <h3 class="font-black text-slate-800 text-lg flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-[#1769b3]"></i> Menu Belajar</h3>
                     <span id="m-hitung-misi" class="text-[11px] font-bold text-[#1769b3] bg-[#e8f1fb] px-2.5 py-1 rounded-full whitespace-nowrap"></span>
-                </div>
-                <div class="flex bg-slate-100 rounded-full p-1 text-[13px] font-bold mt-3 w-full" id="m-filter-misi" role="tablist">
-                    <button onclick="saringMisi('Semua')" data-f="Semua" class="app-tap flex-1 py-1.5 rounded-full bg-[#1769b3] text-white shadow">Semua</button>
-                    <button onclick="saringMisi('Materi')" data-f="Materi" class="app-tap flex-1 py-1.5 rounded-full text-slate-500">Materi</button>
-                    <button onclick="saringMisi('Kuis')" data-f="Kuis" class="app-tap flex-1 py-1.5 rounded-full text-slate-500">Tes &amp; Kuis</button>
                 </div>
                 <div id="m-daftar-misi" class="grid grid-cols-4 gap-y-5 gap-x-2 mt-5 text-center">
                     <div class="col-span-4 text-center text-sm text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin"></i></div>
@@ -237,7 +235,7 @@
         let supabaseClient; 
         let loggedInUser = null; 
         let semuaBuku = []; 
-        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set(); let filterMisiAktif = 'Semua';
+        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set();
         const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -381,15 +379,6 @@
             }
         }
 
-        function saringMisi(jenis, gulir) {
-            filterMisiAktif = jenis;
-            document.querySelectorAll('#m-filter-misi button').forEach(b => {
-                const aktif = b.dataset.f === jenis;
-                b.classList.toggle('bg-[#1769b3]', aktif); b.classList.toggle('text-white', aktif); b.classList.toggle('shadow', aktif); b.classList.toggle('text-slate-500', !aktif);
-            });
-            renderMisiMobile();
-            if (gulir) gulirKe('m-seksi-misi');
-        }
 
         // Pecah judul "Minggu 2 - HIV/AIDS" menjadi label minggu & nama materi
         function labelMisi(b) {
@@ -400,16 +389,16 @@
         // Ikon, warna & deskripsi per jenis konten
         function gayaMisi(b) {
             const j = String(b.judul || '').toLowerCase();
-            if (/pre[- ]?test/.test(j)) return { ikon: 'fa-clipboard-question', warna: '!bg-indigo-50 !text-indigo-600', jenis: 'Pre-Test', ket: 'Ukur pemahaman awalmu sebelum belajar (tanpa XP).' };
-            if (/post[- ]?test/.test(j)) return { ikon: 'fa-clipboard-check', warna: '!bg-emerald-50 !text-emerald-600', jenis: 'Post-Test', ket: 'Ukur pemahamanmu setelah menyelesaikan semua materi.' };
+            if (/pre[- ]?test/.test(j)) return { ikon: 'fa-clipboard-question', warna: '', jenis: 'Pre-Test', ket: 'Ukur pemahaman awalmu sebelum belajar (tanpa XP).' };
+            if (/post[- ]?test/.test(j)) return { ikon: 'fa-clipboard-check', warna: '', jenis: 'Post-Test', ket: 'Ukur pemahamanmu setelah menyelesaikan semua materi.' };
             if (b.tipe_konten === 'Modul Slide') return { ikon: 'fa-images', warna: '', jenis: 'Materi Slide', ket: 'Baca materi per slide, bisa dengarkan narasinya.' };
             if (b.tipe_konten === 'Modul PDF') return { ikon: 'fa-book-open', warna: '', jenis: 'Materi Bacaan', ket: 'Baca modul materi dalam bentuk buku digital.' };
-            return { ikon: 'fa-list-check', warna: '!bg-amber-50 !text-amber-600', jenis: 'Kuis Latihan', ket: 'Kerjakan kuis dan kumpulkan XP.' };
+            return { ikon: 'fa-list-check', warna: '', jenis: 'Kuis Latihan', ket: 'Kerjakan kuis dan kumpulkan XP.' };
         }
 
         function renderMisiMobile() {
             const wadah = document.getElementById('m-daftar-misi');
-            const daftar = saringBuku(semuaBuku, filterMisiAktif);
+            const daftar = semuaBuku;
             const selesai = semuaBuku.filter(b => modulSelesai.has(b.id)).length;
             document.getElementById('m-hitung-misi').textContent = semuaBuku.length ? `${selesai}/${semuaBuku.length} selesai` : '';
             if (!daftar.length) { wadah.innerHTML = `<div class="col-span-4 text-center text-sm text-slate-400 py-8 bg-slate-50 rounded-2xl"><i class="fa-solid fa-box-open text-2xl mb-2 block text-slate-300"></i>Belum ada materi di sini.</div>`; return; }
