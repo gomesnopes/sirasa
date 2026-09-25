@@ -19,6 +19,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="dialog.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="app.css">
 
     <style>
@@ -32,33 +34,40 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="app-mobile bg-[#f4f7fb] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-[#f4f7fb] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header (sama untuk HP & desktop; desktop mendapat bilah navigasi) -->
-    <header class="relative text-white app-safe-top overflow-hidden">
+    <!-- Header HP (ala aplikasi) -->
+    <header class="md:hidden relative text-white app-safe-top overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-[#0b1d3a] via-[#123a6b] to-[#1b5f9f]"></div>
-        <div class="absolute -top-20 -right-16 w-64 h-64 md:w-[32rem] md:h-[32rem] rounded-full bg-sky-400/20 blur-3xl"></div>
-        <div class="app-topnav hidden md:flex relative z-10">
-            <a href="dashboard.html" class="flex items-center gap-2.5">
-                <span class="w-10 h-10 bg-white rounded-xl p-1.5 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-                <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
-            </a>
-            <nav class="flex items-center gap-1">
-                <a href="dashboard.html" class="app-topnav-link"><i class="fa-solid fa-house"></i> Beranda</a>
-                <a href="dashboard.html#lanjut" class="app-topnav-link"><i class="fa-solid fa-play"></i> Lanjut Belajar</a>
-                <a href="profil.html" class="app-topnav-link aktif"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
-            </nav>
-        </div>
-        <div class="relative z-10 px-5 md:px-8 pt-5 md:pt-8 pb-20 md:pb-32 flex items-center gap-3 max-w-[1200px] mx-auto">
-            <a href="dashboard.html" class="md:hidden app-tap w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
-            <div>
-                <h1 class="font-bold md:font-black text-lg md:text-3xl">Rapor Belajarmu</h1>
-                <p class="hidden md:block text-sm text-sky-100/80 mt-1">Pantau XP, waktu belajar, dan peningkatan pemahamanmu.</p>
-            </div>
+        <div class="relative z-10 px-5 pt-5 pb-20 flex items-center gap-3">
+            <a href="dashboard.html" class="app-tap w-9 h-9 rounded-full bg-white/10 border border-white/20 flex items-center justify-center" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></a>
+            <h1 class="font-bold text-lg">Rapor Belajarmu</h1>
         </div>
     </header>
 
-    <main class="flex-1 max-w-[1200px] w-full mx-auto px-4 md:px-8 pt-8 pb-8 md:pb-12 space-y-6 md:space-y-8 -mt-24 md:-mt-28 relative z-10">
+    <!-- Sidebar desktop (sama dengan Beranda) -->
+    <aside class="d-sidebar d-font hidden md:flex fixed inset-y-0 left-0 z-40 w-60 xl:w-72 flex-col text-white">
+        <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
+            <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+            <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
+        </a>
+        <nav class="px-4 space-y-1.5">
+            <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
+            <a href="dashboard.html" class="d-nav"><i class="fa-solid fa-house"></i> Beranda</a>
+            <a href="dashboard.html#materi" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</a>
+            <a href="profil.html" class="d-nav aktif"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 w-full px-4 md:pl-[calc(15rem+2rem)] xl:pl-[calc(18rem+3rem)] md:pr-8 xl:pr-12 pt-8 pb-8 md:pb-12 -mt-24 md:mt-0 relative z-10 d-font-md">
+      <div class="max-w-[1200px] mx-auto space-y-6 md:space-y-8">
+        <div class="hidden md:flex items-end justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-slate-400">Pantau XP, waktu belajar, dan peningkatan pemahamanmu</p>
+                <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Rapor Belajar</h1>
+            </div>
+            <a href="dashboard.html" class="inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-sky-900/15 transition"><i class="fa-solid fa-play"></i> Lanjut Belajar</a>
+        </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
             
@@ -80,7 +89,7 @@
                 </button>
             </div>
 
-            <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
+            <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-4 h-full">
                 <div class="bg-white p-5 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] text-center flex flex-col justify-center items-center">
                     <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-star"></i></div>
                     <h3 id="stat-xp" class="text-3xl font-black text-slate-800">0</h3>
@@ -131,6 +140,7 @@
             </div>
 
         </div>
+      </div>
     </main>
 
     <div class="app-nav-spacer md:hidden"></div>

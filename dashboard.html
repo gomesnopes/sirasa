@@ -17,8 +17,24 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="dialog.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="app.css">
     <style>
+
+        /* ===== Desktop ===== */
+        .d-hero { background: radial-gradient(120% 140% at 0% 0%, #1f5fa3 0%, #0f2b55 55%, #0b1d3a 100%); box-shadow: 0 24px 50px -20px rgba(11,29,58,.55); }
+        .d-gumpal { position: absolute; border-radius: 999px; filter: blur(40px); pointer-events: none; }
+        .d-ikon-stat { width: 2.75rem; height: 2.75rem; border-radius: .9rem; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .d-misi { position: relative; display: flex; flex-direction: column; background: #fff; border: 1px solid #e8eef5; border-radius: 1.5rem; padding: 1.4rem; box-shadow: 0 10px 30px -16px rgba(11,29,58,.14); transition: transform .18s, box-shadow .18s, border-color .18s; text-align: left; }
+        .d-misi:not(.terkunci):hover { transform: translateY(-4px); box-shadow: 0 22px 40px -18px rgba(23,105,179,.35); border-color: rgba(23,105,179,.35); }
+        .d-misi .d-misi-ikon { width: 3.5rem; height: 3.5rem; border-radius: 1.1rem; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: #e8f1fb; color: #1769b3; transition: background .18s, color .18s; }
+        .d-misi:not(.terkunci):hover .d-misi-ikon { background: #1769b3; color: #fff; }
+        .d-misi.selesai .d-misi-ikon { background: #ecfdf5; color: #059669; }
+        .d-misi.terkunci { background: #f8fafc; cursor: not-allowed; }
+        .d-misi.terkunci .d-misi-ikon { background: #eef2f7; color: #94a3b8; }
+        .d-misi.berikutnya { border-color: rgba(23,105,179,.45); box-shadow: 0 0 0 4px rgba(23,105,179,.08), 0 18px 36px -18px rgba(23,105,179,.35); }
+
         /* Tema Scrollbar Custom */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
@@ -28,31 +44,18 @@
 </head>
 <body class="app-mobile bg-[#f8fafc] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- ================= BERANDA (satu tata letak: HP ala aplikasi, melebar di desktop) ================= -->
-    <div class="min-h-[100dvh] bg-[#f4f7fb]">
+    <!-- ================= TAMPILAN HP (ala aplikasi native) ================= -->
+    <div class="md:hidden min-h-[100dvh] bg-[#f4f7fb]">
         <!-- Header gelap -->
         <header class="relative text-white overflow-hidden app-safe-top">
             <div class="absolute inset-0 bg-gradient-to-b from-[#0b1d3a] via-[#123a6b] to-[#1b5f9f]"></div>
-            <div class="absolute -top-20 -right-16 w-64 h-64 md:w-[32rem] md:h-[32rem] rounded-full bg-sky-400/20 blur-3xl"></div>
+            <div class="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-sky-400/20 blur-3xl"></div>
 
-            <!-- Bilah navigasi desktop (di HP diganti bottom navigation) -->
-            <div class="app-topnav hidden md:flex relative z-10">
-                <a href="dashboard.html" class="flex items-center gap-2.5">
-                    <span class="w-10 h-10 bg-white rounded-xl p-1.5 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-                    <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
-                </a>
-                <nav class="flex items-center gap-1">
-                    <a href="dashboard.html" class="app-topnav-link aktif"><i class="fa-solid fa-house"></i> Beranda</a>
-                    <button onclick="bukaSheetLanjut()" class="app-topnav-link"><i class="fa-solid fa-play"></i> Lanjut Belajar</button>
-                    <a href="profil.html" class="app-topnav-link"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
-                </nav>
-            </div>
-
-            <div class="relative z-10 px-5 md:px-8 pt-5 md:pt-8 flex items-start justify-between gap-3 md:max-w-6xl md:mx-auto">
+            <div class="relative z-10 px-5 pt-5 flex items-start justify-between gap-3">
                 <div class="min-w-0">
-                    <p class="text-[11px] md:text-sm text-sky-100/80 font-medium">Selamat Datang,</p>
-                    <h2 id="m-sapaan" class="text-lg md:text-3xl font-bold md:font-black truncate leading-tight">Agen 👋</h2>
-                    <p id="m-subjudul" class="text-[11px] md:text-sm text-sky-100/80 font-medium truncate">Memuat profil...</p>
+                    <p class="text-[11px] text-sky-100/80 font-medium">Selamat Datang,</p>
+                    <h2 id="m-sapaan" class="text-lg font-bold truncate leading-tight">Agen 👋</h2>
+                    <p id="m-subjudul" class="text-[11px] text-sky-100/80 font-medium truncate">Memuat profil...</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span id="m-level" class="flex items-center gap-2 bg-white text-amber-600 font-bold text-xs pl-3 pr-1 py-1 rounded-full shadow">
@@ -64,35 +67,35 @@
             </div>
 
             <!-- Banner -->
-            <div class="relative z-10 px-5 md:px-8 pt-5 pb-24 md:pb-28 flex items-end justify-between md:max-w-6xl md:mx-auto">
-                <div class="max-w-[58%] md:max-w-md pb-2">
-                    <div class="flex md:hidden items-center gap-2 mb-2">
+            <div class="relative z-10 px-5 pt-5 pb-24 flex items-end justify-between">
+                <div class="max-w-[58%] pb-2">
+                    <div class="flex items-center gap-2 mb-2">
                         <div class="w-9 h-9 bg-white rounded-xl p-1 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></div>
                         <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
                     </div>
-                    <p class="text-[11px] md:text-base leading-snug md:leading-relaxed text-sky-50/90">Satu materi hari ini, satu langkah lebih paham. Yuk lanjutkan misimu!</p>
+                    <p class="text-[11px] leading-snug text-sky-50/90">Satu materi hari ini, satu langkah lebih paham. Yuk lanjutkan misimu!</p>
                 </div>
-                <picture><source media="(min-width: 768px)" srcset="assets/hero.png"><img src="assets/hero-mobile.png" alt="" class="w-28 h-36 md:w-44 md:h-56 object-contain object-bottom drop-shadow-2xl -mb-24 md:-mb-28 relative z-0"></picture>
+                <img src="assets/hero-mobile.png" alt="" class="w-28 h-36 object-contain object-bottom drop-shadow-2xl -mb-24 relative z-0">
             </div>
         </header>
 
         <!-- Kartu ringkasan melayang -->
-        <section class="relative z-20 -mt-20 mx-4 md:mx-8 xl:mx-auto xl:max-w-6xl bg-white rounded-3xl shadow-xl shadow-slate-900/10 overflow-hidden md:flex">
-            <div class="bg-gradient-to-r from-[#1769b3] to-[#1f86d6] text-white grid grid-cols-3 divide-x divide-white/20 py-3 md:py-5 md:w-1/2 md:items-center">
-                <div class="px-3 md:px-6">
-                    <p class="text-[10px] md:text-xs text-sky-100">Total XP</p>
-                    <p class="font-black text-[15px] md:text-2xl flex items-center gap-1.5 mt-0.5"><i class="fa-solid fa-star text-amber-300 text-xs"></i><span id="m-xp">0</span></p>
+        <section class="relative z-20 -mt-20 mx-4 bg-white rounded-3xl shadow-xl shadow-slate-900/10 overflow-hidden">
+            <div class="bg-gradient-to-r from-[#1769b3] to-[#1f86d6] text-white grid grid-cols-3 divide-x divide-white/20 py-3">
+                <div class="px-3">
+                    <p class="text-[10px] text-sky-100">Total XP</p>
+                    <p class="font-black text-[15px] flex items-center gap-1.5 mt-0.5"><i class="fa-solid fa-star text-amber-300 text-xs"></i><span id="m-xp">0</span></p>
                 </div>
-                <div class="px-3 md:px-6">
-                    <p class="text-[10px] md:text-xs text-sky-100">Peringkat</p>
-                    <p class="font-black text-[15px] md:text-2xl flex items-center gap-1.5 mt-0.5"><i class="fa-solid fa-trophy text-amber-300 text-xs"></i><span id="m-rank">-</span></p>
+                <div class="px-3">
+                    <p class="text-[10px] text-sky-100">Peringkat</p>
+                    <p class="font-black text-[15px] flex items-center gap-1.5 mt-0.5"><i class="fa-solid fa-trophy text-amber-300 text-xs"></i><span id="m-rank">-</span></p>
                 </div>
-                <div class="px-3 md:px-6">
-                    <p class="text-[10px] md:text-xs text-sky-100">Misi Berikutnya</p>
+                <div class="px-3">
+                    <p class="text-[10px] text-sky-100">Misi Berikutnya</p>
                     <button onclick="bukaSheetLanjut()" class="app-tap mt-1 bg-white text-[#1769b3] text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">Lanjut <i class="fa-solid fa-caret-right"></i></button>
                 </div>
             </div>
-            <div class="p-3 md:p-5 md:flex-1 md:flex md:flex-col md:justify-center">
+            <div class="p-3">
                 <div class="grid grid-cols-3 bg-slate-100 rounded-xl p-1 text-xs font-bold text-slate-400">
                     <button onclick="pilihTabRingkas('progres')" data-tab="progres" class="tab-ringkas app-tap py-2 rounded-lg bg-white text-slate-800 shadow-sm">Progres</button>
                     <button onclick="pilihTabRingkas('waktu')" data-tab="waktu" class="tab-ringkas app-tap py-2 rounded-lg">Waktu</button>
@@ -110,14 +113,14 @@
 
         <!-- Lembar putih: menu, misi, peringkat -->
         <main class="bg-white rounded-t-[2rem] mt-5 pt-5 pb-2 min-h-[50vh] shadow-[0_-4px_20px_rgba(11,29,58,.04)]
-                     md:bg-transparent md:shadow-none md:rounded-none md:mt-6 md:pt-0 md:pb-10 md:px-8 md:grid md:grid-cols-3 md:gap-6 md:items-start xl:max-w-6xl xl:mx-auto xl:px-0">
+                    ">
             <!-- Menu Belajar: langsung berisi materi & tes, berurutan -->
-            <section id="m-seksi-misi" class="px-5 scroll-mt-4 app-kartu-desktop md:col-span-2">
+            <section id="m-seksi-misi" class="px-5 scroll-mt-4">
                 <div class="flex items-end justify-between gap-2">
                     <h3 class="font-black text-slate-800 text-lg flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-[#1769b3]"></i> Menu Belajar</h3>
                     <span id="m-hitung-misi" class="text-[11px] font-bold text-[#1769b3] bg-[#e8f1fb] px-2.5 py-1 rounded-full whitespace-nowrap"></span>
                 </div>
-                <div id="m-daftar-misi" class="grid grid-cols-4 md:grid-cols-5 gap-y-5 gap-x-2 md:gap-x-4 md:gap-y-7 mt-5 text-center">
+                <div id="m-daftar-misi" class="grid grid-cols-4 gap-y-5 gap-x-2 mt-5 text-center">
                     <div class="col-span-4 text-center text-sm text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin"></i></div>
                 </div>
                 <p class="mt-5 text-[11px] text-slate-400 flex items-center justify-center gap-3">
@@ -127,18 +130,18 @@
             </section>
 
             <!-- Papan Peringkat -->
-            <section id="m-seksi-peringkat" class="mt-8 md:mt-0 px-5 scroll-mt-4 app-kartu-desktop">
+            <section id="m-seksi-peringkat" class="mt-8 px-5 scroll-mt-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> Papan Peringkat</h3>
                     <span class="text-[11px] font-bold text-slate-400">Top 5</span>
                 </div>
                 <div id="m-leaderboard" class="space-y-2"></div>
             </section>
-            <div class="app-nav-spacer md:hidden"></div>
+            <div class="app-nav-spacer"></div>
         </main>
 
         <!-- Bottom navigation -->
-        <nav class="app-bottom-nav md:hidden">
+        <nav class="app-bottom-nav">
             <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
                 <a href="dashboard.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
                 <div class="flex flex-col items-center">
@@ -153,21 +156,127 @@
         <div id="m-sheet-lanjut" class="hidden fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="m-sheet-judul">
             <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" onclick="tutupSheetLanjut()"></div>
             <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-[2rem] px-6 pt-3 pb-6 app-sheet shadow-2xl max-h-[85dvh] overflow-y-auto
-                        md:bottom-auto md:top-1/2 md:left-1/2 md:right-auto md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md md:rounded-3xl md:pt-7" style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom))">
-                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5 md:hidden"></div>
-                <button onclick="tutupSheetLanjut()" class="hidden md:flex absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 items-center justify-center" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button>
+                       " style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom))">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5"></div>
                 <div id="m-sheet-isi"></div>
             </div>
         </div>
 
-        <div id="m-toast" class="hidden fixed left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 bottom-28 md:bottom-8 z-[70] bg-slate-900/95 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-2xl text-center"></div>
+        <div id="m-toast" class="hidden fixed left-4 right-4 bottom-28 z-[70] bg-slate-900/95 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-2xl text-center"></div>
+    </div>
+
+    <!-- ================= TAMPILAN DESKTOP (dasbor web, dirancang khusus layar lebar) ================= -->
+    <div class="hidden md:flex min-h-screen bg-[#f4f7fb] d-font">
+        <!-- Sidebar -->
+        <aside class="d-sidebar w-60 xl:w-72 shrink-0 sticky top-0 h-screen flex flex-col text-white">
+            <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
+                <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+                <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
+            </a>
+            <nav class="px-4 space-y-1.5">
+                <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
+                <a href="dashboard.html" class="d-nav aktif"><i class="fa-solid fa-house"></i> Beranda</a>
+                <button onclick="document.getElementById('d-seksi-materi').scrollIntoView({behavior:'smooth'})" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</button>
+                <a href="profil.html" class="d-nav"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
+            </nav>
+            <div class="mt-auto p-4">
+                <div class="rounded-2xl bg-white/10 border border-white/10 p-4">
+                    <div class="flex items-center gap-3">
+                        <span id="d-avatar-kecil" class="w-10 h-10 rounded-full bg-white text-[#1769b3] font-black flex items-center justify-center shrink-0">?</span>
+                        <div class="min-w-0">
+                            <p id="d-nama-kecil" class="font-bold text-sm truncate">-</p>
+                            <p id="d-kelas-kecil" class="text-[11px] text-sky-100/70 truncate">-</p>
+                        </div>
+                    </div>
+                    <button onclick="prosesLogout()" class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-sky-50 bg-white/10 hover:bg-rose-600 transition"><i class="fa-solid fa-power-off"></i> Keluar Akun</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Konten -->
+        <main class="flex-1 min-w-0 px-6 lg:px-8 xl:px-12 py-8">
+            <div class="max-w-[1320px] mx-auto">
+                <!-- Bilah atas -->
+                <div class="flex items-center justify-between gap-6 mb-8">
+                    <div>
+                        <p id="d-tanggal" class="text-sm font-semibold text-slate-400"></p>
+                        <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Halo, <span id="d-sapaan">Agen</span> 👋</h1>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="d-level-chip" class="flex items-center gap-2 bg-white border border-[#e8eef5] rounded-full pl-2 pr-4 py-1.5 font-bold text-sm text-amber-600 shadow-sm"><span class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs"><i class="fa-solid fa-star"></i></span><span id="d-level">Bronze</span></span>
+                        <a href="profil.html" id="d-avatar" class="w-11 h-11 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center shadow-md hover:scale-105 transition" title="Rapor & profil">?</a>
+                    </div>
+                </div>
+
+                <!-- Baris utama: Lanjutkan belajar + peringkat -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <section id="d-lanjut" class="lg:col-span-2 relative overflow-hidden rounded-[2rem] text-white p-8 xl:p-10 min-h-[260px] d-hero">
+                        <span class="d-gumpal" style="width:22rem;height:22rem;right:-5rem;top:-8rem;background:rgba(56,189,248,.25)"></span>
+                        <span class="d-gumpal" style="width:16rem;height:16rem;left:30%;bottom:-9rem;background:rgba(225,29,72,.22)"></span>
+                        <img src="assets/hero.png" alt="" class="hidden xl:block absolute right-6 bottom-0 h-[92%] max-h-[300px] object-contain object-bottom drop-shadow-2xl pointer-events-none">
+                        <div id="d-lanjut-isi" class="relative z-10 xl:max-w-[58%]">
+                            <div class="h-40 flex items-center text-sky-100/70"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat misi...</div>
+                        </div>
+                    </section>
+                    <section class="d-kartu p-6 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-[#0b1d3a] flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-crown text-amber-500"></i> Papan Peringkat</h3>
+                            <span id="d-rank" class="whitespace-nowrap text-xs font-bold text-[#1769b3] bg-[#e8f1fb] px-2.5 py-1 rounded-full">Kamu #-</span>
+                        </div>
+                        <div id="d-leaderboard" class="mt-4 space-y-2 flex-1"></div>
+                    </section>
+                </div>
+
+                <!-- Statistik (semua tampil sekaligus, tanpa tab) -->
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-amber-50 text-amber-500"><i class="fa-solid fa-star"></i></span><span class="text-xs font-bold text-slate-400">Total XP</span></div>
+                        <p id="d-xp" class="text-3xl font-extrabold text-[#0b1d3a] mt-4">0</p>
+                        <div class="h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden"><div id="d-xp-bar" class="h-full bg-amber-400 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                        <p id="d-xp-ket" class="text-[11px] font-semibold text-slate-400 mt-1.5">-</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-[#e8f1fb] text-[#1769b3]"><i class="fa-solid fa-flag-checkered"></i></span><span class="text-xs font-bold text-slate-400">Misi Selesai</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-selesai">0</span><span class="text-lg text-slate-300"> / <span id="d-total">0</span></span></p>
+                        <div class="h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden"><div id="d-selesai-bar" class="h-full bg-[#1769b3] rounded-full transition-all duration-700" style="width:0%"></div></div>
+                        <p id="d-selesai-ket" class="text-[11px] font-semibold text-slate-400 mt-1.5">-</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-emerald-50 text-emerald-500"><i class="fa-solid fa-clock"></i></span><span class="text-xs font-bold text-slate-400">Waktu Belajar</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-menit">0</span><span class="text-lg text-slate-300"> menit</span></p>
+                        <p class="text-[11px] font-semibold text-slate-400 mt-5">Total durasi membaca modul</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-violet-50 text-violet-500"><i class="fa-solid fa-clipboard-check"></i></span><span class="text-xs font-bold text-slate-400">Tes Dikerjakan</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-tes">0</span><span class="text-lg text-slate-300"> tes</span></p>
+                        <a href="profil.html" class="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769b3] mt-5 hover:underline">Lihat rapor lengkap <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Menu Belajar -->
+                <section id="d-seksi-materi" class="mt-10 scroll-mt-8">
+                    <div class="flex items-end justify-between mb-5">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-[#0b1d3a] tracking-tight">Menu Belajar</h2>
+                            <p class="text-sm text-slate-500 mt-1">Ikuti misi secara berurutan setiap minggu.</p>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Selesai</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#1769b3]"></span> Tersedia</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Terkunci</span>
+                        </div>
+                    </div>
+                    <div id="d-daftar-misi" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+                </section>
+            </div>
+        </main>
     </div>
 
     <script>
         let supabaseClient; 
         let loggedInUser = null; 
         let semuaBuku = []; 
-        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set();
+        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set(); let peringkatSaya = null; let dataPeringkat = null;
         const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -194,6 +303,7 @@
             const { data: profil } = await supabaseClient.from('profiles').select('*').eq('id', loggedInUser.id).maybeSingle();
             profilSaya = profil;
             renderHeaderMobile(profil);
+            renderDesktop();
             muatRiwayatSaya();
             fetchBooks();
             fetchLeaderboard();
@@ -239,7 +349,9 @@
             if (!profil) return;
             try {
                 const { count } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).gt('total_poin', xp);
-                document.getElementById('m-rank').textContent = '#' + ((count || 0) + 1);
+                peringkatSaya = (count || 0) + 1;
+                document.getElementById('m-rank').textContent = '#' + peringkatSaya;
+                renderDesktop();
             } catch (e) { console.error(e); }
         }
 
@@ -251,6 +363,7 @@
             modulSelesai = new Set(riwayatSaya.map(r => r.id_buku));
             pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
             if (semuaBuku.length) renderMisiMobile();
+            renderDesktop();
         }
 
         function pilihTabRingkas(tab) {
@@ -354,6 +467,91 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupSheetLanjut(); });
 
 
+
+        // ================= LOGIKA TAMPILAN DESKTOP =================
+        function renderDesktop() {
+            if (getComputedStyle(document.querySelector('.d-font')).display === 'none') return; // sedang di HP
+            const nama = profilSaya?.nama_lengkap || 'Responden', xp = profilSaya?.total_poin || 0;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('d-tanggal', new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            set('d-sapaan', nama.split(' ')[0]);
+            set('d-avatar', nama.charAt(0).toUpperCase()); set('d-avatar-kecil', nama.charAt(0).toUpperCase());
+            set('d-nama-kecil', nama); set('d-kelas-kecil', [profilSaya?.kelas, profilSaya?.sekolah].filter(Boolean).join(' · ') || 'Agen Peduli SIRASA');
+
+            // Level & XP
+            const iLevel = LEVEL_XP.findLastIndex(l => xp >= l.min), level = LEVEL_XP[iLevel], berikut = LEVEL_XP[iLevel + 1];
+            set('d-level', level.nama); set('d-xp', xp.toLocaleString('id-ID'));
+            document.getElementById('d-xp-bar').style.width = berikut ? Math.round((xp - level.min) / (berikut.min - level.min) * 100) + '%' : '100%';
+            set('d-xp-ket', berikut ? `${(berikut.min - xp).toLocaleString('id-ID')} XP lagi menuju ${berikut.nama}` : 'Level tertinggi tercapai!');
+            set('d-rank', peringkatSaya ? `Kamu #${peringkatSaya}` : 'Kamu #-');
+
+            // Progres, waktu, tes
+            const total = semuaBuku.length, selesai = semuaBuku.filter(b => modulSelesai.has(b.id)).length, persen = total ? Math.round(selesai / total * 100) : 0;
+            set('d-selesai', selesai); set('d-total', total);
+            document.getElementById('d-selesai-bar').style.width = persen + '%';
+            set('d-selesai-ket', `${persen}% program selesai`);
+            set('d-menit', Math.round(riwayatSaya.reduce((a, r) => a + (r.durasi_baca_detik || 0), 0) / 60));
+            set('d-tes', new Set(riwayatSaya.filter(r => !String(r.jenis_tes || '').startsWith('Membaca Modul')).map(r => r.id_buku)).size);
+
+            // Kartu "Lanjutkan belajar"
+            const terbuka = semuaBuku.filter(b => !bukuTerkunci(b)), berikutnya = terbuka.find(b => !modulSelesai.has(b.id));
+            const lanjut = document.getElementById('d-lanjut-isi');
+            if (!total) lanjut.innerHTML = `<p class="text-sky-100/80 py-10">Belum ada misi yang tersedia. Tunggu instruksi peneliti ya.</p>`;
+            else if (!berikutnya) {
+                const adaTerkunci = semuaBuku.some(b => bukuTerkunci(b) && !modulSelesai.has(b.id));
+                lanjut.innerHTML = `
+                    <span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.2em] text-emerald-300"><i class="fa-solid fa-trophy"></i> ${adaTerkunci ? 'Semua misi terbuka selesai' : 'Program selesai'}</span>
+                    <h2 class="text-3xl xl:text-4xl font-extrabold leading-tight mt-3">${adaTerkunci ? 'Hebat! Tunggu misi berikutnya dibuka.' : 'Selamat, semua misi tuntas! 🎉'}</h2>
+                    <p class="text-sky-100/80 mt-3 leading-relaxed">${adaTerkunci ? 'Peneliti akan membuka misi selanjutnya. Sambil menunggu, cek rapor belajarmu.' : 'Kamu sudah menyelesaikan seluruh program SIRASA.'}</p>
+                    <a href="profil.html" class="mt-7 inline-flex items-center gap-2 bg-white text-[#0b1d3a] font-extrabold px-6 py-3.5 rounded-2xl shadow-xl hover:-translate-y-0.5 transition"><i class="fa-solid fa-chart-simple"></i> Lihat Rapor</a>`;
+            } else {
+                const g = gayaMisi(berikutnya), l = labelMisi(berikutnya);
+                lanjut.innerHTML = `
+                    <span class="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[.18em] text-sky-100"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span> Lanjutkan Belajar</span>
+                    <p class="text-sm font-bold text-sky-300 mt-5">${esc(l.atas)} · ${g.jenis}</p>
+                    <h2 class="text-3xl xl:text-4xl font-extrabold leading-tight mt-1">${esc(l.bawah)}</h2>
+                    <p class="text-sky-100/75 mt-2 leading-relaxed">${g.ket}</p>
+                    <div class="flex flex-wrap items-center gap-5 mt-7">
+                        <button onclick="arahkanMembaca('${berikutnya.id}')" class="inline-flex items-center gap-2 whitespace-nowrap bg-white text-[#0b1d3a] font-extrabold px-6 py-3.5 rounded-2xl shadow-xl hover:-translate-y-0.5 transition">Mulai Sekarang <i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="min-w-[9rem]">
+                            <div class="flex justify-between text-[11px] font-bold text-sky-100/80 mb-1.5"><span>Progres</span><span>${persen}%</span></div>
+                            <div class="h-2 bg-white/15 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-sky-300 to-white rounded-full" style="width:${persen}%"></div></div>
+                        </div>
+                    </div>`;
+            }
+
+            // Kartu misi
+            const wadah = document.getElementById('d-daftar-misi');
+            wadah.innerHTML = total ? semuaBuku.map(b => {
+                const kunci = bukuTerkunci(b), sudah = modulSelesai.has(b.id), g = gayaMisi(b), l = labelMisi(b), jadiBerikut = berikutnya && b.id === berikutnya.id;
+                const status = kunci ? '<span class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-lock"></i> Belum dibuka</span>'
+                    : sudah ? '<span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Selesai</span>'
+                    : '<span class="text-[11px] font-bold text-[#1769b3] flex items-center gap-1.5"><i class="fa-regular fa-circle-play"></i> Tersedia</span>';
+                const tombol = kunci ? '' : `<span class="text-sm font-extrabold ${sudah ? 'text-slate-500' : 'text-[#1769b3]'} flex items-center gap-1.5">${sudah ? 'Ulangi' : 'Mulai'} <i class="fa-solid fa-arrow-right text-xs"></i></span>`;
+                return `<button onclick="${kunci ? 'alertTerkunci()' : `arahkanMembaca('${b.id}')`}" class="d-misi ${kunci ? 'terkunci' : ''} ${sudah ? 'selesai' : ''} ${jadiBerikut ? 'berikutnya' : ''}">
+                    ${jadiBerikut ? '<span class="absolute top-4 right-4 text-[10px] font-extrabold uppercase tracking-wider bg-[#1769b3] text-white px-2.5 py-1 rounded-full">Berikutnya</span>' : ''}
+                    <span class="d-misi-ikon"><i class="fa-solid ${sudah && !kunci ? 'fa-check' : g.ikon}"></i></span>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#1769b3] mt-4 ${kunci ? '!text-slate-400' : ''}">${esc(l.atas)} · ${g.jenis}</span>
+                    <span class="text-lg font-extrabold text-[#0b1d3a] leading-snug mt-1 line-clamp-2 ${kunci ? '!text-slate-400' : ''}">${esc(l.bawah)}</span>
+                    <span class="text-sm text-slate-500 leading-relaxed mt-1.5 line-clamp-2 ${kunci ? '!text-slate-400' : ''}">${g.ket}</span>
+                    <span class="flex items-center justify-between mt-auto pt-5">${status}${tombol}</span>
+                </button>`;
+            }).join('') : '<div class="col-span-full d-kartu p-10 text-center text-slate-400">Belum ada materi.</div>';
+
+            // Papan peringkat
+            const lb = document.getElementById('d-leaderboard');
+            if (dataPeringkat) lb.innerHTML = dataPeringkat.length ? dataPeringkat.map((p, i) => {
+                const saya = loggedInUser && p.id === loggedInUser.id;
+                const medali = ['bg-gradient-to-br from-amber-300 to-amber-500 text-white', 'bg-gradient-to-br from-slate-200 to-slate-400 text-white', 'bg-gradient-to-br from-amber-600 to-amber-800 text-white'][i] || 'bg-slate-100 text-slate-500';
+                return `<div class="flex items-center gap-3 p-2.5 rounded-2xl ${saya ? 'bg-[#e8f1fb]' : 'hover:bg-slate-50'}">
+                    <span class="w-8 h-8 rounded-full ${medali} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
+                    <div class="min-w-0 flex-1"><p class="text-sm font-bold text-[#0b1d3a] truncate">${esc(p.nama_lengkap)}${saya ? ' <span class="text-[10px] text-[#1769b3]">(kamu)</span>' : ''}</p><p class="text-[11px] text-slate-400 truncate">${esc([p.kelas, p.sekolah].filter(Boolean).join(' · ') || '-')}</p></div>
+                    <span class="text-sm font-extrabold text-[#1769b3] shrink-0">${p.total_poin}<span class="text-[10px] text-slate-400 ml-0.5">XP</span></span>
+                </div>`;
+            }).join('') : '<div class="h-full flex flex-col items-center justify-center text-center text-slate-400 text-sm py-8"><i class="fa-solid fa-ranking-star text-3xl text-slate-200 mb-2"></i>Belum ada peringkat.<br>Jadilah yang pertama!</div>';
+        }
+        window.addEventListener('resize', () => { clearTimeout(renderDesktop.t); renderDesktop.t = setTimeout(renderDesktop, 200); });
+
         function arahkanMembaca(idBuku, urlFile) { 
             window.location.href = `buku.html?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; 
         }
@@ -367,7 +565,9 @@
                 const { data } = await supabaseClient.from('buku').select('*').neq('tipe_konten', 'Pengantar Sistem').order('created_at', { ascending: true });
                 semuaBuku = data || [];
                 renderMisiMobile();
+                renderDesktop();
                 pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
+                if (location.hash === '#materi') setTimeout(() => document.getElementById(getComputedStyle(document.querySelector('.d-font')).display === 'none' ? 'm-seksi-misi' : 'd-seksi-materi').scrollIntoView({ behavior: 'smooth' }), 300);
                 if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(bukaSheetLanjut, 400); }
             } catch (err) {
                 console.error("Gagal memuat buku:", err);
@@ -392,7 +592,9 @@
         async function fetchLeaderboard() {
             try {
                 const { data } = await supabaseClient.from('profiles').select('id, nama_lengkap, total_poin, kelas, sekolah').gt('total_poin', 0).order('total_poin', { ascending: false }).limit(5);
-                renderLeaderboardMobile(data || []);
+                dataPeringkat = data || [];
+                renderLeaderboardMobile(dataPeringkat);
+                renderDesktop();
             } catch (err) {
                 console.error("Gagal memuat leaderboard:", err);
             }
