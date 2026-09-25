@@ -55,10 +55,11 @@ Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript
 Edit `DAFTAR_SEKOLAH` dan `DAFTAR_KELAS` di `config.js`. Form daftar, edit profil, edit responden di admin,
 dan filter analitik otomatis mengikuti.
 
-## Tampilan mobile (ala aplikasi)
-Di layar < 768px, `index.html`, `dashboard.html`, dan `profil.html` memakai tata letak aplikasi native:
-header gradasi, kartu ringkasan XP/peringkat, grid ikon menu, kartu misi geser, dan bottom navigation
-dengan tombol tengah "Belajar" (membuka misi berikutnya yang belum selesai). Tampilan desktop tidak berubah.
+## Tampilan aplikasi (HP & desktop)
+`dashboard.html` dan `profil.html` memakai **satu tata letak** untuk HP dan desktop: header gradasi biru tua,
+kartu ringkasan XP/peringkat, grid ikon Menu Belajar, dan papan peringkat. Di HP ada bottom navigation dengan
+tombol tengah "Lanjut"; di desktop diganti bilah navigasi atas (Beranda · Lanjut Belajar · Rapor) dan konten
+melebar dua kolom. Halaman admin memakai warna & kartu yang sama (sidebar biru tua, kartu modul ala Menu Belajar).
 
 ## Modul Slide + Suara Narasi Natural
 **Membuat modul (admin):** Konten & Modul → *Buat Konten Baru* → tipe **Modul Slide** → editor slide terbuka.
@@ -93,8 +94,8 @@ ketukan); setelah itu narasi berjalan dan slide maju otomatis (tombol ⏩), kece
 ikut digulir mengikuti suara. Slide tanpa audio dibacakan dengan suara perangkat sebagai cadangan.
 Hemat daya: blur kaca dimatikan di HP lemah, animasi berhenti saat tab tidak dibuka / "kurangi gerakan" aktif.
 
-**Contoh:** modul *Minggu 2 - HIV/AIDS (Slide)* (15 slide dari Materi 1, status nonaktif sebagai draf).
-Aktifkan di admin untuk menggantikan modul PDF Minggu 2.
+**Minggu 2 - HIV/AIDS** kini bertipe Modul Slide (15 slide dari Materi 1); 18 soal kuisnya tetap terhubung.
+File PDF lamanya masih tersimpan di `file_url` bila suatu saat ingin dikembalikan.
 
 ## Dengarkan Materi di Flipbook (modul PDF)
 - Tombol **🔊 Dengarkan** di sebelah *Mode Baca Teks*: isi halaman yang sedang tampil dibacakan tanpa mengubah tampilan flipbook.
