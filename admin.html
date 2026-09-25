@@ -14,6 +14,8 @@
     <script src="config.js"></script>
     <script src="dialog.js"></script>
     <script src="admin-auth.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="slide.css">
     <script src="slide-render.js"></script>
     <script>const adminSiap = AdminAuth.requireAdmin();</script>
@@ -221,14 +223,44 @@
                             <h4 id="es-nomor" class="font-black text-slate-800">Slide 1</h4>
                             <span id="es-status-simpan" class="text-xs font-bold text-slate-400"></span>
                         </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="es-in-jenis" class="block text-xs font-bold text-slate-500 mb-1">Jenis Slide</label>
+                                <select id="es-in-jenis" onchange="formBerubah()" class="w-full p-2.5 border rounded-lg font-bold bg-white">
+                                    <option value="materi">Materi</option><option value="sampul">Sampul (pembuka)</option>
+                                    <option value="mitos-fakta">Kartu Mitos / Fakta</option><option value="penutup">Penutup</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="es-in-ikon" class="block text-xs font-bold text-slate-500 mb-1">Ikon <a href="https://fontawesome.com/search?o=r&m=free&s=solid" target="_blank" rel="noopener" class="text-indigo-500 font-normal">(cari nama ikon)</a></label>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-10 h-10 shrink-0 rounded-lg bg-slate-800 text-white flex items-center justify-center"><i id="es-ikon-prev" class="fa-solid fa-virus"></i></span>
+                                    <input id="es-in-ikon" oninput="formBerubah()" list="es-daftar-ikon" class="w-full p-2.5 border rounded-lg text-sm" placeholder="mis. virus">
+                                    <datalist id="es-daftar-ikon"></datalist>
+                                </div>
+                            </div>
+                        </div>
                         <div>
                             <label for="es-in-judul" class="block text-xs font-bold text-slate-500 mb-1">Judul Slide</label>
                             <input id="es-in-judul" oninput="formBerubah()" class="w-full p-2.5 border rounded-lg font-bold" placeholder="Contoh: Apa itu HIV?">
                         </div>
                         <div>
-                            <label for="es-in-isi" class="block text-xs font-bold text-slate-500 mb-1">Isi Slide</label>
+                            <label for="es-in-isi" id="es-label-isi" class="block text-xs font-bold text-slate-500 mb-1">Isi Slide</label>
                             <textarea id="es-in-isi" oninput="formBerubah()" rows="9" class="w-full p-3 border rounded-lg text-sm leading-relaxed" placeholder="Tulis penjelasan di sini..."></textarea>
-                            <p class="text-[11px] text-slate-400 mt-1">Baris diawali <code class="bg-slate-100 px-1 rounded">- </code> menjadi poin · baris kosong = paragraf baru · <code class="bg-slate-100 px-1 rounded">**teks**</code> = tebal</p>
+                            <p id="es-bantuan-isi" class="text-[11px] text-slate-400 mt-1 leading-relaxed"><code class="bg-slate-100 px-1 rounded">- teks</code> poin · <code class="bg-slate-100 px-1 rounded">[droplet] Darah</code> kotak ikon · <code class="bg-slate-100 px-1 rounded">! teks</code> kotak "Ingat, ya!" · <code class="bg-slate-100 px-1 rounded">Sumber: ...</code> catatan sumber (tidak dibacakan) · baris kosong = paragraf baru · <code class="bg-slate-100 px-1 rounded">**teks**</code> tebal</p>
+                        </div>
+                        <div id="es-area-mf" class="hidden p-4 rounded-xl border border-rose-100 bg-rose-50/50 space-y-3">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-500 mb-1">Jawaban yang benar</span>
+                                <div class="flex gap-2">
+                                    <label class="flex-1 flex items-center gap-2 p-2.5 border rounded-lg bg-white font-bold text-sm cursor-pointer"><input type="radio" name="es-kunci" value="mitos" onchange="formBerubah()" class="accent-rose-600"> Mitos</label>
+                                    <label class="flex-1 flex items-center gap-2 p-2.5 border rounded-lg bg-white font-bold text-sm cursor-pointer"><input type="radio" name="es-kunci" value="fakta" onchange="formBerubah()" class="accent-emerald-600"> Fakta</label>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="es-in-penjelasan" class="block text-xs font-bold text-slate-500 mb-1">Penjelasan (muncul & dibacakan setelah kartu dibalik)</label>
+                                <textarea id="es-in-penjelasan" oninput="formBerubah()" rows="3" class="w-full p-3 border rounded-lg text-sm leading-relaxed" placeholder="Mengapa pernyataan ini mitos/fakta?"></textarea>
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1">Gambar (opsional)</label>
@@ -246,6 +278,7 @@
                                 <span id="es-audio-status" class="text-xs font-bold"></span>
                             </div>
                             <audio id="es-audio" controls preload="none" class="w-full hidden"></audio>
+                            <div id="es-audio-jawaban-wadah" class="hidden"><p class="text-[11px] font-bold text-slate-500 mb-1">Suara penjelasan (setelah kartu dibalik)</p><audio id="es-audio-jawaban" controls preload="none" class="w-full"></audio></div>
                             <button onclick="buatSuaraSlide()" id="es-btn-suara" class="w-full bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini</button>
                         </div>
                         <button onclick="simpanSlideAktif()" id="es-btn-simpan" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold disabled:opacity-50"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Slide</button>
@@ -256,7 +289,7 @@
                             <button onclick="aturPratinjau('lanskap')" data-o="lanskap" class="px-4 py-1.5 rounded-full"><i class="fa-solid fa-desktop mr-1"></i> Desktop</button>
                             <button onclick="aturPratinjau('potret')" data-o="potret" class="px-4 py-1.5 rounded-full"><i class="fa-solid fa-mobile-screen mr-1"></i> HP</button>
                         </div>
-                        <div id="es-bingkai" class="bg-white shadow-xl rounded-xl overflow-hidden border border-slate-200"><div id="es-pratinjau" class="w-full h-full"></div></div>
+                        <div id="es-bingkai" class="sl-latar shadow-xl rounded-xl overflow-hidden relative"><div id="es-layar" class="absolute left-0 top-0 origin-top-left"><div id="es-pratinjau"></div></div></div>
                         <p class="text-[11px] text-slate-400">Pratinjau langsung — tampilan siswa menyesuaikan orientasi layar otomatis.</p>
                     </div>
                 </section>
@@ -728,7 +761,7 @@
         async function tutupEditorSlide() {
             if (es.berubah && !(await Dialog.confirm('Ada perubahan slide yang belum disimpan. Tutup tanpa menyimpan?', { judul: 'Perubahan Belum Disimpan', teksOk: 'Tutup Saja', tipe: 'peringatan' }))) return;
             es.berubah = false;
-            esEl('es-audio').pause();
+            esEl('es-audio').pause(); esEl('es-audio-jawaban').pause();
             tutupModal('modalEditorSlide');
         }
 
@@ -762,13 +795,37 @@
             esEl('es-nomor').textContent = `Slide ${i + 1} dari ${es.slides.length}`;
             esEl('es-in-judul').value = sl.judul || '';
             esEl('es-in-isi').value = sl.isi || '';
+            esEl('es-in-jenis').value = sl.jenis || 'materi';
+            esEl('es-in-ikon').value = sl.ikon || '';
+            esEl('es-in-penjelasan').value = sl.penjelasan || '';
+            document.querySelectorAll('input[name="es-kunci"]').forEach(r => { r.checked = r.value === sl.kunci; });
+            aturFormJenis();
             es.gambarForm = sl.gambar_url || null;
             es.berubah = false;
             tampilkanGambarForm(); tampilkanStatusAudio(); tandaiSimpan('');
             renderPratinjau();
         }
 
-        function formBerubah() { es.berubah = true; tandaiSimpan('Belum disimpan', 'text-amber-600'); renderPratinjau(); }
+        function formBerubah() { es.berubah = true; tandaiSimpan('Belum disimpan', 'text-amber-600'); aturFormJenis(); renderPratinjau(); }
+
+        // Ikon mono yang sering dipakai (Font Awesome gratis); nama lain bisa diketik langsung
+        const IKON_SARAN = ['virus', 'virus-covid', 'ribbon', 'shield-heart', 'shield-halved', 'heart', 'heart-pulse', 'hand-holding-heart', 'handshake', 'handshake-angle',
+            'droplet', 'syringe', 'hospital', 'stethoscope', 'pills', 'vial', 'microscope', 'book-open', 'lightbulb', 'magnifying-glass', 'triangle-exclamation', 'circle-question',
+            'scale-balanced', 'route', 'people-group', 'user-group', 'person-breastfeeding', 'venus', 'mars', 'venus-mars', 'bottle-droplet', 'shirt', 'house-user', 'utensils',
+            'restroom', 'face-smile', 'comments', 'bullhorn', 'graduation-cap', 'hand-holding-droplet', 'ban', 'check', 'star', 'seedling'];
+        esEl('es-daftar-ikon').innerHTML = IKON_SARAN.map(n => `<option value="${n}">`).join('');
+
+        function kunciForm() { const r = document.querySelector('input[name="es-kunci"]:checked'); return r ? r.value : null; }
+
+        function aturFormJenis() {
+            const mf = esEl('es-in-jenis').value === 'mitos-fakta';
+            esEl('es-area-mf').classList.toggle('hidden', !mf);
+            esEl('es-label-isi').textContent = mf ? 'Pernyataan' : 'Isi Slide';
+            esEl('es-bantuan-isi').classList.toggle('hidden', mf);
+            esEl('es-in-isi').rows = mf ? 3 : 9;
+            const ikon = esEl('es-in-ikon').value.trim();
+            esEl('es-ikon-prev').className = 'fa-solid fa-' + (/^[a-z0-9-]+$/.test(ikon) ? ikon : (mf ? 'scale-balanced' : 'image'));
+        }
         function tandaiSimpan(teks, warna = 'text-slate-400') { const el = esEl('es-status-simpan'); el.textContent = teks; el.className = 'text-xs font-bold ' + warna; }
 
         function tampilkanGambarForm() {
@@ -781,6 +838,9 @@
 
         function tampilkanStatusAudio() {
             const sl = es.slides[es.aktif], audio = esEl('es-audio'), st = esEl('es-audio-status');
+            const wadahJwb = esEl('es-audio-jawaban-wadah');
+            wadahJwb.classList.toggle('hidden', !(sl && sl.audio_jawaban_url));
+            if (sl && sl.audio_jawaban_url) esEl('es-audio-jawaban').src = sl.audio_jawaban_url; else esEl('es-audio-jawaban').removeAttribute('src');
             if (sl && sl.audio_url) {
                 audio.src = sl.audio_url; audio.classList.remove('hidden');
                 st.textContent = '✓ Siap' + (sl.audio_suara ? ' · ' + sl.audio_suara.replace(/^id-ID-/, '').replace(/Neural$/, '') : '');
@@ -799,14 +859,27 @@
                 const aktif = b.dataset.o === o;
                 b.classList.toggle('bg-slate-800', aktif); b.classList.toggle('text-white', aktif); b.classList.toggle('text-slate-500', !aktif);
             });
-            esEl('es-bingkai').className = 'bg-white shadow-xl rounded-xl overflow-hidden border border-slate-200 ' +
+            esEl('es-bingkai').className = 'sl-latar shadow-xl rounded-xl overflow-hidden relative ' +
                 (o === 'lanskap' ? 'w-full max-w-[640px] aspect-video' : 'w-[260px] aspect-[9/16]');
             renderPratinjau();
+            skalaPratinjau();
         }
+
+        // Pratinjau dirender di "layar" seukuran laptop / HP sungguhan lalu diperkecil,
+        // agar ukuran huruf & tata letaknya sama persis dengan yang dilihat siswa.
+        const LAYAR_PRATINJAU = { lanskap: [1200, 675, 36], potret: [390, 693, 14] };
+        function skalaPratinjau() {
+            const [w, h, pad] = LAYAR_PRATINJAU[es.orientasi], layar = esEl('es-layar');
+            Object.assign(layar.style, { width: w + 'px', height: h + 'px', padding: pad + 'px', boxSizing: 'border-box' });
+            esEl('es-pratinjau').style.cssText = 'width:100%;height:100%';
+            layar.style.transform = `scale(${esEl('es-bingkai').clientWidth / w})`;
+        }
+        new ResizeObserver(() => { if (es.aktif >= 0) skalaPratinjau(); }).observe(esEl('es-bingkai'));
 
         function renderPratinjau() {
             if (es.aktif < 0) return;
-            const data = { judul: esEl('es-in-judul').value, isi: esEl('es-in-isi').value, gambar_url: es.gambarForm };
+            const data = { judul: esEl('es-in-judul').value, isi: esEl('es-in-isi').value, gambar_url: es.gambarForm,
+                jenis: esEl('es-in-jenis').value, ikon: esEl('es-in-ikon').value.trim(), kunci: kunciForm(), penjelasan: esEl('es-in-penjelasan').value };
             SlideRender.render(esEl('es-pratinjau'), data, es.orientasi, { nomor: es.aktif + 1, total: es.slides.length });
         }
 
@@ -814,10 +887,15 @@
             const sl = es.slides[es.aktif];
             if (!sl) return true;
             const judul = esEl('es-in-judul').value.trim(), isi = esEl('es-in-isi').value.trim();
-            const payload = { judul, isi, gambar_url: es.gambarForm || null };
-            // Teks berubah -> audio lama tidak cocok lagi, harus dibuat ulang
-            const teksBerubah = judul !== (sl.judul || '') || isi !== (sl.isi || '');
-            if (teksBerubah && sl.audio_url) Object.assign(payload, { audio_url: null, audio_suara: null, audio_hash: null });
+            const jenis = esEl('es-in-jenis').value, ikon = esEl('es-in-ikon').value.trim() || null;
+            const kunci = jenis === 'mitos-fakta' ? kunciForm() : null, penjelasan = jenis === 'mitos-fakta' ? esEl('es-in-penjelasan').value.trim() : '';
+            if (jenis === 'mitos-fakta' && !kunci) { Dialog.alert('Pilih jawaban yang benar (Mitos atau Fakta) untuk kartu ini.'); return false; }
+            if (ikon && !/^[a-z0-9-]+$/.test(ikon)) { Dialog.alert('Nama ikon hanya boleh huruf kecil, angka, dan tanda "-" (mis. shield-heart).'); return false; }
+            const payload = { judul, isi, gambar_url: es.gambarForm || null, jenis, ikon, kunci, penjelasan };
+            // Teks yang dibacakan berubah -> audio lama tidak cocok lagi, harus dibuat ulang
+            const ucapanLama = SlideRender.teksUcapan(sl) + '|' + SlideRender.teksJawaban(sl);
+            const teksBerubah = ucapanLama !== SlideRender.teksUcapan(payload) + '|' + SlideRender.teksJawaban(payload);
+            if (teksBerubah && sl.audio_url) Object.assign(payload, { audio_url: null, audio_suara: null, audio_hash: null, audio_jawaban_url: null });
 
             const btn = esEl('es-btn-simpan'); btn.disabled = true; tandaiSimpan('Menyimpan...');
             const { data, error } = await supabaseClient.from('slide').update(payload).eq('id', sl.id).select().single();
@@ -924,7 +1002,7 @@
             const btn = esEl('es-btn-suara'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuat suara...';
             try {
                 const hasil = await panggilTTS(es.slides[es.aktif]);
-                Object.assign(es.slides[es.aktif], { audio_url: hasil.audio_url, audio_suara: hasil.suara });
+                Object.assign(es.slides[es.aktif], { audio_url: hasil.audio_url, audio_jawaban_url: hasil.audio_jawaban_url, audio_suara: hasil.suara });
                 renderDaftarSlide(); tampilkanStatusAudio();
                 esEl('es-audio').play().catch(() => {});
             } catch (err) { Dialog.alert('Gagal membuat suara: ' + err.message); tampilkanStatusAudio(); }
@@ -940,7 +1018,7 @@
             let sukses = 0;
             for (const [n, sl] of target.entries()) {
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${n + 1}/${target.length}`;
-                try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); }
+                try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_jawaban_url: h.audio_jawaban_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); }
                 catch (err) { Dialog.alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}`); break; }
             }
             btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua';

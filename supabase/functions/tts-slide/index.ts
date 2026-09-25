@@ -1,5 +1,6 @@
 // Supabase Edge Function: tts-slide
-// Membuat audio MP3 suara neural bahasa Indonesia untuk satu slide, menyimpannya
+// Membuat audio MP3 suara neural bahasa Indonesia untuk satu slide (plus audio
+// penjelasan untuk kartu Mitos/Fakta), menyimpannya
 // ke Storage (bucket pdf-buku/slide-audio/), lalu mencatat URL-nya di tabel slide.
 //
 // Hanya admin (tabel public.admins) yang boleh memanggil.
@@ -22,12 +23,45 @@ function balas(status: number, body: unknown) {
   return new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 }
 
-// Teks yang dibacakan: judul + isi, tanda poin "- " diubah jadi kalimat.
-function susunTeks(judul: string, isi: string): string {
-  const baris = (isi || "").split(/\r?\n/).map((b) => b.trim()).filter(Boolean)
-    .map((b) => b.replace(/^[-•*]\s+/, ""))
-    .map((b) => (/[.!?:;]$/.test(b) ? b : b + "."));
-  return [judul?.trim() ? judul.trim().replace(/[.!?]?$/, ".") : "", ...baris].filter(Boolean).join(" ");
+// ---- Teks yang dibacakan (harus sama dengan slide-render.js: teksUcapan / teksJawaban) ----
+const POLA = { poin: /^[-•*]\s+(.*)$/, chip: /^\[([a-z0-9-]+)\]\s+(.*)$/, ingat: /^!\s*(.*)$/, sumber: /^sumber\s*:/i };
+
+function rapikanUcapan(t: string): string {
+  return String(t || "")
+    .replace(/\*\*/g, "")
+    .replace(/HIV\/AIDS/g, "HIV dan AIDS")
+    .replace(/(\S)\s*\/\s*(\S)/g, "$1 atau $2")
+    .replace(/≠/g, " tidak sama dengan ")
+    .replace(/\s*(…|\.\.\.)\s*$/, ":").replace(/…|\.\.\./g, ", ")
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+    .replace(/\s+/g, " ").trim();
+}
+const akhiriTitik = (b: string) => (/[.!?:;]$/.test(b) ? b : b + ".");
+
+type Slide = { id: string; judul: string; isi: string; jenis?: string; kunci?: string | null; penjelasan?: string };
+
+function teksUcapan(s: Slide): string {
+  const judul = rapikanUcapan(s.judul);
+  if (s.jenis === "mitos-fakta") {
+    return [judul ? akhiriTitik(judul) : "Mitos atau fakta?", akhiriTitik(rapikanUcapan(s.isi)), "Menurutmu, mitos atau fakta?"].join(" ");
+  }
+  const baris = String(s.isi || "").split(/\r?\n/).map((b) => b.trim()).filter(Boolean)
+    .filter((b) => !POLA.sumber.test(b))
+    .map((b, i, semua) => {
+      let m;
+      if ((m = b.match(POLA.chip))) return m[2];
+      // "Ingat, ya!" cukup sekali per kotak sorotan
+      if ((m = b.match(POLA.ingat))) return (i > 0 && POLA.ingat.test(semua[i - 1]) ? "" : "Ingat, ya! ") + m[1];
+      if ((m = b.match(POLA.poin))) return m[1];
+      return b;
+    })
+    .map(rapikanUcapan).filter(Boolean).map(akhiriTitik);
+  return [judul ? akhiriTitik(judul) : "", ...baris].filter(Boolean).join(" ");
+}
+
+function teksJawaban(s: Slide): string {
+  if (s.jenis !== "mitos-fakta" || !s.kunci) return "";
+  return [`Jawabannya: ${s.kunci === "mitos" ? "mitos" : "fakta"}.`, rapikanUcapan(s.penjelasan || "")].filter(Boolean).map(akhiriTitik).join(" ");
 }
 
 function escapeXml(t: string) {
@@ -130,32 +164,40 @@ Deno.serve(async (req) => {
     const { slide_id, suara } = await req.json();
     if (!slide_id) return balas(400, { error: "slide_id wajib diisi." });
     const db = createClient(url, service);
-    const { data: slide, error: errSlide } = await db.from("slide").select("id, judul, isi").eq("id", slide_id).single();
+    const { data: slide, error: errSlide } = await db.from("slide").select("id, judul, isi, jenis, kunci, penjelasan").eq("id", slide_id).single();
     if (errSlide || !slide) return balas(404, { error: "Slide tidak ditemukan." });
 
-    const teks = susunTeks(slide.judul, slide.isi);
+    const teks = teksUcapan(slide as Slide);
+    const teksJwb = teksJawaban(slide as Slide);
     if (!teks) return balas(400, { error: "Slide belum memiliki teks untuk dibacakan." });
     const pria = suara === "pria";
 
     // 3) Buat audio dengan penyedia yang dikonfigurasi
     const azureKey = Deno.env.get("AZURE_TTS_KEY"), azureRegion = Deno.env.get("AZURE_TTS_REGION");
     const googleKey = Deno.env.get("GOOGLE_TTS_API_KEY");
-    let hasil: { mp3: Uint8Array; nama: string };
-    if (azureKey && azureRegion) hasil = await suaraAzure(teks, pria, azureKey, azureRegion);
-    else if (googleKey) hasil = await suaraGoogle(teks, pria, googleKey);
+    let buatSuara: (t: string) => Promise<{ mp3: Uint8Array; nama: string }>;
+    if (azureKey && azureRegion) buatSuara = (t) => suaraAzure(t, pria, azureKey, azureRegion);
+    else if (googleKey) buatSuara = (t) => suaraGoogle(t, pria, googleKey);
     else return balas(500, { error: "Penyedia suara belum dikonfigurasi. Isi secret AZURE_TTS_KEY + AZURE_TTS_REGION atau GOOGLE_TTS_API_KEY di Supabase." });
 
-    // 4) Simpan ke Storage & catat di tabel slide
-    const hash = await sha(`${hasil.nama}|${teks}`);
-    const path = `slide-audio/${slide.id}-${hash}.mp3`;
-    const { error: errUp } = await db.storage.from(BUCKET).upload(path, hasil.mp3, { contentType: "audio/mpeg", upsert: true });
-    if (errUp) throw new Error("Gagal menyimpan audio: " + errUp.message);
-    const audio_url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    // 4) Simpan ke Storage (nama file memuat sidik teks agar cache browser tidak memutar audio lama)
+    async function simpan(t: string, akhiran: string) {
+      const hasil = await buatSuara(t);
+      const hash = await sha(`${hasil.nama}|${t}`);
+      const path = `slide-audio/${slide!.id}${akhiran}-${hash}.mp3`;
+      const { error: errUp } = await db.storage.from(BUCKET).upload(path, hasil.mp3, { contentType: "audio/mpeg", upsert: true });
+      if (errUp) throw new Error("Gagal menyimpan audio: " + errUp.message);
+      return { url: db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl, nama: hasil.nama, hash };
+    }
+    const utama = await simpan(teks, "");
+    const jawaban = teksJwb ? await simpan(teksJwb, "-jawaban") : null;
 
-    const { error: errUpd } = await db.from("slide").update({ audio_url, audio_suara: hasil.nama, audio_hash: hash }).eq("id", slide.id);
+    const { error: errUpd } = await db.from("slide").update({
+      audio_url: utama.url, audio_suara: utama.nama, audio_hash: utama.hash, audio_jawaban_url: jawaban?.url ?? null,
+    }).eq("id", slide.id);
     if (errUpd) throw new Error("Gagal mencatat audio: " + errUpd.message);
 
-    return balas(200, { audio_url, suara: hasil.nama, karakter: teks.length });
+    return balas(200, { audio_url: utama.url, audio_jawaban_url: jawaban?.url ?? null, suara: utama.nama, karakter: teks.length + teksJwb.length });
   } catch (err) {
     console.error(err);
     return balas(500, { error: err instanceof Error ? err.message : String(err) });
