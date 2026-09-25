@@ -7,11 +7,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SIRASA">
+    <meta name="apple-mobile-web-app-title" content="Macaya">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/icon-192.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-    <title>Galeri Modul SIRASA</title>
+    <title>Galeri Modul Macaya</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -71,7 +71,7 @@
                 <div class="max-w-[58%] pb-2">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-9 h-9 bg-white rounded-xl p-1 shadow"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></div>
-                        <span class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></span>
+                        <span class="font-black text-xl tracking-tight">Maca<span class="text-sky-300">ya</span></span>
                     </div>
                     <p class="text-[11px] leading-snug text-sky-50/90">Satu materi hari ini, satu langkah lebih paham. Yuk lanjutkan misimu!</p>
                 </div>
@@ -166,46 +166,33 @@
     </div>
 
     <!-- ================= TAMPILAN DESKTOP (dasbor web, dirancang khusus layar lebar) ================= -->
-    <div class="hidden md:flex min-h-screen bg-[#f4f7fb] d-font">
-        <!-- Sidebar -->
-        <aside class="d-sidebar w-60 xl:w-72 shrink-0 sticky top-0 h-screen flex flex-col text-white">
-            <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
-                <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-                <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
-            </a>
-            <nav class="px-4 space-y-1.5">
-                <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
-                <a href="dashboard.html" class="d-nav aktif"><i class="fa-solid fa-house"></i> Beranda</a>
-                <button onclick="document.getElementById('d-seksi-materi').scrollIntoView({behavior:'smooth'})" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</button>
-                <a href="profil.html" class="d-nav"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
-            </nav>
-            <div class="mt-auto p-4">
-                <div class="rounded-2xl bg-white/10 border border-white/10 p-4">
-                    <div class="flex items-center gap-3">
-                        <span id="d-avatar-kecil" class="w-10 h-10 rounded-full bg-white text-[#1769b3] font-black flex items-center justify-center shrink-0">?</span>
-                        <div class="min-w-0">
-                            <p id="d-nama-kecil" class="font-bold text-sm truncate">-</p>
-                            <p id="d-kelas-kecil" class="text-[11px] text-sky-100/70 truncate">-</p>
-                        </div>
-                    </div>
-                    <button onclick="prosesLogout()" class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-sky-50 bg-white/10 hover:bg-rose-600 transition"><i class="fa-solid fa-power-off"></i> Keluar Akun</button>
+    <div class="hidden md:block min-h-screen bg-[#f4f7fb] d-font">
+        <!-- Bilah atas + tab (Beranda · Rapor) -->
+        <header class="d-header">
+            <div class="max-w-[1320px] mx-auto px-6 lg:px-8 xl:px-12 h-[4.5rem] flex items-center justify-between gap-6">
+                <a href="dashboard.html" class="flex items-center gap-2.5 shrink-0">
+                    <span class="w-10 h-10 bg-[#0b1d3a] rounded-xl p-2 shadow-md"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+                    <span class="font-black text-2xl tracking-tight text-[#0b1d3a]">Maca<span class="text-[#1769b3]">ya</span></span>
+                </a>
+                <nav class="d-tabs" aria-label="Navigasi utama">
+                    <a href="dashboard.html" class="d-tab aktif" aria-current="page"><i class="fa-solid fa-house"></i> Beranda</a>
+                    <a href="profil.html" class="d-tab"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
+                </nav>
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <span id="d-level-chip" class="flex items-center gap-2 bg-amber-50 rounded-full pl-1.5 pr-3.5 py-1 font-bold text-sm text-amber-600"><span class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs"><i class="fa-solid fa-star"></i></span><span id="d-level">Bronze</span></span>
+                    <a href="profil.html" id="d-avatar" class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center shadow-md hover:scale-105 transition" title="Rapor & profil">?</a>
+                    <button onclick="prosesLogout()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition flex items-center justify-center" title="Keluar akun" aria-label="Keluar akun"><i class="fa-solid fa-power-off"></i></button>
                 </div>
             </div>
-        </aside>
+        </header>
 
         <!-- Konten -->
-        <main class="flex-1 min-w-0 px-6 lg:px-8 xl:px-12 py-8">
+        <main class="px-6 lg:px-8 xl:px-12 py-8">
             <div class="max-w-[1320px] mx-auto">
-                <!-- Bilah atas -->
-                <div class="flex items-center justify-between gap-6 mb-8">
-                    <div>
-                        <p id="d-tanggal" class="text-sm font-semibold text-slate-400"></p>
-                        <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Halo, <span id="d-sapaan">Agen</span> 👋</h1>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span id="d-level-chip" class="flex items-center gap-2 bg-white border border-[#e8eef5] rounded-full pl-2 pr-4 py-1.5 font-bold text-sm text-amber-600 shadow-sm"><span class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs"><i class="fa-solid fa-star"></i></span><span id="d-level">Bronze</span></span>
-                        <a href="profil.html" id="d-avatar" class="w-11 h-11 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center shadow-md hover:scale-105 transition" title="Rapor & profil">?</a>
-                    </div>
+                <!-- Sapaan -->
+                <div class="mb-6">
+                    <p id="d-tanggal" class="text-sm font-semibold text-slate-400"></p>
+                    <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Halo, <span id="d-sapaan">Agen</span> 👋</h1>
                 </div>
 
                 <!-- Baris utama: Lanjutkan belajar + peringkat -->
@@ -340,7 +327,7 @@
             const nama = profil?.nama_lengkap || 'Responden';
             const xp = profil?.total_poin || 0;
             document.getElementById('m-sapaan').textContent = nama.split(' ').slice(0, 2).join(' ');
-            document.getElementById('m-subjudul').textContent = [profil?.sekolah, profil?.kelas].filter(Boolean).join(' · ') || 'Agen Peduli SIRASA';
+            document.getElementById('m-subjudul').textContent = [profil?.sekolah, profil?.kelas].filter(Boolean).join(' · ') || 'Agen Peduli Macaya';
             document.getElementById('m-avatar').textContent = nama.charAt(0).toUpperCase();
             document.getElementById('m-xp').textContent = xp.toLocaleString('id-ID');
             const level = [...LEVEL_XP].reverse().find(l => xp >= l.min);
@@ -439,7 +426,7 @@
                 isi = `<div class="text-center">
                         <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 text-4xl flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-trophy"></i></div>
                         <h3 id="m-sheet-judul" class="text-xl font-black text-slate-800">${adaTerkunci ? 'Semua misi yang terbuka sudah selesai!' : 'Semua misi selesai! 🎉'}</h3>
-                        <p class="text-sm text-slate-500 mt-1">${adaTerkunci ? 'Misi berikutnya akan dibuka oleh peneliti. Pantau terus ya.' : 'Hebat! Kamu sudah menyelesaikan seluruh program SIRASA.'}</p>
+                        <p class="text-sm text-slate-500 mt-1">${adaTerkunci ? 'Misi berikutnya akan dibuka oleh peneliti. Pantau terus ya.' : 'Hebat! Kamu sudah menyelesaikan seluruh program Macaya.'}</p>
                     </div>${progres}
                     <a href="profil.html" class="app-tap mt-5 w-full bg-[#1769b3] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2"><i class="fa-solid fa-chart-simple"></i> Lihat Rapor Belajarku</a>`;
             } else {
@@ -475,8 +462,7 @@
             const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
             set('d-tanggal', new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
             set('d-sapaan', nama.split(' ')[0]);
-            set('d-avatar', nama.charAt(0).toUpperCase()); set('d-avatar-kecil', nama.charAt(0).toUpperCase());
-            set('d-nama-kecil', nama); set('d-kelas-kecil', [profilSaya?.kelas, profilSaya?.sekolah].filter(Boolean).join(' · ') || 'Agen Peduli SIRASA');
+            set('d-avatar', nama.charAt(0).toUpperCase());
 
             // Level & XP
             const iLevel = LEVEL_XP.findLastIndex(l => xp >= l.min), level = LEVEL_XP[iLevel], berikut = LEVEL_XP[iLevel + 1];
@@ -502,7 +488,7 @@
                 lanjut.innerHTML = `
                     <span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.2em] text-emerald-300"><i class="fa-solid fa-trophy"></i> ${adaTerkunci ? 'Semua misi terbuka selesai' : 'Program selesai'}</span>
                     <h2 class="text-3xl xl:text-4xl font-extrabold leading-tight mt-3">${adaTerkunci ? 'Hebat! Tunggu misi berikutnya dibuka.' : 'Selamat, semua misi tuntas! 🎉'}</h2>
-                    <p class="text-sky-100/80 mt-3 leading-relaxed">${adaTerkunci ? 'Peneliti akan membuka misi selanjutnya. Sambil menunggu, cek rapor belajarmu.' : 'Kamu sudah menyelesaikan seluruh program SIRASA.'}</p>
+                    <p class="text-sky-100/80 mt-3 leading-relaxed">${adaTerkunci ? 'Peneliti akan membuka misi selanjutnya. Sambil menunggu, cek rapor belajarmu.' : 'Kamu sudah menyelesaikan seluruh program Macaya.'}</p>
                     <a href="profil.html" class="mt-7 inline-flex items-center gap-2 bg-white text-[#0b1d3a] font-extrabold px-6 py-3.5 rounded-2xl shadow-xl hover:-translate-y-0.5 transition"><i class="fa-solid fa-chart-simple"></i> Lihat Rapor</a>`;
             } else {
                 const g = gayaMisi(berikutnya), l = labelMisi(berikutnya);

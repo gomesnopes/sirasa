@@ -1,4 +1,4 @@
-# SIRASA — Platform Edukasi Pencegahan HIV/AIDS
+# Macaya — Platform Edukasi Pencegahan HIV/AIDS
 
 Situs statis (GitHub Pages: https://gomesnopes.github.io/sirasa/) dengan backend **Supabase** (Auth, Database, Storage).
 Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript biasa.
@@ -58,10 +58,10 @@ dan filter analitik otomatis mengikuti.
 ## Tampilan HP & desktop
 - **HP (< 768px)** — `dashboard.html` & `profil.html` bergaya aplikasi native: header gradasi, kartu ringkasan
   XP/peringkat (tab Progres/Waktu/Tes), grid ikon Menu Belajar, bottom navigation dengan tombol tengah "Lanjut".
-- **Desktop** — tata letak dasbor web tersendiri (bukan tampilan HP yang diperbesar): sidebar biru tua
-  (Beranda · Menu Belajar · Rapor + kartu akun & Keluar), kartu besar *Lanjutkan Belajar*, papan peringkat,
-  empat kartu statistik sekaligus (XP & level, misi selesai, waktu, tes), dan kartu materi lengkap dengan status.
-  Gaya bersama ada di `app.css` (`.d-sidebar`, `.d-nav`, `.d-kartu`).
+- **Desktop** — tata letak dasbor web tersendiri (bukan tampilan HP yang diperbesar): bilah atas dengan tab
+  **Beranda · Rapor**, kartu besar *Lanjutkan Belajar*, papan peringkat, empat kartu statistik sekaligus
+  (XP & level, misi selesai, waktu, tes), dan kartu materi lengkap dengan status.
+  Gaya bersama ada di `app.css` (`.d-header`, `.d-tabs`, `.d-tab`, `.d-kartu`).
 - **Admin** — warna & kartu yang sama (sidebar biru tua, kartu modul ala Menu Belajar).
 
 ## Modul Slide + Suara Narasi Natural
@@ -84,6 +84,11 @@ Pratinjau bisa diganti *Desktop* / *HP* dan dirender pada ukuran layar sungguhan
 **Suara narasi:** klik *Buat Suara Slide Ini* atau *Buat Suara Semua*. Edge Function `tts-slide` membuat MP3
 sekali saja lalu menyimpannya di Storage (`pdf-buku/slide-audio/`); siswa hanya memutar file itu.
 Jika teks slide diubah, audionya otomatis dikosongkan dan perlu dibuat ulang.
+
+**Kamus ejaan suara** — Admin → *Pengaturan Sistem* → *Kamus Ejaan Suara* (tabel `kamus_ucapan`).
+Singkatan dibaca sesuai kamus, mis. `HIV` → "ha i ve", `AIDS` → "eids", `ARV` → "a er ve". Berlaku untuk suara
+neural (Edge Function) maupun suara perangkat. Di editor slide, buka *Lihat teks yang akan dibacakan* untuk mengecek.
+Setelah kamus diubah, buat ulang suara slide terkait.
 
 **Memasang penyedia suara (wajib sekali)** — Supabase Dashboard → *Edge Functions* → *Secrets*, isi salah satu:
 - **Azure (disarankan untuk Bahasa Indonesia)**: `AZURE_TTS_KEY` dan `AZURE_TTS_REGION` (mis. `southeastasia`)
@@ -125,7 +130,7 @@ File PDF lamanya masih tersimpan di `file_url` bila suatu saat ingin dikembalika
    Pindahkan perhitungan skor ke fungsi database (RPC) yang membaca kunci jawaban di server.
 4. **Gambar**: halaman memakai versi ringan `assets/hero.png` (desktop) dan `assets/hero-mobile.png` (HP),
    diperkecil dari foto asli `img.png` (5,8 MB) yang tidak dimuat halaman mana pun.
-   `kitasebaya.png` adalah logo program KITA SEBAYA (platform lain) — tidak dipakai di SIRASA.
+   `kitasebaya.png` adalah logo program KITA SEBAYA (platform lain) — tidak dipakai di Macaya.
 5. **Tailwind CDN** (`cdn.tailwindcss.com`) tidak disarankan untuk produksi (lambat, peringatan di konsol).
    Pertimbangkan build Tailwind CLI sekali jadi `styles.css`.
 6. **Satukan kode yang berulang**: inisialisasi Supabase, fungsi upload PDF+sampul (ada 2 salinan di `admin.html`),

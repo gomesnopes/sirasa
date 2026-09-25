@@ -1,5 +1,5 @@
 // File: dialog.js
-// Pengganti alert()/confirm() bawaan browser dengan modal bergaya SIRASA
+// Pengganti alert()/confirm() bawaan browser dengan modal bergaya Macaya
 // (tanpa tulisan "<alamat web> menyatakan"). Mandiri: tidak butuh Tailwind.
 //
 //   await Dialog.alert('Data tersimpan.');

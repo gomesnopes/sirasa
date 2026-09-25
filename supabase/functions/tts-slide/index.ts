@@ -26,14 +26,24 @@ function balas(status: number, body: unknown) {
 // ---- Teks yang dibacakan (harus sama dengan slide-render.js: teksUcapan / teksJawaban) ----
 const POLA = { poin: /^[-•*]\s+(.*)$/, chip: /^\[([a-z0-9-]+)\]\s+(.*)$/, ingat: /^!\s*(.*)$/, sumber: /^sumber\s*:/i };
 
+// Kamus ejaan dari tabel kamus_ucapan, mis. HIV -> "ha i ve" (dimuat tiap permintaan)
+let KAMUS: { pola: RegExp; ucapan: string }[] = [];
+function aturKamus(daftar: { kata: string; ucapan: string }[] | null) {
+  const escRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  KAMUS = (daftar || []).filter((k) => k?.kata && k?.ucapan)
+    .sort((a, b) => b.kata.length - a.kata.length)
+    .map((k) => ({ pola: new RegExp(`(?<![\\p{L}\\p{N}])${escRe(k.kata.trim())}(?![\\p{L}\\p{N}])`, "gu"), ucapan: k.ucapan.trim() }));
+}
+const terapkanKamus = (t: string) => KAMUS.reduce((h, k) => h.replace(k.pola, k.ucapan), t);
+
 function rapikanUcapan(t: string): string {
-  return String(t || "")
+  return terapkanKamus(String(t || "")
     .replace(/\*\*/g, "")
     .replace(/HIV\/AIDS/g, "HIV dan AIDS")
     .replace(/(\S)\s*\/\s*(\S)/g, "$1 atau $2")
     .replace(/≠/g, " tidak sama dengan ")
     .replace(/\s*(…|\.\.\.)\s*$/, ":").replace(/…|\.\.\./g, ", ")
-    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, ""))
     .replace(/\s+/g, " ").trim();
 }
 const akhiriTitik = (b: string) => (/[.!?:;]$/.test(b) ? b : b + ".");
@@ -103,7 +113,7 @@ async function suaraAzure(teks: string, pria: boolean, key: string, region: stri
         "Ocp-Apim-Subscription-Key": key,
         "Content-Type": "application/ssml+xml",
         "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3",
-        "User-Agent": "sirasa-tts",
+        "User-Agent": "macaya-tts",
       },
       body: ssml,
     });
@@ -166,6 +176,8 @@ Deno.serve(async (req) => {
     const db = createClient(url, service);
     const { data: slide, error: errSlide } = await db.from("slide").select("id, judul, isi, jenis, kunci, penjelasan").eq("id", slide_id).single();
     if (errSlide || !slide) return balas(404, { error: "Slide tidak ditemukan." });
+    const { data: kamus } = await db.from("kamus_ucapan").select("kata, ucapan");
+    aturKamus(kamus);
 
     const teks = teksUcapan(slide as Slide);
     const teksJwb = teksJawaban(slide as Slide);

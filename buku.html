@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruang Belajar & Evaluasi - SIRASA</title>
+    <title>Ruang Belajar & Evaluasi - Macaya</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -234,6 +234,7 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) return window.location.href = 'dashboard.html';
             loggedInUser = session.user; 
+            SlideRender.muatKamus(supabaseClient); // ejaan singkatan untuk suara (HIV -> ha i ve)
             bookId = new URLSearchParams(window.location.search).get('id');
             if (!bookId) return keluarKeBeranda();
 
@@ -782,7 +783,7 @@ if (!pdfBersih) {
             }
             const { i, k } = tts.antrian[tts.idx];
             tandaiParagraf(i);
-            const u = new SpeechSynthesisUtterance(k);
+            const u = new SpeechSynthesisUtterance(SlideRender.terapkanKamus(k));
             u.lang = 'id-ID';
             if (tts.suara) u.voice = tts.suara;
             u.rate = prefBaca.kecepatan || 1;
@@ -1091,7 +1092,7 @@ if (!pdfBersih) {
             const ucapkan = () => {
                 if (sesi !== dengar.sesi || !dengar.aktif) return;
                 if (i >= kalimat.length) return lanjutHalamanDengar(sesi);
-                const u = new SpeechSynthesisUtterance(kalimat[i]);
+                const u = new SpeechSynthesisUtterance(SlideRender.terapkanKamus(kalimat[i]));
                 u.lang = 'id-ID';
                 const suara = pilihSuaraIndonesia(); if (suara) u.voice = suara;
                 u.rate = prefBaca.kecepatan || 1;

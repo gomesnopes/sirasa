@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - SIRASA Edukasi</title>
+    <title>Admin Panel - Macaya Edukasi</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -31,7 +31,7 @@
         .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-        /* ===== Gaya SIRASA (selaras dengan aplikasi siswa) ===== */
+        /* ===== Gaya Macaya (selaras dengan aplikasi siswa) ===== */
         .admin-sidebar { background: linear-gradient(180deg, #0b1d3a 0%, #123a6b 65%, #1b5f9f 100%); }
         .nav-btn { color: rgba(224,242,254,.82); font-weight: 700; }
         .nav-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
@@ -52,7 +52,7 @@
         <div class="h-20 flex items-center justify-between px-5 text-white border-b border-white/10 min-w-[256px]">
             <div class="flex items-center gap-2.5">
                 <span class="w-10 h-10 bg-white rounded-xl p-1.5 shadow shrink-0"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-                <div class="leading-tight"><p class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></p><p class="text-[10px] font-bold uppercase tracking-widest text-sky-100/70">Panel Peneliti</p></div>
+                <div class="leading-tight"><p class="font-black text-xl tracking-tight">Maca<span class="text-sky-300">ya</span></p><p class="text-[10px] font-bold uppercase tracking-widest text-sky-100/70">Panel Peneliti</p></div>
             </div>
             <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -138,6 +138,23 @@
                         </div>
                         
                         <button onclick="simpanEditIntro()" class="mt-6 w-full bg-[#1769b3] text-white font-bold py-3 rounded-xl shadow-md hover:bg-[#135a9a] transition"><i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Perubahan Slide</button>
+                    </div>
+
+                    <!-- Kamus ejaan suara narasi -->
+                    <div class="bg-white p-6 rounded-xl border shadow-sm max-w-2xl mt-6">
+                        <div class="flex items-start justify-between gap-4 border-b pb-4 mb-4">
+                            <div>
+                                <h3 class="font-bold text-lg"><i class="fa-solid fa-spell-check text-[#1769b3] mr-2"></i> Kamus Ejaan Suara</h3>
+                                <p class="text-sm text-slate-500 mt-1">Atur cara membaca singkatan/kata pada suara narasi. Contoh: <b>HIV</b> dibaca <i>"ha i ve"</i>, bukan "hiv". Kata dicocokkan utuh & peka huruf besar.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-[1fr_1.4fr_auto] gap-2 mb-4">
+                            <input id="kamus-kata" class="p-2.5 border rounded-xl font-bold uppercase-none" placeholder="Tulisan, mis. HIV">
+                            <input id="kamus-ucapan" class="p-2.5 border rounded-xl" placeholder="Dibaca, mis. ha i ve" onkeydown="if(event.key==='Enter')tambahKamus()">
+                            <button onclick="tambahKamus()" class="bg-[#1769b3] hover:bg-[#135a9a] text-white px-4 rounded-xl font-bold"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <div id="daftar-kamus" class="divide-y border rounded-xl overflow-hidden"></div>
+                        <p class="text-[11px] text-slate-400 mt-3 leading-relaxed"><i class="fa-solid fa-circle-info mr-1"></i>Tombol <i class="fa-solid fa-volume-high"></i> mencoba dengan suara perangkat. Setelah kamus diubah, klik <b>Buat Ulang Suara</b> di editor slide agar audio neural ikut diperbarui.</p>
                     </div>
                 </section>
 
@@ -298,6 +315,11 @@
                                 <span class="font-bold text-sm text-slate-700"><i class="fa-solid fa-volume-high text-indigo-500 mr-1"></i> Suara Narasi</span>
                                 <span id="es-audio-status" class="text-xs font-bold"></span>
                             </div>
+                            <details class="text-xs">
+                                <summary class="cursor-pointer font-bold text-indigo-600">Lihat teks yang akan dibacakan</summary>
+                                <p id="es-teks-ucapan" class="mt-2 p-3 bg-white border rounded-lg text-slate-600 leading-relaxed"></p>
+                                <p id="es-teks-jawaban" class="hidden mt-2 p-3 bg-white border rounded-lg text-slate-600 leading-relaxed"></p>
+                            </details>
                             <audio id="es-audio" controls preload="none" class="w-full hidden"></audio>
                             <div id="es-audio-jawaban-wadah" class="hidden"><p class="text-[11px] font-bold text-slate-500 mb-1">Suara penjelasan (setelah kartu dibalik)</p><audio id="es-audio-jawaban" controls preload="none" class="w-full"></audio></div>
                             <button onclick="buatSuaraSlide()" id="es-btn-suara" class="w-full bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini</button>
@@ -394,6 +416,7 @@
     await fetchDaftarBukuAdmin(); 
     await fetchDaftarKuis(); 
     await fetchPengaturan(); 
+    await muatKamusAdmin(); 
 }
         
         function toggleSidebar() { const sb = document.getElementById('sidebar'); sb.classList.toggle('-translate-x-full'); sb.classList.toggle('md:w-0'); sb.classList.toggle('md:w-64'); }
@@ -531,7 +554,7 @@
             wadah.innerHTML = '';
             
             let slides = [
-                {judul: "Pahami Virusnya, Jauhi Penyakitnya", desc: "Tinggalkan cara belajar yang membosankan. Platform SIRASA menyajikan materi dengan modul interaktif yang menyenangkan."},
+                {judul: "Pahami Virusnya, Jauhi Penyakitnya", desc: "Tinggalkan cara belajar yang membosankan. Platform Macaya menyajikan materi dengan modul interaktif yang menyenangkan."},
                 {judul: "Kerjakan Pre-Test & Post-Test", desc: "Ukur seberapa jauh pemahaman Anda sebelum dan sesudah membaca modul yang disediakan."},
                 {judul: "Sistem Peringkat & Gamifikasi", desc: "Setiap evaluasi yang berhasil Anda kerjakan dengan baik akan diakumulasi menjadi poin. Raih peringkat teratas!"}
             ];
@@ -808,6 +831,44 @@
         
 
         // ===================================
+        // KAMUS EJAAN SUARA (tabel kamus_ucapan)
+        // ===================================
+        async function muatKamusAdmin() {
+            const { data, error } = await supabaseClient.from('kamus_ucapan').select('*').order('kata');
+            const wadah = document.getElementById('daftar-kamus');
+            if (error) { wadah.innerHTML = `<p class="p-4 text-sm text-rose-600">Gagal memuat kamus: ${esc(error.message)}</p>`; return; }
+            SlideRender.aturKamus(data);
+            wadah.innerHTML = (data || []).length ? data.map(k => `
+                <div class="flex items-center gap-3 px-4 py-2.5 bg-white">
+                    <span class="font-black text-[#0b1d3a] w-28 truncate">${esc(k.kata)}</span>
+                    <i class="fa-solid fa-arrow-right text-slate-300 text-xs"></i>
+                    <span class="flex-1 text-slate-600 italic">"${esc(k.ucapan)}"</span>
+                    <button onclick="cobaUcapan('${encodeURIComponent(k.ucapan)}')" class="w-8 h-8 rounded-lg text-[#1769b3] hover:bg-[#e8f1fb]" title="Coba dengarkan"><i class="fa-solid fa-volume-high"></i></button>
+                    <button onclick="hapusKamus(${k.id}, '${encodeURIComponent(k.kata)}')" class="w-8 h-8 rounded-lg text-rose-500 hover:bg-rose-50" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('') : '<p class="p-4 text-sm text-slate-400 text-center">Kamus masih kosong.</p>';
+        }
+        async function tambahKamus() {
+            const kata = document.getElementById('kamus-kata').value.trim(), ucapan = document.getElementById('kamus-ucapan').value.trim();
+            if (!kata || !ucapan) return Dialog.alert('Isi tulisan dan cara bacanya.');
+            const { error } = await supabaseClient.from('kamus_ucapan').upsert({ kata, ucapan }, { onConflict: 'kata' });
+            if (error) return Dialog.alert('Gagal menyimpan: ' + error.message);
+            document.getElementById('kamus-kata').value = ''; document.getElementById('kamus-ucapan').value = '';
+            muatKamusAdmin();
+        }
+        async function hapusKamus(id, kata) {
+            if (!(await Dialog.confirm(`Hapus ejaan untuk "${decodeURIComponent(kata)}"?`, { judul: 'Hapus Ejaan', teksOk: 'Hapus', tipe: 'bahaya' }))) return;
+            await supabaseClient.from('kamus_ucapan').delete().eq('id', id);
+            muatKamusAdmin();
+        }
+        function cobaUcapan(teks) {
+            if (!('speechSynthesis' in window)) return Dialog.alert('Browser ini tidak mendukung suara.');
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(decodeURIComponent(teks)); u.lang = 'id-ID';
+            const v = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('id')); if (v) u.voice = v;
+            speechSynthesis.speak(u);
+        }
+
+        // ===================================
         // 5. EDITOR MODUL SLIDE
         // ===================================
         const es = { buku: null, slides: [], aktif: -1, berubah: false, orientasi: 'lanskap', sibuk: false };
@@ -953,6 +1014,10 @@
             const data = { judul: esEl('es-in-judul').value, isi: esEl('es-in-isi').value, gambar_url: es.gambarForm,
                 jenis: esEl('es-in-jenis').value, ikon: esEl('es-in-ikon').value.trim(), kunci: kunciForm(), penjelasan: esEl('es-in-penjelasan').value };
             SlideRender.render(esEl('es-pratinjau'), data, es.orientasi, { nomor: es.aktif + 1, total: es.slides.length });
+            esEl('es-teks-ucapan').textContent = SlideRender.teksUcapan(data) || '-';
+            const jwb = SlideRender.teksJawaban(data);
+            esEl('es-teks-jawaban').textContent = jwb ? 'Setelah kartu dibalik: ' + jwb : '';
+            esEl('es-teks-jawaban').classList.toggle('hidden', !jwb);
         }
 
         async function simpanSlideAktif() {
