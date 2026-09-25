@@ -1,10 +1,12 @@
 // Supabase Edge Function: tts-slide
-// Membuat audio MP3 suara neural bahasa Indonesia untuk satu slide (plus audio
+// Membuat audio suara neural bahasa Indonesia (MP3/WAV) untuk satu slide (plus audio
 // penjelasan untuk kartu Mitos/Fakta), menyimpannya
 // ke Storage (bucket pdf-buku/slide-audio/), lalu mencatat URL-nya di tabel slide.
 //
 // Hanya admin (tabel public.admins) yang boleh memanggil.
-// Penyedia suara dipilih dari secret yang tersedia (Dashboard > Edge Functions > Secrets):
+// Penyedia suara dipilih dari secret yang tersedia (Dashboard > Edge Functions > Secrets), urut prioritas:
+//   - Gemini : GEMINI_API_KEY (Google AI Studio, ada kuota gratis) -> suara Leda (wanita) / Puck (pria), berkas WAV
+//              opsional: GEMINI_TTS_MODEL, GEMINI_SUARA_WANITA, GEMINI_SUARA_PRIA
 //   - Azure  : AZURE_TTS_KEY + AZURE_TTS_REGION   -> id-ID-GadisNeural / id-ID-ArdiNeural
 //   - Google : GOOGLE_TTS_API_KEY                 -> suara id-ID terbaik (Chirp3-HD > Neural2 > WaveNet > Standard)
 //
@@ -102,6 +104,59 @@ function gabung(bagian: Uint8Array[]): Uint8Array {
   return out;
 }
 
+// ---- Gemini TTS (endpoint interactions; keluaran WAV 24 kHz mono 16-bit) ----
+const GAYA_SUARA = "Bacakan dengan ramah, jelas, dan hangat seperti kakak pembimbing yang menjelaskan kepada remaja SMA. " +
+  "Gunakan bahasa Indonesia baku dengan aksen Indonesia yang natural, tempo sedang, dan jeda wajar di setiap tanda baca.";
+
+function pcmDariWav(b: Uint8Array): Uint8Array {
+  const dv = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  if (b.length < 12 || String.fromCharCode(...b.slice(0, 4)) !== "RIFF") return b; // sudah PCM mentah
+  let i = 12;
+  while (i + 8 <= b.length) {
+    const id = String.fromCharCode(...b.slice(i, i + 4)), ukuran = dv.getUint32(i + 4, true);
+    if (id === "data") return b.slice(i + 8, i + 8 + ukuran);
+    i += 8 + ukuran + (ukuran % 2);
+  }
+  throw new Error("Berkas WAV dari Gemini tidak berisi data audio.");
+}
+
+function bungkusWav(pcm: Uint8Array, rate = 24000): Uint8Array {
+  const h = new DataView(new ArrayBuffer(44)), tulis = (o: number, t: string) => [...t].forEach((c, k) => h.setUint8(o + k, c.charCodeAt(0)));
+  tulis(0, "RIFF"); h.setUint32(4, 36 + pcm.length, true); tulis(8, "WAVE");
+  tulis(12, "fmt "); h.setUint32(16, 16, true); h.setUint16(20, 1, true); h.setUint16(22, 1, true);
+  h.setUint32(24, rate, true); h.setUint32(28, rate * 2, true); h.setUint16(32, 2, true); h.setUint16(34, 16, true);
+  tulis(36, "data"); h.setUint32(40, pcm.length, true);
+  return gabung([new Uint8Array(h.buffer), pcm]);
+}
+
+async function suaraGemini(teks: string, pria: boolean, key: string) {
+  const model = Deno.env.get("GEMINI_TTS_MODEL") || "gemini-3.8-flash-tts";
+  const nama = pria ? (Deno.env.get("GEMINI_SUARA_PRIA") || "Puck") : (Deno.env.get("GEMINI_SUARA_WANITA") || "Leda");
+  const bagian: Uint8Array[] = [];
+  for (const potongan of potong(teks, 2500)) {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+      method: "POST",
+      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        input: [{ type: "user_input", content: [{ type: "text", text: potongan, annotations: [{ type: "speech_metadata", style: GAYA_SUARA }] }] }],
+        response_format: { type: "audio" },
+        generation_config: { speech_config: [{ voice: nama }] },
+      }),
+    });
+    if (!r.ok) {
+      const pesan = (await r.text()).slice(0, 300);
+      throw new Error(r.status === 429 ? "Kuota gratis Gemini sedang penuh, coba lagi beberapa menit lagi." : `Gemini TTS gagal (${r.status}): ${pesan}`);
+    }
+    const j = await r.json();
+    const audio = (j.steps || []).filter((st: { type: string }) => st.type === "model_output")
+      .flatMap((st: { content?: { type: string; data?: string }[] }) => st.content || []).filter((c: { type: string }) => c.type === "audio").pop();
+    if (!audio?.data) throw new Error("Gemini tidak mengembalikan audio.");
+    bagian.push(pcmDariWav(Uint8Array.from(atob(audio.data), (c) => c.charCodeAt(0))));
+  }
+  return { mp3: bungkusWav(gabung(bagian)), nama: `Gemini-${nama}`, tipe: "audio/wav", ekstensi: "wav" };
+}
+
 async function suaraAzure(teks: string, pria: boolean, key: string, region: string) {
   const nama = pria ? "id-ID-ArdiNeural" : "id-ID-GadisNeural";
   const bagian: Uint8Array[] = [];
@@ -185,19 +240,21 @@ Deno.serve(async (req) => {
     const pria = suara === "pria";
 
     // 3) Buat audio dengan penyedia yang dikonfigurasi
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
     const azureKey = Deno.env.get("AZURE_TTS_KEY"), azureRegion = Deno.env.get("AZURE_TTS_REGION");
     const googleKey = Deno.env.get("GOOGLE_TTS_API_KEY");
-    let buatSuara: (t: string) => Promise<{ mp3: Uint8Array; nama: string }>;
-    if (azureKey && azureRegion) buatSuara = (t) => suaraAzure(t, pria, azureKey, azureRegion);
+    let buatSuara: (t: string) => Promise<{ mp3: Uint8Array; nama: string; tipe?: string; ekstensi?: string }>;
+    if (geminiKey) buatSuara = (t) => suaraGemini(t, pria, geminiKey);
+    else if (azureKey && azureRegion) buatSuara = (t) => suaraAzure(t, pria, azureKey, azureRegion);
     else if (googleKey) buatSuara = (t) => suaraGoogle(t, pria, googleKey);
-    else return balas(500, { error: "Penyedia suara belum dikonfigurasi. Isi secret AZURE_TTS_KEY + AZURE_TTS_REGION atau GOOGLE_TTS_API_KEY di Supabase." });
+    else return balas(500, { error: "Penyedia suara belum dikonfigurasi. Isi secret GEMINI_API_KEY (atau AZURE_TTS_KEY + AZURE_TTS_REGION / GOOGLE_TTS_API_KEY) di Supabase." });
 
     // 4) Simpan ke Storage (nama file memuat sidik teks agar cache browser tidak memutar audio lama)
     async function simpan(t: string, akhiran: string) {
       const hasil = await buatSuara(t);
       const hash = await sha(`${hasil.nama}|${t}`);
-      const path = `slide-audio/${slide!.id}${akhiran}-${hash}.mp3`;
-      const { error: errUp } = await db.storage.from(BUCKET).upload(path, hasil.mp3, { contentType: "audio/mpeg", upsert: true });
+      const path = `slide-audio/${slide!.id}${akhiran}-${hash}.${hasil.ekstensi || "mp3"}`;
+      const { error: errUp } = await db.storage.from(BUCKET).upload(path, hasil.mp3, { contentType: hasil.tipe || "audio/mpeg", upsert: true });
       if (errUp) throw new Error("Gagal menyimpan audio: " + errUp.message);
       return { url: db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl, nama: hasil.nama, hash };
     }
