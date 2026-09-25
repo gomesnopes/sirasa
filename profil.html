@@ -19,6 +19,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="dialog.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="app.css">
 
     <style>
@@ -32,9 +34,9 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-[#f4f7fb] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- Header mobile (ala aplikasi) -->
+    <!-- Header HP (ala aplikasi) -->
     <header class="md:hidden relative text-white app-safe-top overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-b from-[#0b1d3a] via-[#123a6b] to-[#1b5f9f]"></div>
         <div class="relative z-10 px-5 pt-5 pb-20 flex items-center gap-3">
@@ -43,24 +45,34 @@
         </div>
     </header>
 
-    <nav class="hidden md:flex glass-nav shadow-sm border-b border-slate-200 px-4 md:px-8 py-4 justify-between items-center sticky top-0 z-40 transition-all">
-        <a href="dashboard.html" class="flex items-center gap-3 cursor-pointer group text-slate-500 hover:text-rose-600 transition">
-            <div class="w-10 h-10 bg-slate-100 group-hover:bg-rose-100 rounded-xl flex items-center justify-center text-xl transition transform">
-                <i class="fa-solid fa-arrow-left"></i>
-            </div>
-            <span class="font-bold hidden sm:block">Kembali ke Galeri</span>
+    <!-- Sidebar desktop (sama dengan Beranda) -->
+    <aside class="d-sidebar d-font hidden md:flex fixed inset-y-0 left-0 z-40 w-60 xl:w-72 flex-col text-white">
+        <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
+            <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+            <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
         </a>
-        <h1 class="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
-            <i class="fa-solid fa-user-graduate text-rose-500"></i> Rapor Belajarmu
-        </h1>
-    </nav>
+        <nav class="px-4 space-y-1.5">
+            <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
+            <a href="dashboard.html" class="d-nav"><i class="fa-solid fa-house"></i> Beranda</a>
+            <a href="dashboard.html#materi" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</a>
+            <a href="profil.html" class="d-nav aktif"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
+        </nav>
+    </aside>
 
-    <main class="flex-1 max-w-[1200px] w-full mx-auto px-4 md:px-8 py-8 space-y-6 md:space-y-8 -mt-24 md:mt-0 relative z-10">
+    <main class="flex-1 w-full px-4 md:pl-[calc(15rem+2rem)] xl:pl-[calc(18rem+3rem)] md:pr-8 xl:pr-12 pt-8 pb-8 md:pb-12 -mt-24 md:mt-0 relative z-10 d-font-md">
+      <div class="max-w-[1200px] mx-auto space-y-6 md:space-y-8">
+        <div class="hidden md:flex items-end justify-between gap-4">
+            <div>
+                <p class="text-sm font-semibold text-slate-400">Pantau XP, waktu belajar, dan peningkatan pemahamanmu</p>
+                <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Rapor Belajar</h1>
+            </div>
+            <a href="dashboard.html" class="inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-5 py-3 rounded-2xl shadow-lg shadow-sky-900/15 transition"><i class="fa-solid fa-play"></i> Lanjut Belajar</a>
+        </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-in">
             
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col justify-center items-center relative overflow-hidden h-full">
-                <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-rose-500 to-indigo-600 z-0"></div>
+            <div class="bg-white rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] p-6 flex flex-col justify-center items-center relative overflow-hidden h-full">
+                <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-[#1769b3] to-[#1f86d6] z-0"></div>
                 
                 <div id="avatar-inisial" class="relative z-10 w-24 h-24 bg-white rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black text-slate-300 uppercase mt-4">?</div>
                 <h2 id="teks-nama" class="relative z-10 text-xl font-black text-slate-800 mt-4 text-center">-</h2>
@@ -77,23 +89,23 @@
                 </button>
             </div>
 
-            <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center flex flex-col justify-center items-center">
+            <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-4 h-full">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] text-center flex flex-col justify-center items-center">
                     <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-star"></i></div>
                     <h3 id="stat-xp" class="text-3xl font-black text-slate-800">0</h3>
                     <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Total XP</p>
                 </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center flex flex-col justify-center items-center">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] text-center flex flex-col justify-center items-center">
                     <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-clipboard-check"></i></div>
                     <h3 id="stat-tes" class="text-3xl font-black text-slate-800">0</h3>
                     <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Tes Selesai</p>
                 </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center flex flex-col justify-center items-center">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] text-center flex flex-col justify-center items-center">
                     <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-clock"></i></div>
                     <h3 id="stat-waktu" class="text-3xl font-black text-slate-800">0m</h3>
                     <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Waktu Belajar</p>
                 </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 text-center flex flex-col justify-center items-center">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] text-center flex flex-col justify-center items-center">
                     <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-arrow-trend-up"></i></div>
                     <h3 id="stat-akurasi" class="text-3xl font-black text-slate-800">0</h3>
                     <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Rata-rata Skor</p>
@@ -103,7 +115,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-in" style="animation-delay: 0.1s;">
             
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full">
+            <div class="bg-white p-6 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] flex flex-col h-full">
                 <div class="mb-4">
                     <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-arrow-up-right-dots text-emerald-500 mr-2"></i> Peningkatan Pemahaman Terpadu</h3>
                     <p class="text-xs text-slate-500 mt-1">Grafik ini membandingkan nilaimu secara khusus pada paket Pre-Test dan Post-Test.</p>
@@ -117,7 +129,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col h-full">
+            <div class="bg-white p-6 rounded-3xl shadow-[0_10px_30px_-12px_rgba(11,29,58,.12)] border border-[#e8eef5] flex flex-col h-full">
                 <div class="mb-4">
                     <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-chart-line text-blue-500 mr-2"></i> Tren Aktivitas Mingguan</h3>
                     <p class="text-xs text-slate-500 mt-1">Pergerakan total XP yang didapat dan durasi membaca (dalam menit) selama 7 hari terakhir.</p>
@@ -128,6 +140,7 @@
             </div>
 
         </div>
+      </div>
     </main>
 
     <div class="app-nav-spacer md:hidden"></div>
@@ -142,9 +155,6 @@
         </div>
     </nav>
 
-    <footer class="hidden md:block bg-white border-t border-slate-200 mt-auto py-8 text-center">
-        <p class="text-slate-500 text-sm font-medium">© 2026 SIRASA. Dibangun untuk mengedukasi generasi peduli kesehatan.</p>
-    </footer>
 
     <div id="modalEditProfil" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
         <div class="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-sm modal-enter app-sheet max-h-[92dvh] overflow-y-auto flex flex-col border border-slate-100 app-safe-bottom">
@@ -258,7 +268,7 @@
                 document.getElementById('teks-gender').innerText = profil.jenis_kelamin || '-';
                 document.getElementById('teks-umur').innerText = umur !== null ? umur + ' tahun' : 'Umur -';
                 document.getElementById('avatar-inisial').innerText = profil.nama_lengkap.charAt(0);
-                document.getElementById('avatar-inisial').className = "relative z-10 w-24 h-24 bg-gradient-to-tr from-rose-500 to-indigo-600 rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black text-white uppercase mt-4";
+                document.getElementById('avatar-inisial').className = "relative z-10 w-24 h-24 bg-gradient-to-tr from-[#0b1d3a] to-[#1769b3] rounded-full border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black text-white uppercase mt-4";
                 
                 // Set Data di Modal Edit
                 document.getElementById('input-nama').value = profil.nama_lengkap;

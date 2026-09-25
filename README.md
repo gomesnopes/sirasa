@@ -55,10 +55,14 @@ Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript
 Edit `DAFTAR_SEKOLAH` dan `DAFTAR_KELAS` di `config.js`. Form daftar, edit profil, edit responden di admin,
 dan filter analitik otomatis mengikuti.
 
-## Tampilan mobile (ala aplikasi)
-Di layar < 768px, `index.html`, `dashboard.html`, dan `profil.html` memakai tata letak aplikasi native:
-header gradasi, kartu ringkasan XP/peringkat, grid ikon menu, kartu misi geser, dan bottom navigation
-dengan tombol tengah "Belajar" (membuka misi berikutnya yang belum selesai). Tampilan desktop tidak berubah.
+## Tampilan HP & desktop
+- **HP (< 768px)** — `dashboard.html` & `profil.html` bergaya aplikasi native: header gradasi, kartu ringkasan
+  XP/peringkat (tab Progres/Waktu/Tes), grid ikon Menu Belajar, bottom navigation dengan tombol tengah "Lanjut".
+- **Desktop** — tata letak dasbor web tersendiri (bukan tampilan HP yang diperbesar): sidebar biru tua
+  (Beranda · Menu Belajar · Rapor + kartu akun & Keluar), kartu besar *Lanjutkan Belajar*, papan peringkat,
+  empat kartu statistik sekaligus (XP & level, misi selesai, waktu, tes), dan kartu materi lengkap dengan status.
+  Gaya bersama ada di `app.css` (`.d-sidebar`, `.d-nav`, `.d-kartu`).
+- **Admin** — warna & kartu yang sama (sidebar biru tua, kartu modul ala Menu Belajar).
 
 ## Modul Slide + Suara Narasi Natural
 **Membuat modul (admin):** Konten & Modul → *Buat Konten Baru* → tipe **Modul Slide** → editor slide terbuka.
@@ -93,8 +97,8 @@ ketukan); setelah itu narasi berjalan dan slide maju otomatis (tombol ⏩), kece
 ikut digulir mengikuti suara. Slide tanpa audio dibacakan dengan suara perangkat sebagai cadangan.
 Hemat daya: blur kaca dimatikan di HP lemah, animasi berhenti saat tab tidak dibuka / "kurangi gerakan" aktif.
 
-**Contoh:** modul *Minggu 2 - HIV/AIDS (Slide)* (15 slide dari Materi 1, status nonaktif sebagai draf).
-Aktifkan di admin untuk menggantikan modul PDF Minggu 2.
+**Minggu 2 - HIV/AIDS** kini bertipe Modul Slide (15 slide dari Materi 1); 18 soal kuisnya tetap terhubung.
+File PDF lamanya masih tersimpan di `file_url` bila suatu saat ingin dikembalikan.
 
 ## Dengarkan Materi di Flipbook (modul PDF)
 - Tombol **🔊 Dengarkan** di sebelah *Mode Baca Teks*: isi halaman yang sedang tampil dibacakan tanpa mengubah tampilan flipbook.

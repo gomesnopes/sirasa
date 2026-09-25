@@ -14,24 +14,27 @@
     <title>Galeri Modul SIRASA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>var dFlipLocation = "https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/";</script>
-    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/dflip.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/css/themify-icons.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@dearhive/dearflip-jquery-flipbook@1.7.3/dflip/js/dflip.min.js"></script>
-    <!-- dflip.min.js menimpa DFLIP.defaults saat dimuat, jadi pengaturan diterapkan setelahnya -->
-    <script>Object.assign(DFLIP.defaults, { webgl: true, soundEnable: true, hideControls: "download,print,more,share,fullscreen,toggle,play" });</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="dialog.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="app.css">
     <style>
-        .glass-nav { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.15); border-color: rgba(13, 148, 136, 0.3); }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; } @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .modal-enter { animation: zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; } @keyframes zoomIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
-        ._df_book { height: 100% !important; width: 100% !important; margin: 0 !important; }
-        
+
+        /* ===== Desktop ===== */
+        .d-hero { background: radial-gradient(120% 140% at 0% 0%, #1f5fa3 0%, #0f2b55 55%, #0b1d3a 100%); box-shadow: 0 24px 50px -20px rgba(11,29,58,.55); }
+        .d-gumpal { position: absolute; border-radius: 999px; filter: blur(40px); pointer-events: none; }
+        .d-ikon-stat { width: 2.75rem; height: 2.75rem; border-radius: .9rem; display: inline-flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .d-misi { position: relative; display: flex; flex-direction: column; background: #fff; border: 1px solid #e8eef5; border-radius: 1.5rem; padding: 1.4rem; box-shadow: 0 10px 30px -16px rgba(11,29,58,.14); transition: transform .18s, box-shadow .18s, border-color .18s; text-align: left; }
+        .d-misi:not(.terkunci):hover { transform: translateY(-4px); box-shadow: 0 22px 40px -18px rgba(23,105,179,.35); border-color: rgba(23,105,179,.35); }
+        .d-misi .d-misi-ikon { width: 3.5rem; height: 3.5rem; border-radius: 1.1rem; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: #e8f1fb; color: #1769b3; transition: background .18s, color .18s; }
+        .d-misi:not(.terkunci):hover .d-misi-ikon { background: #1769b3; color: #fff; }
+        .d-misi.selesai .d-misi-ikon { background: #ecfdf5; color: #059669; }
+        .d-misi.terkunci { background: #f8fafc; cursor: not-allowed; }
+        .d-misi.terkunci .d-misi-ikon { background: #eef2f7; color: #94a3b8; }
+        .d-misi.berikutnya { border-color: rgba(23,105,179,.45); box-shadow: 0 0 0 4px rgba(23,105,179,.08), 0 18px 36px -18px rgba(23,105,179,.35); }
+
         /* Tema Scrollbar Custom */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f8fafc; }
@@ -41,7 +44,7 @@
 </head>
 <body class="app-mobile bg-[#f8fafc] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
 
-    <!-- ================= TAMPILAN MOBILE (ala aplikasi native) ================= -->
+    <!-- ================= TAMPILAN HP (ala aplikasi native) ================= -->
     <div class="md:hidden min-h-[100dvh] bg-[#f4f7fb]">
         <!-- Header gelap -->
         <header class="relative text-white overflow-hidden app-safe-top">
@@ -109,7 +112,8 @@
         </section>
 
         <!-- Lembar putih: menu, misi, peringkat -->
-        <main class="bg-white rounded-t-[2rem] mt-5 pt-5 pb-2 min-h-[50vh] shadow-[0_-4px_20px_rgba(11,29,58,.04)]">
+        <main class="bg-white rounded-t-[2rem] mt-5 pt-5 pb-2 min-h-[50vh] shadow-[0_-4px_20px_rgba(11,29,58,.04)]
+                    ">
             <!-- Menu Belajar: langsung berisi materi & tes, berurutan -->
             <section id="m-seksi-misi" class="px-5 scroll-mt-4">
                 <div class="flex items-end justify-between gap-2">
@@ -137,7 +141,7 @@
         </main>
 
         <!-- Bottom navigation -->
-        <nav class="app-bottom-nav md:hidden">
+        <nav class="app-bottom-nav">
             <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
                 <a href="dashboard.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
                 <div class="flex flex-col items-center">
@@ -151,7 +155,8 @@
         <!-- Lembar "Misi Berikutnya" (dibuka dari tombol tengah / kartu Lanjut) -->
         <div id="m-sheet-lanjut" class="hidden fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="m-sheet-judul">
             <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" onclick="tutupSheetLanjut()"></div>
-            <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-[2rem] px-6 pt-3 pb-6 app-sheet shadow-2xl max-h-[85dvh] overflow-y-auto" style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom))">
+            <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-[2rem] px-6 pt-3 pb-6 app-sheet shadow-2xl max-h-[85dvh] overflow-y-auto
+                       " style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom))">
                 <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5"></div>
                 <div id="m-sheet-isi"></div>
             </div>
@@ -160,80 +165,118 @@
         <div id="m-toast" class="hidden fixed left-4 right-4 bottom-28 z-[70] bg-slate-900/95 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-2xl text-center"></div>
     </div>
 
-    <!-- ================= TAMPILAN DESKTOP ================= -->
-    <div class="hidden md:flex flex-col min-h-screen">
-    <nav class="glass-nav px-4 md:px-8 py-3 flex justify-between items-center sticky top-0 z-40">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.reload()">
-                <div class="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center text-xl shadow-md shadow-teal-500/20 group-hover:-rotate-6 transition transform"><i class="fa-solid fa-ribbon"></i></div>
-                <h1 class="text-xl font-black text-slate-800 tracking-tight hidden sm:block">SI<span class="text-teal-600">RASA</span></h1>
-            </div>
-         </div>
-        <div id="user-menu-container" class="transition-opacity duration-500"></div>
-    </nav>
-
-    <main class="flex-1 max-w-[1400px] w-full mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8">
-        <div class="flex-1 w-full lg:w-3/4">
-            
-            <!-- Banner Utama Baru -->
-            <div id="user-banner" class="bg-gradient-to-br from-teal-700 via-sky-800 to-slate-900 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden fade-in border border-slate-700/50">
-                <div class="absolute -top-20 -right-10 w-80 h-80 bg-teal-400 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute bottom-0 left-20 w-60 h-60 bg-sky-400 opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                
-                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div>
-                        <span class="inline-block px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-[10px] font-bold tracking-widest uppercase mb-3 text-teal-100">Dasbor Responden</span>
-                        <h2 class="text-3xl font-black mb-2" id="greet-name">Halo! 👋</h2>
-                        <p class="text-sky-100 font-medium max-w-xl text-sm md:text-base leading-relaxed">Siap memperkaya wawasan kesehatan hari ini? Selesaikan misi modul dan kumpulkan poin pengalaman (XP) sebanyak-banyaknya!</p>
+    <!-- ================= TAMPILAN DESKTOP (dasbor web, dirancang khusus layar lebar) ================= -->
+    <div class="hidden md:flex min-h-screen bg-[#f4f7fb] d-font">
+        <!-- Sidebar -->
+        <aside class="d-sidebar w-60 xl:w-72 shrink-0 sticky top-0 h-screen flex flex-col text-white">
+            <a href="dashboard.html" class="flex items-center gap-3 px-6 h-24">
+                <span class="w-11 h-11 bg-white rounded-2xl p-2 shadow-lg shadow-black/20"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+                <span class="leading-tight"><span class="block font-black text-2xl tracking-tight">SI<span class="text-sky-300">RASA</span></span><span class="block text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/60">Edukasi HIV/AIDS</span></span>
+            </a>
+            <nav class="px-4 space-y-1.5">
+                <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-[.2em] text-sky-100/50">Menu</p>
+                <a href="dashboard.html" class="d-nav aktif"><i class="fa-solid fa-house"></i> Beranda</a>
+                <button onclick="document.getElementById('d-seksi-materi').scrollIntoView({behavior:'smooth'})" class="d-nav"><i class="fa-solid fa-book-open-reader"></i> Menu Belajar</button>
+                <a href="profil.html" class="d-nav"><i class="fa-solid fa-chart-simple"></i> Rapor Belajar</a>
+            </nav>
+            <div class="mt-auto p-4">
+                <div class="rounded-2xl bg-white/10 border border-white/10 p-4">
+                    <div class="flex items-center gap-3">
+                        <span id="d-avatar-kecil" class="w-10 h-10 rounded-full bg-white text-[#1769b3] font-black flex items-center justify-center shrink-0">?</span>
+                        <div class="min-w-0">
+                            <p id="d-nama-kecil" class="font-bold text-sm truncate">-</p>
+                            <p id="d-kelas-kecil" class="text-[11px] text-sky-100/70 truncate">-</p>
+                        </div>
                     </div>
-                    <div class="bg-white/10 backdrop-blur-md border border-white/20 px-6 py-5 rounded-2xl text-center shrink-0 w-full md:w-auto flex flex-col justify-center items-center shadow-inner">
-                        <p class="text-teal-100 text-xs font-bold uppercase tracking-wider mb-1">Total Poin Edukasi</p>
-                        <div class="text-4xl font-black flex items-center justify-center gap-2"><i class="fa-solid fa-star text-amber-400 drop-shadow-md"></i> <span id="greet-xp" class="tracking-tight">0</span></div>
-                    </div>
+                    <button onclick="prosesLogout()" class="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-sky-50 bg-white/10 hover:bg-rose-600 transition"><i class="fa-solid fa-power-off"></i> Keluar Akun</button>
                 </div>
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                <div><h3 class="text-2xl font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-layer-group text-teal-600"></i> Galeri Misi</h3></div>
-                
-                <!-- Filter Tab Berbentuk Kapsul Modern -->
-                <div class="flex bg-slate-200/50 p-1.5 rounded-full w-full md:w-auto overflow-x-auto border border-slate-200">
-                    <button onclick="filterBuku('Semua', this)" class="filter-btn active-filter px-6 py-2 text-sm font-bold rounded-full transition-all bg-white text-teal-700 shadow-sm border border-slate-100">Semua Modul</button>
-                    <button onclick="filterBuku('Materi', this)" class="filter-btn px-6 py-2 text-sm font-bold rounded-full text-slate-500 hover:text-slate-700 transition-all">Buku Materi</button>
-                    <button onclick="filterBuku('Kuis', this)" class="filter-btn px-6 py-2 text-sm font-bold rounded-full text-slate-500 hover:text-slate-700 transition-all">Soal Kuis</button>               
-                </div>
-            </div>
-            <div id="bookList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6 min-h-[300px]"></div>
-        </div>
-
-        <aside class="w-full lg:w-1/4 shrink-0">
-            <div class="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 sticky top-24 fade-in">
-                <div class="text-center mb-6 border-b border-slate-100 pb-4">
-                    <div class="w-14 h-14 bg-gradient-to-br from-amber-100 to-amber-200 text-amber-600 border border-amber-300 rounded-full flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner"><i class="fa-solid fa-crown"></i></div>
-                    <h3 class="text-lg font-black text-slate-800">Top Leaderboard</h3>
-                    <p class="text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-widest">5 Peringkat Teratas</p>
-                </div>
-                <div id="leaderboard-list" class="space-y-3"></div>
             </div>
         </aside>
-    </main>
-    </div>
 
-    <div id="modalIntroSystem" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden relative modal-enter">
-            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center z-10 shrink-0">
-                <h3 class="font-bold text-sm text-slate-800 uppercase tracking-widest"><i class="fa-solid fa-book-open-reader text-teal-600 mr-2"></i> Pengantar Sistem</h3>
-                <button onclick="tutupModalIntro()" class="text-slate-500 hover:text-rose-600 transition px-4 py-1.5 bg-white border border-slate-200 hover:border-rose-200 rounded-lg text-xs font-bold shadow-sm">Tutup Layar <i class="fa-solid fa-xmark ml-1"></i></button>
+        <!-- Konten -->
+        <main class="flex-1 min-w-0 px-6 lg:px-8 xl:px-12 py-8">
+            <div class="max-w-[1320px] mx-auto">
+                <!-- Bilah atas -->
+                <div class="flex items-center justify-between gap-6 mb-8">
+                    <div>
+                        <p id="d-tanggal" class="text-sm font-semibold text-slate-400"></p>
+                        <h1 class="text-3xl font-extrabold text-[#0b1d3a] tracking-tight mt-0.5">Halo, <span id="d-sapaan">Agen</span> 👋</h1>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span id="d-level-chip" class="flex items-center gap-2 bg-white border border-[#e8eef5] rounded-full pl-2 pr-4 py-1.5 font-bold text-sm text-amber-600 shadow-sm"><span class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs"><i class="fa-solid fa-star"></i></span><span id="d-level">Bronze</span></span>
+                        <a href="profil.html" id="d-avatar" class="w-11 h-11 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center shadow-md hover:scale-105 transition" title="Rapor & profil">?</a>
+                    </div>
+                </div>
+
+                <!-- Baris utama: Lanjutkan belajar + peringkat -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <section id="d-lanjut" class="lg:col-span-2 relative overflow-hidden rounded-[2rem] text-white p-8 xl:p-10 min-h-[260px] d-hero">
+                        <span class="d-gumpal" style="width:22rem;height:22rem;right:-5rem;top:-8rem;background:rgba(56,189,248,.25)"></span>
+                        <span class="d-gumpal" style="width:16rem;height:16rem;left:30%;bottom:-9rem;background:rgba(225,29,72,.22)"></span>
+                        <img src="assets/hero.png" alt="" class="hidden xl:block absolute right-6 bottom-0 h-[92%] max-h-[300px] object-contain object-bottom drop-shadow-2xl pointer-events-none">
+                        <div id="d-lanjut-isi" class="relative z-10 xl:max-w-[58%]">
+                            <div class="h-40 flex items-center text-sky-100/70"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat misi...</div>
+                        </div>
+                    </section>
+                    <section class="d-kartu p-6 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-extrabold text-[#0b1d3a] flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-crown text-amber-500"></i> Papan Peringkat</h3>
+                            <span id="d-rank" class="whitespace-nowrap text-xs font-bold text-[#1769b3] bg-[#e8f1fb] px-2.5 py-1 rounded-full">Kamu #-</span>
+                        </div>
+                        <div id="d-leaderboard" class="mt-4 space-y-2 flex-1"></div>
+                    </section>
+                </div>
+
+                <!-- Statistik (semua tampil sekaligus, tanpa tab) -->
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-6 mt-6">
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-amber-50 text-amber-500"><i class="fa-solid fa-star"></i></span><span class="text-xs font-bold text-slate-400">Total XP</span></div>
+                        <p id="d-xp" class="text-3xl font-extrabold text-[#0b1d3a] mt-4">0</p>
+                        <div class="h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden"><div id="d-xp-bar" class="h-full bg-amber-400 rounded-full transition-all duration-700" style="width:0%"></div></div>
+                        <p id="d-xp-ket" class="text-[11px] font-semibold text-slate-400 mt-1.5">-</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-[#e8f1fb] text-[#1769b3]"><i class="fa-solid fa-flag-checkered"></i></span><span class="text-xs font-bold text-slate-400">Misi Selesai</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-selesai">0</span><span class="text-lg text-slate-300"> / <span id="d-total">0</span></span></p>
+                        <div class="h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden"><div id="d-selesai-bar" class="h-full bg-[#1769b3] rounded-full transition-all duration-700" style="width:0%"></div></div>
+                        <p id="d-selesai-ket" class="text-[11px] font-semibold text-slate-400 mt-1.5">-</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-emerald-50 text-emerald-500"><i class="fa-solid fa-clock"></i></span><span class="text-xs font-bold text-slate-400">Waktu Belajar</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-menit">0</span><span class="text-lg text-slate-300"> menit</span></p>
+                        <p class="text-[11px] font-semibold text-slate-400 mt-5">Total durasi membaca modul</p>
+                    </div>
+                    <div class="d-kartu p-5">
+                        <div class="flex items-center justify-between"><span class="d-ikon-stat bg-violet-50 text-violet-500"><i class="fa-solid fa-clipboard-check"></i></span><span class="text-xs font-bold text-slate-400">Tes Dikerjakan</span></div>
+                        <p class="text-3xl font-extrabold text-[#0b1d3a] mt-4"><span id="d-tes">0</span><span class="text-lg text-slate-300"> tes</span></p>
+                        <a href="profil.html" class="inline-flex items-center gap-1 text-[11px] font-bold text-[#1769b3] mt-5 hover:underline">Lihat rapor lengkap <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Menu Belajar -->
+                <section id="d-seksi-materi" class="mt-10 scroll-mt-8">
+                    <div class="flex items-end justify-between mb-5">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-[#0b1d3a] tracking-tight">Menu Belajar</h2>
+                            <p class="text-sm text-slate-500 mt-1">Ikuti misi secara berurutan setiap minggu.</p>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs font-bold text-slate-400">
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Selesai</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#1769b3]"></span> Tersedia</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Terkunci</span>
+                        </div>
+                    </div>
+                    <div id="d-daftar-misi" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+                </section>
             </div>
-            <div id="wadah-flipbook-intro" class="flex-1 w-full bg-slate-100 relative"></div>
-        </div>
+        </main>
     </div>
 
     <script>
         let supabaseClient; 
         let loggedInUser = null; 
         let semuaBuku = []; 
-        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set();
+        let profilSaya = null; let riwayatSaya = []; let modulSelesai = new Set(); let peringkatSaya = null; let dataPeringkat = null;
         const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -256,48 +299,16 @@
             } 
             
             loggedInUser = session.user;
-            const menuContainer = document.getElementById('user-menu-container');
-            
-            // PERBAIKAN LOGIKA: Menggunakan maybeSingle agar tidak crash jika profil kosong
+
             const { data: profil } = await supabaseClient.from('profiles').select('*').eq('id', loggedInUser.id).maybeSingle();
-            
             profilSaya = profil;
             renderHeaderMobile(profil);
+            renderDesktop();
             muatRiwayatSaya();
-
-            if (profil) {
-                menuContainer.innerHTML = `
-                    <div class="flex items-center gap-3 md:gap-4">
-                        <a href="profil.html" class="flex items-center gap-3 group cursor-pointer bg-white border border-slate-200 py-1.5 px-2 md:pr-4 rounded-full transition hover:border-teal-300 hover:shadow-sm">
-                            <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100 text-teal-700 border border-slate-200 flex items-center justify-center font-black text-sm md:text-lg uppercase group-hover:bg-teal-600 group-hover:text-white transition-colors">${esc(profil.nama_lengkap.charAt(0))}</div>
-                            <div class="text-left hidden sm:block"><p class="text-xs md:text-sm font-bold text-slate-800 leading-tight group-hover:text-teal-700 transition-colors">${esc(profil.nama_lengkap.split(' ')[0])}</p><p class="text-[10px] md:text-xs font-black text-sky-600">${profil.total_poin} XP</p></div>
-                        </a>
-                        <button onclick="prosesLogout()" class="w-10 h-10 bg-slate-100 text-slate-500 border border-slate-200 rounded-full hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all flex items-center justify-center" title="Keluar Akun"><i class="fa-solid fa-power-off"></i></button>
-                    </div>`;
-
-                document.getElementById('greet-name').innerText = `Halo, ${profil.nama_lengkap.split(' ')[0]}! 👋`;
-                document.getElementById('greet-xp').innerText = profil.total_poin.toLocaleString('id-ID');
-                
-                fetchBooks(); 
-                fetchLeaderboard();
-            } else {
-                // Fallback jika profil tidak ditemukan, tetap render agar layar tidak kosong
-                document.getElementById('greet-name').innerText = `Halo, Responden! 👋`;
-                fetchBooks(); fetchLeaderboard();
-            }
+            fetchBooks();
+            fetchLeaderboard();
         }
 
-        function tampilkanModalIntro(fileUrl) { 
-            document.getElementById('modalIntroSystem').classList.remove('hidden'); 
-            document.getElementById('wadah-flipbook-intro').innerHTML = `<div class="_df_book" source="${fileUrl}" id="df_manual_intro"></div>`; 
-            if(window.DFLIP && window.DFLIP.parseBooks) window.DFLIP.parseBooks(); 
-        }
-        
-        function tutupModalIntro() { 
-            document.getElementById('modalIntroSystem').classList.add('hidden'); 
-            document.getElementById('wadah-flipbook-intro').innerHTML = ''; 
-        }
-        
         async function prosesLogout() { 
             if(await Dialog.confirm("Yakin ingin keluar dari akun? Progres belajarmu tetap tersimpan.", { judul: "Keluar Akun", teksOk: "Ya, Keluar", tipe: "peringatan" })) { 
                 await supabaseClient.auth.signOut(); 
@@ -315,11 +326,6 @@
         ];
 
         const adalahMateri = b => b.tipe_konten === 'Modul PDF' || b.tipe_konten === 'Modul Slide';
-        function saringBuku(daftar, jenis) {
-            if (jenis === 'Materi') return daftar.filter(adalahMateri);
-            if (jenis === 'Kuis') return daftar.filter(b => !adalahMateri(b));
-            return daftar;
-        }
         const bukuTerkunci = b => b.is_active === false || b.is_active === null;
 
         function toast(pesan) {
@@ -343,7 +349,9 @@
             if (!profil) return;
             try {
                 const { count } = await supabaseClient.from('profiles').select('id', { count: 'exact', head: true }).gt('total_poin', xp);
-                document.getElementById('m-rank').textContent = '#' + ((count || 0) + 1);
+                peringkatSaya = (count || 0) + 1;
+                document.getElementById('m-rank').textContent = '#' + peringkatSaya;
+                renderDesktop();
             } catch (e) { console.error(e); }
         }
 
@@ -355,6 +363,7 @@
             modulSelesai = new Set(riwayatSaya.map(r => r.id_buku));
             pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
             if (semuaBuku.length) renderMisiMobile();
+            renderDesktop();
         }
 
         function pilihTabRingkas(tab) {
@@ -458,6 +467,91 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupSheetLanjut(); });
 
 
+
+        // ================= LOGIKA TAMPILAN DESKTOP =================
+        function renderDesktop() {
+            if (getComputedStyle(document.querySelector('.d-font')).display === 'none') return; // sedang di HP
+            const nama = profilSaya?.nama_lengkap || 'Responden', xp = profilSaya?.total_poin || 0;
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+            set('d-tanggal', new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            set('d-sapaan', nama.split(' ')[0]);
+            set('d-avatar', nama.charAt(0).toUpperCase()); set('d-avatar-kecil', nama.charAt(0).toUpperCase());
+            set('d-nama-kecil', nama); set('d-kelas-kecil', [profilSaya?.kelas, profilSaya?.sekolah].filter(Boolean).join(' · ') || 'Agen Peduli SIRASA');
+
+            // Level & XP
+            const iLevel = LEVEL_XP.findLastIndex(l => xp >= l.min), level = LEVEL_XP[iLevel], berikut = LEVEL_XP[iLevel + 1];
+            set('d-level', level.nama); set('d-xp', xp.toLocaleString('id-ID'));
+            document.getElementById('d-xp-bar').style.width = berikut ? Math.round((xp - level.min) / (berikut.min - level.min) * 100) + '%' : '100%';
+            set('d-xp-ket', berikut ? `${(berikut.min - xp).toLocaleString('id-ID')} XP lagi menuju ${berikut.nama}` : 'Level tertinggi tercapai!');
+            set('d-rank', peringkatSaya ? `Kamu #${peringkatSaya}` : 'Kamu #-');
+
+            // Progres, waktu, tes
+            const total = semuaBuku.length, selesai = semuaBuku.filter(b => modulSelesai.has(b.id)).length, persen = total ? Math.round(selesai / total * 100) : 0;
+            set('d-selesai', selesai); set('d-total', total);
+            document.getElementById('d-selesai-bar').style.width = persen + '%';
+            set('d-selesai-ket', `${persen}% program selesai`);
+            set('d-menit', Math.round(riwayatSaya.reduce((a, r) => a + (r.durasi_baca_detik || 0), 0) / 60));
+            set('d-tes', new Set(riwayatSaya.filter(r => !String(r.jenis_tes || '').startsWith('Membaca Modul')).map(r => r.id_buku)).size);
+
+            // Kartu "Lanjutkan belajar"
+            const terbuka = semuaBuku.filter(b => !bukuTerkunci(b)), berikutnya = terbuka.find(b => !modulSelesai.has(b.id));
+            const lanjut = document.getElementById('d-lanjut-isi');
+            if (!total) lanjut.innerHTML = `<p class="text-sky-100/80 py-10">Belum ada misi yang tersedia. Tunggu instruksi peneliti ya.</p>`;
+            else if (!berikutnya) {
+                const adaTerkunci = semuaBuku.some(b => bukuTerkunci(b) && !modulSelesai.has(b.id));
+                lanjut.innerHTML = `
+                    <span class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.2em] text-emerald-300"><i class="fa-solid fa-trophy"></i> ${adaTerkunci ? 'Semua misi terbuka selesai' : 'Program selesai'}</span>
+                    <h2 class="text-3xl xl:text-4xl font-extrabold leading-tight mt-3">${adaTerkunci ? 'Hebat! Tunggu misi berikutnya dibuka.' : 'Selamat, semua misi tuntas! 🎉'}</h2>
+                    <p class="text-sky-100/80 mt-3 leading-relaxed">${adaTerkunci ? 'Peneliti akan membuka misi selanjutnya. Sambil menunggu, cek rapor belajarmu.' : 'Kamu sudah menyelesaikan seluruh program SIRASA.'}</p>
+                    <a href="profil.html" class="mt-7 inline-flex items-center gap-2 bg-white text-[#0b1d3a] font-extrabold px-6 py-3.5 rounded-2xl shadow-xl hover:-translate-y-0.5 transition"><i class="fa-solid fa-chart-simple"></i> Lihat Rapor</a>`;
+            } else {
+                const g = gayaMisi(berikutnya), l = labelMisi(berikutnya);
+                lanjut.innerHTML = `
+                    <span class="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[.18em] text-sky-100"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span> Lanjutkan Belajar</span>
+                    <p class="text-sm font-bold text-sky-300 mt-5">${esc(l.atas)} · ${g.jenis}</p>
+                    <h2 class="text-3xl xl:text-4xl font-extrabold leading-tight mt-1">${esc(l.bawah)}</h2>
+                    <p class="text-sky-100/75 mt-2 leading-relaxed">${g.ket}</p>
+                    <div class="flex flex-wrap items-center gap-5 mt-7">
+                        <button onclick="arahkanMembaca('${berikutnya.id}')" class="inline-flex items-center gap-2 whitespace-nowrap bg-white text-[#0b1d3a] font-extrabold px-6 py-3.5 rounded-2xl shadow-xl hover:-translate-y-0.5 transition">Mulai Sekarang <i class="fa-solid fa-arrow-right"></i></button>
+                        <div class="min-w-[9rem]">
+                            <div class="flex justify-between text-[11px] font-bold text-sky-100/80 mb-1.5"><span>Progres</span><span>${persen}%</span></div>
+                            <div class="h-2 bg-white/15 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-sky-300 to-white rounded-full" style="width:${persen}%"></div></div>
+                        </div>
+                    </div>`;
+            }
+
+            // Kartu misi
+            const wadah = document.getElementById('d-daftar-misi');
+            wadah.innerHTML = total ? semuaBuku.map(b => {
+                const kunci = bukuTerkunci(b), sudah = modulSelesai.has(b.id), g = gayaMisi(b), l = labelMisi(b), jadiBerikut = berikutnya && b.id === berikutnya.id;
+                const status = kunci ? '<span class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-lock"></i> Belum dibuka</span>'
+                    : sudah ? '<span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Selesai</span>'
+                    : '<span class="text-[11px] font-bold text-[#1769b3] flex items-center gap-1.5"><i class="fa-regular fa-circle-play"></i> Tersedia</span>';
+                const tombol = kunci ? '' : `<span class="text-sm font-extrabold ${sudah ? 'text-slate-500' : 'text-[#1769b3]'} flex items-center gap-1.5">${sudah ? 'Ulangi' : 'Mulai'} <i class="fa-solid fa-arrow-right text-xs"></i></span>`;
+                return `<button onclick="${kunci ? 'alertTerkunci()' : `arahkanMembaca('${b.id}')`}" class="d-misi ${kunci ? 'terkunci' : ''} ${sudah ? 'selesai' : ''} ${jadiBerikut ? 'berikutnya' : ''}">
+                    ${jadiBerikut ? '<span class="absolute top-4 right-4 text-[10px] font-extrabold uppercase tracking-wider bg-[#1769b3] text-white px-2.5 py-1 rounded-full">Berikutnya</span>' : ''}
+                    <span class="d-misi-ikon"><i class="fa-solid ${sudah && !kunci ? 'fa-check' : g.ikon}"></i></span>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#1769b3] mt-4 ${kunci ? '!text-slate-400' : ''}">${esc(l.atas)} · ${g.jenis}</span>
+                    <span class="text-lg font-extrabold text-[#0b1d3a] leading-snug mt-1 line-clamp-2 ${kunci ? '!text-slate-400' : ''}">${esc(l.bawah)}</span>
+                    <span class="text-sm text-slate-500 leading-relaxed mt-1.5 line-clamp-2 ${kunci ? '!text-slate-400' : ''}">${g.ket}</span>
+                    <span class="flex items-center justify-between mt-auto pt-5">${status}${tombol}</span>
+                </button>`;
+            }).join('') : '<div class="col-span-full d-kartu p-10 text-center text-slate-400">Belum ada materi.</div>';
+
+            // Papan peringkat
+            const lb = document.getElementById('d-leaderboard');
+            if (dataPeringkat) lb.innerHTML = dataPeringkat.length ? dataPeringkat.map((p, i) => {
+                const saya = loggedInUser && p.id === loggedInUser.id;
+                const medali = ['bg-gradient-to-br from-amber-300 to-amber-500 text-white', 'bg-gradient-to-br from-slate-200 to-slate-400 text-white', 'bg-gradient-to-br from-amber-600 to-amber-800 text-white'][i] || 'bg-slate-100 text-slate-500';
+                return `<div class="flex items-center gap-3 p-2.5 rounded-2xl ${saya ? 'bg-[#e8f1fb]' : 'hover:bg-slate-50'}">
+                    <span class="w-8 h-8 rounded-full ${medali} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
+                    <div class="min-w-0 flex-1"><p class="text-sm font-bold text-[#0b1d3a] truncate">${esc(p.nama_lengkap)}${saya ? ' <span class="text-[10px] text-[#1769b3]">(kamu)</span>' : ''}</p><p class="text-[11px] text-slate-400 truncate">${esc([p.kelas, p.sekolah].filter(Boolean).join(' · ') || '-')}</p></div>
+                    <span class="text-sm font-extrabold text-[#1769b3] shrink-0">${p.total_poin}<span class="text-[10px] text-slate-400 ml-0.5">XP</span></span>
+                </div>`;
+            }).join('') : '<div class="h-full flex flex-col items-center justify-center text-center text-slate-400 text-sm py-8"><i class="fa-solid fa-ranking-star text-3xl text-slate-200 mb-2"></i>Belum ada peringkat.<br>Jadilah yang pertama!</div>';
+        }
+        window.addEventListener('resize', () => { clearTimeout(renderDesktop.t); renderDesktop.t = setTimeout(renderDesktop, 200); });
+
         function arahkanMembaca(idBuku, urlFile) { 
             window.location.href = `buku.html?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; 
         }
@@ -466,108 +560,18 @@
             toast('🔒 Modul ini masih terkunci. Selesaikan misi sebelumnya atau tunggu instruksi peneliti.'); 
         }
 
-        function filterBuku(kategori, btnElement) {
-            document.querySelectorAll('.filter-btn').forEach(btn => { 
-                btn.classList.remove('bg-white', 'text-teal-700', 'shadow-sm', 'border-slate-100', 'active-filter'); 
-                btn.classList.add('text-slate-500', 'border-transparent'); 
-            });
-            btnElement.classList.add('bg-white', 'text-teal-700', 'shadow-sm', 'border-slate-100', 'active-filter'); 
-            btnElement.classList.remove('text-slate-500', 'border-transparent');
-            
-            const filtered = saringBuku(semuaBuku, kategori); 
-            renderGridBuku(filtered);
-        }
-
         async function fetchBooks() {
             try {
                 const { data } = await supabaseClient.from('buku').select('*').neq('tipe_konten', 'Pengantar Sistem').order('created_at', { ascending: true });
                 semuaBuku = data || [];
                 renderMisiMobile();
-                if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(bukaSheetLanjut, 400); } pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
-                if (!data || data.length === 0) { 
-                    document.getElementById('bookList').innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 bg-white rounded-2xl border border-dashed border-slate-300"><i class="fa-solid fa-box-open text-4xl mb-3 text-slate-300"></i><p class="font-medium">Belum ada modul di galeri.</p></div>`; 
-                    return; 
-                }
-                semuaBuku = data; 
-                renderGridBuku(semuaBuku);
+                renderDesktop();
+                pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
+                if (location.hash === '#materi') setTimeout(() => document.getElementById(getComputedStyle(document.querySelector('.d-font')).display === 'none' ? 'm-seksi-misi' : 'd-seksi-materi').scrollIntoView({ behavior: 'smooth' }), 300);
+                if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(bukaSheetLanjut, 400); }
             } catch (err) {
                 console.error("Gagal memuat buku:", err);
             }
-        }
-
-        function renderGridBuku(dataBuku) {
-            const bookList = document.getElementById('bookList'); 
-            bookList.innerHTML = '';
-            
-            if (dataBuku.length === 0) { 
-                bookList.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 fade-in"><p>Tidak ada modul dalam filter ini.</p></div>`; 
-                return; 
-            }
-
-            dataBuku.forEach((book, index) => {
-                const isLocked = book.is_active === false || book.is_active === null; 
-                
-                // 1. LOGIKA COVER (Tema Warna Baru)
-                let cover = "";
-                if (book.cover_url) { 
-                    cover = `<img src="${book.cover_url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ${isLocked ? '' : 'group-hover:scale-110'}">`; 
-                } else { 
-                    if (book.judul.toLowerCase().includes('pre-test')) { 
-                        cover = `<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-question text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-indigo-100">PRE-TEST</span></div>`; 
-                    } else if (book.judul.toLowerCase().includes('post-test')) { 
-                        cover = `<div class="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-clipboard-check text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-emerald-100">POST-TEST</span></div>`; 
-                    } else if (book.tipe_konten === 'Hanya Kuis') {
-                        cover = `<div class="w-full h-full bg-gradient-to-br from-amber-400 to-orange-500 flex flex-col items-center justify-center text-white"><i class="fa-solid fa-list-check text-5xl opacity-40 mb-3 drop-shadow-md"></i><span class="font-black text-xs tracking-widest text-amber-100">KUIS MANDIRI</span></div>`;
-                    } else { 
-                        cover = `<div class="w-full h-full bg-slate-200 flex flex-col items-center justify-center"><i class="fa-solid fa-file-pdf text-5xl text-slate-300 mb-3"></i><span class="font-black text-xs tracking-widest text-slate-400">MATERI PDF</span></div>`; 
-                    } 
-                }
-                
-                // 2. LOGIKA BADGE (Tema Warna Baru)
-                let badgeColor = "text-slate-600 bg-white border border-slate-200"; 
-                let badgeText = book.kategori || "UMUM";
-                
-                if (book.judul.toLowerCase().includes('post-test')) { 
-                    badgeText = "POST-TEST"; 
-                    badgeColor = "text-emerald-700 bg-emerald-50 border border-emerald-200"; 
-                } else if (book.judul.toLowerCase().includes('pre-test')) { 
-                    badgeText = "PRE-TEST"; 
-                    badgeColor = "text-indigo-700 bg-indigo-50 border border-indigo-200"; 
-                } else if (book.tipe_konten === 'Hanya Kuis') { 
-                    badgeText = "KUIS"; 
-                    badgeColor = "text-amber-700 bg-amber-50 border border-amber-200"; 
-                }
-
-                // 3. LOGIKA STYLE & RENDER
-                const actionClick = isLocked ? `alertTerkunci()` : `arahkanMembaca('${book.id}', '${book.file_url}')`;
-                const cardStyle = isLocked ? "grayscale opacity-60 cursor-not-allowed border-slate-200" : "card-hover group cursor-pointer border-slate-200 bg-white";
-                const btnBawahStyle = isLocked ? "bg-slate-50 text-slate-400 border-transparent" : "bg-white text-teal-600 border-teal-100 group-hover:bg-teal-600 group-hover:text-white";
-                const btnBawahText = isLocked ? '<i class="fa-solid fa-lock text-xs"></i> Terkunci' : 'Mulai Misi <i class="fa-solid fa-arrow-right text-xs"></i>';
-                
-                // Overlay saat terkunci: Frosted Glass
-                const overlayContent = isLocked ? `<div class="bg-slate-900/60 backdrop-blur-sm text-white font-bold py-2 px-5 rounded-full text-xs shadow-lg flex items-center gap-2 border border-white/20"><i class="fa-solid fa-lock"></i> Belum Dibuka</div>` : `<div class="bg-white/90 backdrop-blur-md text-teal-700 font-bold py-2.5 px-6 rounded-full text-sm transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl border border-white/50">Buka Modul</div>`;
-
-                bookList.innerHTML += `
-                    <div class="rounded-2xl p-3 border flex flex-col h-full transition-all duration-300 fade-in ${cardStyle}" style="animation-delay: ${index * 0.05}s; opacity: 1;">
-                        <div class="aspect-[3/4] rounded-xl overflow-hidden relative shadow-inner bg-slate-100 shrink-0" onclick="${actionClick}">
-                            ${cover}
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 ${isLocked ? 'opacity-100 bg-slate-900/20' : 'group-hover:opacity-100'} transition-opacity duration-300 flex items-end justify-center pb-5">
-                                ${overlayContent}
-                            </div>
-                            <span class="absolute top-3 right-3 ${badgeColor} px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider shadow-sm">
-                                ${badgeText}
-                            </span>
-                        </div>
-                        <div class="pt-4 pb-1 flex flex-col flex-grow text-center px-1">
-                            <h4 class="font-bold text-sm md:text-[15px] text-slate-700 mb-4 flex-grow line-clamp-2 leading-snug ${isLocked ? '' : 'group-hover:text-teal-700'} transition-colors" onclick="${actionClick}">
-                                ${esc(book.judul)}
-                            </h4>
-                            <button onclick="${actionClick}" class="w-full py-2 rounded-xl text-xs font-bold transition-all duration-300 border flex items-center justify-center gap-2 mt-auto ${btnBawahStyle}">
-                                ${btnBawahText}
-                            </button>
-                        </div>
-                    </div>`;
-            });
         }
 
         function renderLeaderboardMobile(data) {
@@ -588,46 +592,9 @@
         async function fetchLeaderboard() {
             try {
                 const { data } = await supabaseClient.from('profiles').select('id, nama_lengkap, total_poin, kelas, sekolah').gt('total_poin', 0).order('total_poin', { ascending: false }).limit(5);
-                const wadah = document.getElementById('leaderboard-list'); 
-                wadah.innerHTML = '';
-                
-                renderLeaderboardMobile(data || []);
-                if (!data || data.length === 0) { 
-                    wadah.innerHTML = '<div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center"><p class="text-xs font-medium text-slate-400">Papan peringkat masih kosong. Jadilah yang pertama!</p></div>'; 
-                    return; 
-                }
-                
-                data.forEach((p, index) => {
-                    const inisial = esc(p.nama_lengkap.charAt(0).toUpperCase()); 
-                    let rankIcon = `<span class="font-black text-slate-300 text-lg w-5 text-center">${index + 1}</span>`; 
-                    let bgAvatar = "bg-slate-100 text-slate-500 border border-slate-200";
-                    
-                    if (index === 0) { 
-                        rankIcon = `<i class="fa-solid fa-crown text-amber-500 text-xl w-5 text-center drop-shadow-sm"></i>`; 
-                        bgAvatar = "bg-gradient-to-tr from-amber-400 to-orange-400 text-white shadow-md border border-amber-200"; 
-                    } else if (index === 1) { 
-                        rankIcon = `<i class="fa-solid fa-medal text-slate-400 text-lg w-5 text-center"></i>`; 
-                        bgAvatar = "bg-gradient-to-tr from-slate-200 to-slate-300 text-slate-700 shadow-sm border border-slate-200"; 
-                    } else if (index === 2) { 
-                        rankIcon = `<i class="fa-solid fa-medal text-amber-700 text-lg w-5 text-center"></i>`; 
-                        bgAvatar = "bg-gradient-to-tr from-amber-700 to-amber-900 text-amber-50 shadow-sm border border-amber-700"; 
-                    }
-                    
-                    wadah.innerHTML += `
-                        <div class="flex items-center justify-between p-2.5 bg-white hover:bg-slate-50 transition-colors rounded-2xl border border-slate-100 cursor-default group">
-                            <div class="flex items-center gap-3 overflow-hidden">
-                                ${rankIcon}
-                                <div class="w-10 h-10 rounded-full ${bgAvatar} flex items-center justify-center font-black text-sm shrink-0 transition-transform group-hover:scale-105">${inisial}</div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="font-bold text-sm text-slate-800 truncate">${esc(p.nama_lengkap.split(' ')[0])}</span>
-                                    <span class="text-[9px] font-bold uppercase text-slate-400 tracking-wider truncate">${esc(p.kelas || '-')}</span>
-                                </div>
-                            </div>
-                            <div class="shrink-0 text-right bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-                                <span class="font-black text-sky-600 text-sm">${p.total_poin}</span><span class="text-[10px] font-bold text-slate-400 uppercase ml-1">XP</span>
-                            </div>
-                        </div>`;
-                });
+                dataPeringkat = data || [];
+                renderLeaderboardMobile(dataPeringkat);
+                renderDesktop();
             } catch (err) {
                 console.error("Gagal memuat leaderboard:", err);
             }

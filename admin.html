@@ -16,6 +16,7 @@
     <script src="admin-auth.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="app.css">
     <link rel="stylesheet" href="slide.css">
     <script src="slide-render.js"></script>
     <script>const adminSiap = AdminAuth.requireAdmin();</script>
@@ -29,29 +30,49 @@
         .table-container::-webkit-scrollbar { height: 8px; width: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        /* ===== Gaya SIRASA (selaras dengan aplikasi siswa) ===== */
+        .admin-sidebar { background: linear-gradient(180deg, #0b1d3a 0%, #123a6b 65%, #1b5f9f 100%); }
+        .nav-btn { color: rgba(224,242,254,.82); font-weight: 700; }
+        .nav-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+        .nav-btn.aktif { background: #fff; color: #1769b3; box-shadow: 0 6px 18px rgba(2,8,23,.25); }
+        .tab-content .bg-white.rounded-xl { border-radius: 1.5rem; border-color: #e8eef5; box-shadow: 0 10px 30px -12px rgba(11,29,58,.12); }
+        .tab-content thead.bg-slate-100 { background: #f4f7fb; color: #475569; }
+        .tab-content h2.text-2xl { font-weight: 900; color: #0b1d3a; letter-spacing: -.01em; }
+        .kartu-modul { background: #fff; border: 1px solid #e8eef5; border-radius: 1.5rem; box-shadow: 0 10px 30px -12px rgba(11,29,58,.12); transition: transform .15s, box-shadow .15s; }
+        .kartu-modul:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -14px rgba(11,29,58,.2); }
+        .kartu-modul.nonaktif { background: #fbfcfe; }
+        .kartu-modul.nonaktif .app-tile-ikon { background: #f1f5f9; color: #94a3b8; }
+        .btn-aksi { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .8rem; border-radius: .75rem; font-size: .8rem; font-weight: 700; transition: background .15s, color .15s; }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
+<body class="bg-[#f4f7fb] flex h-screen overflow-hidden font-sans text-slate-800">
     
-    <aside id="sidebar" class="w-64 md:w-0 bg-slate-900 text-slate-300 flex flex-col absolute md:relative z-50 h-full flex-shrink-0 overflow-hidden -translate-x-full md:translate-x-0 transition-all duration-300 shadow-xl md:shadow-none">
-        <div class="h-16 flex items-center justify-between px-6 bg-slate-950 text-white font-bold text-xl tracking-wide border-b border-slate-800 min-w-[256px]">
-            <div><i class="fa-solid fa-ribbon text-rose-500 mr-2"></i> Admin SIRASA</div>
+    <aside id="sidebar" class="admin-sidebar w-64 md:w-64 text-slate-300 flex flex-col absolute md:relative z-50 h-full flex-shrink-0 overflow-hidden -translate-x-full md:translate-x-0 transition-all duration-300 shadow-xl md:shadow-none">
+        <div class="h-20 flex items-center justify-between px-5 text-white border-b border-white/10 min-w-[256px]">
+            <div class="flex items-center gap-2.5">
+                <span class="w-10 h-10 bg-white rounded-xl p-1.5 shadow shrink-0"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
+                <div class="leading-tight"><p class="font-black text-xl tracking-tight">SI<span class="text-sky-300">RASA</span></p><p class="text-[10px] font-bold uppercase tracking-widest text-sky-100/70">Panel Peneliti</p></div>
+            </div>
             <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-w-[256px]">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-rose-600 text-white font-medium transition-colors"><i class="fa-solid fa-chart-line w-5"></i> Dasbor Analitik</button>
-            <button onclick="switchTab('pengguna')" id="nav-pengguna" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors"><i class="fa-solid fa-users w-5"></i> Data Responden</button>
-            <button onclick="switchTab('modul')" id="nav-modul" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors"><i class="fa-solid fa-book-medical w-5"></i> Konten & Modul</button>
-            <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors"><i class="fa-solid fa-list-check w-5"></i> Bank Soal / Kuis</button>
+        <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto min-w-[256px]">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors aktif"><i class="fa-solid fa-chart-line w-5"></i> Dasbor Analitik</button>
+            <button onclick="switchTab('pengguna')" id="nav-pengguna" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"><i class="fa-solid fa-users w-5"></i> Data Responden</button>
+            <button onclick="switchTab('modul')" id="nav-modul" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"><i class="fa-solid fa-book-medical w-5"></i> Konten & Modul</button>
+            <button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"><i class="fa-solid fa-list-check w-5"></i> Bank Soal / Kuis</button>
             <!-- TAMBAHAN: Tombol Navigasi Pengaturan -->
-            <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 hover:text-white font-medium transition-colors"><i class="fa-solid fa-gear w-5"></i> Pengaturan Sistem</button>
+            <button onclick="switchTab('pengaturan')" id="nav-pengaturan" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"><i class="fa-solid fa-gear w-5"></i> Pengaturan Sistem</button>
         </nav>
+        <div class="p-4 min-w-[256px]">
+            <a href="dashboard.html" target="_blank" rel="noopener" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm"><i class="fa-solid fa-mobile-screen w-5"></i> Lihat Aplikasi Siswa</a>
+        </div>
     </aside>
 
     <div class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header class="bg-white h-16 border-b border-slate-200 flex items-center px-6 shrink-0 z-10 shadow-sm">
-            <button onclick="toggleSidebar()" class="text-slate-500 hover:text-rose-600 transition p-2 bg-slate-100 rounded-lg"><i class="fa-solid fa-bars text-xl"></i></button>
-            <h1 class="ml-4 font-bold text-slate-700 hidden sm:block">Panel Peneliti - SIRASA</h1>
+        <header class="bg-white h-16 border-b border-[#e8eef5] flex items-center px-4 md:px-6 shrink-0 z-10">
+            <button onclick="toggleSidebar()" class="text-slate-500 hover:text-[#1769b3] transition w-10 h-10 bg-[#f4f7fb] rounded-xl" aria-label="Buka/tutup menu"><i class="fa-solid fa-bars text-lg"></i></button>
+            <div class="ml-4 hidden sm:block"><p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Panel Peneliti</p><h1 id="admin-judul-tab" class="font-black text-[#0b1d3a] leading-tight">Dasbor Analitik</h1></div>
             <div class="ml-auto flex items-center gap-3">
                 <div class="text-right hidden sm:block">
                     <p id="admin-nama" class="text-sm font-bold text-slate-700 leading-tight">Admin</p>
@@ -61,7 +82,7 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8 w-full">
+        <main class="flex-1 overflow-y-auto bg-[#f4f7fb] p-4 md:p-8 w-full">
             <div class="max-w-[1500px] mx-auto">
                 
                 <!-- TAB DASHBOARD ANALITIK (VIA IFRAME): Analitik Riset & Rekap Kuis Pivot -->
@@ -79,27 +100,20 @@
                 <section id="pengguna" class="tab-content"><h2 class="text-2xl font-bold mb-6">Data Responden</h2><div class="bg-white rounded-xl border shadow-sm overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-100 border-b text-sm"><tr><th class="py-4 px-6">Nama Lengkap</th><th class="py-4 px-6">Sekolah</th><th class="py-4 px-6">Kelas</th><th class="py-4 px-6">Gender</th><th class="py-4 px-6 text-center">Umur</th><th class="py-4 px-6 text-center">Aksi</th></tr></thead><tbody id="tabelPengguna" class="text-sm divide-y"></tbody></table></div></section>
                 
                <section id="modul" class="tab-content">
-                    <div class="flex justify-between mb-6">
-                        <h2 class="text-2xl font-bold">Manajemen Konten</h2>
-                        <button onclick="document.getElementById('modalTambahModul').classList.remove('hidden'); toggleFormModul('tambah')" class="bg-rose-600 text-white px-4 py-2 rounded-lg font-bold">Buat Konten Baru</button>
+                    <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Manajemen Konten</h2>
+                            <p class="text-sm text-slate-500 mt-1">Urutan & tampilan sama dengan <b>Menu Belajar</b> siswa. Modul nonaktif tampil terkunci bagi siswa.</p>
+                        </div>
+                        <button onclick="document.getElementById('modalTambahModul').classList.remove('hidden'); toggleFormModul('tambah')" class="bg-[#1769b3] hover:bg-[#135a9a] text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-sky-900/15"><i class="fa-solid fa-plus mr-1"></i> Buat Konten Baru</button>
                     </div>
-                    <div class="bg-white rounded-xl border shadow-sm overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-100 border-b text-sm">
-                                <tr>
-                                    <th class="py-3 px-6">Tipe</th>
-                                    <th class="py-3 px-6">Judul Konten</th>
-                                    <th class="py-3 px-6 text-center">Status</th>
-                                    <th class="py-3 px-6 text-center">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabelModul" class="text-sm divide-y"></tbody>
-                        </table>
+                    <div id="daftarModul" class="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+                        <div class="text-slate-400 text-sm py-10 text-center col-span-full"><i class="fa-solid fa-spinner fa-spin"></i></div>
                     </div>
                 </section>
 
                 <section id="kuis" class="tab-content">
-                    <div class="flex justify-between mb-6"><h2 class="text-2xl font-bold">Studio Bank Soal</h2><button onclick="bukaModalKuisTambah()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">Input Kuesioner Baru</button></div>
+                    <div class="flex justify-between mb-6"><h2 class="text-2xl font-bold">Studio Bank Soal</h2><button onclick="bukaModalKuisTambah()" class="bg-[#1769b3] hover:bg-[#135a9a] text-white px-4 py-2.5 rounded-xl font-bold shadow-lg shadow-sky-900/15">Input Kuesioner Baru</button></div>
                     <div class="bg-white rounded-xl border shadow-sm overflow-x-auto"><table class="w-full text-left"><thead class="bg-slate-100 border-b text-sm"><tr><th class="py-3 px-6">Wadah Evaluasi</th><th class="py-3 px-6 text-center">Total Soal</th><th class="py-3 px-6 text-center">Aksi</th></tr></thead><tbody id="tabelKuis" class="text-sm divide-y"></tbody></table></div>
                 </section>
 
@@ -123,7 +137,7 @@
                             <!-- Konten Slider Akan di-Render via JavaScript -->
                         </div>
                         
-                        <button onclick="simpanEditIntro()" class="mt-6 w-full bg-rose-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-rose-700 transition"><i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Perubahan Slide</button>
+                        <button onclick="simpanEditIntro()" class="mt-6 w-full bg-[#1769b3] text-white font-bold py-3 rounded-xl shadow-md hover:bg-[#135a9a] transition"><i class="fa-solid fa-floppy-disk mr-2"></i> Simpan Perubahan Slide</button>
                     </div>
                 </section>
 
@@ -165,7 +179,7 @@
 
     <!-- Modal Tambah Modul -->
     <div id="modalTambahModul" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-lg modal-enter overflow-hidden"><div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Tambah Wadah Baru</h3><button onclick="tutupModal('modalTambahModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="p-6 space-y-4"><select id="tipeKonten" onchange="toggleFormModul('tambah')" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul Slide">📑 Modul Slide (dibuat per slide + suara)</option><option value="Modul PDF">📖 Modul Pembelajaran (PDF)</option><option value="Hanya Kuis">📝 Kuis Modul Latihan Mandiri</option><option value="Evaluasi Global">🌟 Evaluasi Global (Pre/Post Test Utama)</option></select><input type="text" id="judulBuku" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg"><select id="kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tautkan ke kuis lanjutan (Opsional) --</option></select><div id="areaFilePDF_tambah"><label class="block text-sm font-medium mb-1">Upload File PDF</label><input type="file" id="filePdf" accept="application/pdf" class="w-full border p-2 rounded-lg"></div><div id="statusUpload" class="hidden p-3 rounded-lg text-sm font-medium"></div></div><div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalTambahModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanKontenBaru()" id="btnUpload" class="w-2/3 bg-rose-600 text-white font-bold py-2.5 rounded-lg">Buat Konten</button></div></div>
+        <div class="bg-white rounded-2xl w-full max-w-lg modal-enter overflow-hidden"><div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Tambah Wadah Baru</h3><button onclick="tutupModal('modalTambahModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div><div class="p-6 space-y-4"><select id="tipeKonten" onchange="toggleFormModul('tambah')" class="w-full p-2.5 border rounded-xl bg-[#e8f1fb] text-[#0b1d3a] font-bold"><option value="Modul Slide">📑 Modul Slide (dibuat per slide + suara)</option><option value="Modul PDF">📖 Modul Pembelajaran (PDF)</option><option value="Hanya Kuis">📝 Kuis Modul Latihan Mandiri</option><option value="Evaluasi Global">🌟 Evaluasi Global (Pre/Post Test Utama)</option></select><input type="text" id="judulBuku" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg"><select id="kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tautkan ke kuis lanjutan (Opsional) --</option></select><div id="areaFilePDF_tambah"><label class="block text-sm font-medium mb-1">Upload File PDF</label><input type="file" id="filePdf" accept="application/pdf" class="w-full border p-2 rounded-lg"></div><div id="statusUpload" class="hidden p-3 rounded-lg text-sm font-medium"></div></div><div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalTambahModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanKontenBaru()" id="btnUpload" class="w-2/3 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold py-2.5 rounded-xl">Buat Konten</button></div></div>
     </div>
 
     <!-- Modal Edit Modul -->
@@ -174,16 +188,23 @@
             <div class="bg-slate-50 px-6 py-4 border-b flex justify-between"><h3 class="font-bold text-lg">Edit Modul & Konten</h3><button onclick="tutupModal('modalEditModul')" class="text-slate-400"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="p-6 space-y-4">
                 <input type="hidden" id="edit-modul-id">
-                <select id="edit-tipeKonten" onchange="toggleFormModul('edit')" class="w-full p-2.5 border rounded-lg bg-rose-50 font-bold"><option value="Modul Slide">📑 Modul Slide</option><option value="Modul PDF">📖 Modul PDF</option><option value="Hanya Kuis">📝 Hanya Kuis</option><option value="Evaluasi Global">🌟 Evaluasi Global</option></select>
+                <label class="block text-xs font-bold text-slate-500 -mb-2">Jenis Konten</label>
+                <select id="edit-tipeKonten" onchange="toggleFormModul('edit')" class="w-full p-2.5 border rounded-xl bg-[#e8f1fb] text-[#0b1d3a] font-bold"><option value="Modul Slide">Modul Slide (kartu kaca + suara)</option><option value="Modul PDF">Modul PDF (flipbook)</option><option value="Hanya Kuis">Kuis Latihan</option><option value="Evaluasi Global">Evaluasi Global (Pre/Post-Test)</option></select>
+                <label class="block text-xs font-bold text-slate-500 -mb-2">Judul</label>
                 <input type="text" id="edit-modul-judul" placeholder="Judul Modul" class="w-full p-2.5 border rounded-lg font-bold">
                 <select id="edit-kuisTerkait" class="w-full p-2.5 border bg-indigo-50 font-bold"><option value="">-- Tidak ditautkan ke Kuis manapun --</option></select>
+                <div id="areaSlide_edit" class="hidden p-3 rounded-xl border border-[#1769b3]/20 bg-[#e8f1fb] flex items-center gap-3">
+                    <i class="fa-solid fa-images text-[#1769b3] text-lg"></i>
+                    <p class="text-xs text-slate-600 flex-1">Isi Modul Slide (teks, ikon, kartu Mitos/Fakta, suara) diatur di editor slide. Soal kuis modul ini tetap terhubung.</p>
+                    <button onclick="const id = document.getElementById('edit-modul-id').value; tutupModal('modalEditModul'); bukaEditorSlide(id);" class="btn-aksi bg-[#1769b3] text-white shrink-0">Kelola Slide</button>
+                </div>
                 <div id="areaFilePDF_edit" class="pt-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
                     <label class="block text-sm font-bold text-amber-800 mb-1">Ganti File PDF Baru (Opsional)</label>
                     <p class="text-xs text-amber-600 mb-2">Abaikan jika tidak ingin mengganti file PDF.</p>
                     <input type="file" id="edit-filePdf" accept="application/pdf" class="w-full border p-2 bg-white rounded-lg">
                 </div>
             </div>
-            <div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalEditModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanEditModul()" id="btnEditModul" class="w-2/3 bg-rose-600 text-white font-bold py-2.5 rounded-lg">Simpan Perubahan</button></div>
+            <div class="p-6 bg-slate-50 border-t flex gap-3"><button onclick="tutupModal('modalEditModul')" class="w-1/3 bg-slate-200 font-bold py-2.5 rounded-lg">Batal</button><button onclick="simpanEditModul()" id="btnEditModul" class="w-2/3 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold py-2.5 rounded-xl">Simpan Perubahan</button></div>
         </div>
     </div>
 
@@ -208,7 +229,7 @@
             <div class="flex-1 min-h-0 flex flex-col lg:flex-row">
                 <aside class="lg:w-64 shrink-0 border-b lg:border-b-0 lg:border-r bg-slate-50 flex flex-col min-h-0">
                     <div id="es-daftar" class="flex lg:flex-col gap-2 p-3 overflow-x-auto lg:overflow-y-auto flex-1"></div>
-                    <div class="p-3 border-t"><button onclick="tambahSlide()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-lg font-bold text-sm"><i class="fa-solid fa-plus mr-1"></i> Tambah Slide</button></div>
+                    <div class="p-3 border-t"><button onclick="tambahSlide()" class="w-full bg-[#1769b3] hover:bg-[#135a9a] text-white py-2.5 rounded-xl font-bold text-sm"><i class="fa-solid fa-plus mr-1"></i> Tambah Slide</button></div>
                 </aside>
 
                 <section id="es-kosong" class="hidden flex-1 flex flex-col items-center justify-center text-slate-400 p-10 text-center">
@@ -376,7 +397,15 @@
 }
         
         function toggleSidebar() { const sb = document.getElementById('sidebar'); sb.classList.toggle('-translate-x-full'); sb.classList.toggle('md:w-0'); sb.classList.toggle('md:w-64'); }
-        function switchTab(t) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); document.querySelectorAll('.nav-btn').forEach(el=>{el.classList.remove('bg-rose-600','text-white');el.classList.add('text-slate-300');}); document.getElementById(t).classList.add('active'); document.getElementById('nav-'+t).classList.add('bg-rose-600','text-white'); }
+        function switchTab(t) {
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('aktif'));
+            document.getElementById(t).classList.add('active');
+            const nav = document.getElementById('nav-' + t);
+            nav.classList.add('aktif');
+            document.getElementById('admin-judul-tab').textContent = nav.textContent.trim();
+            if (window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
         function tutupModal(id) { document.getElementById(id).classList.add('hidden'); }
 
         // ===================================
@@ -572,47 +601,89 @@
         // ===================================
         // 3. MANAJEMEN MODUL & LAINNYA 
         // ===================================
-        async function fetchDaftarBukuAdmin() {
-            const { data } = await supabaseClient.from('buku').select('*').order('created_at', { ascending: false });
-            const tabel = document.getElementById('tabelModul'); 
-            const ddKuis = document.getElementById('formKuisBuku'); 
-            const ddEditSinkron = document.getElementById('edit-kuisTerkait'); 
-            const ddSinkron = document.getElementById('kuisTerkait');
-            
-            tabel.innerHTML = ''; 
-            ddKuis.innerHTML = '<option value="">-- Pilih Wadah --</option>'; 
-            let optTaut = '<option value="">-- Tidak ditautkan --</option>'; 
-            dbBukuList = (data || []).filter(b => b.tipe_konten !== 'Pengantar Sistem'); // Sembunyikan Intro dari tabel list
-            
-            dbBukuList.forEach(b => {
-                let icon = b.tipe_konten === 'Evaluasi Global' ? '🌟' : (b.tipe_konten === 'Hanya Kuis' ? '📝' : (b.tipe_konten === 'Modul Slide' ? '📑' : '📖'));
-                const isAktif = b.is_active === true;
-                const toggleHtml = `
-                    <label class="flex items-center justify-center cursor-pointer">
-                        <div class="relative">
-                            <input type="checkbox" class="sr-only" ${isAktif ? 'checked' : ''} onchange="toggleStatusModul('${b.id}', ${isAktif})">
-                            <div class="block w-10 h-6 rounded-full transition ${isAktif ? 'bg-emerald-400' : 'bg-slate-300'}"></div>
-                            <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition transform ${isAktif ? 'translate-x-4' : ''}"></div>
-                        </div>
-                    </label>`;
+        // Label & ikon modul — sama dengan Menu Belajar di dashboard siswa
+        function labelModul(b) {
+            const m = String(b.judul || '').match(/^\s*(minggu|pekan|week|sesi|bab)\s*(\d+)\s*[-–:.]?\s*(.*)$/i);
+            if (m) return { atas: `${m[1][0].toUpperCase()}${m[1].slice(1).toLowerCase()} ${m[2]}`, bawah: m[3].trim() || b.judul };
+            return { atas: '', bawah: b.judul };
+        }
+        function gayaModul(b) {
+            const j = String(b.judul || '').toLowerCase();
+            if (/pre[- ]?test/.test(j)) return { ikon: 'fa-clipboard-question', jenis: 'Pre-Test', warna: 'bg-violet-50 text-violet-700' };
+            if (/post[- ]?test/.test(j)) return { ikon: 'fa-clipboard-check', jenis: 'Post-Test', warna: 'bg-violet-50 text-violet-700' };
+            if (b.tipe_konten === 'Modul Slide') return { ikon: 'fa-images', jenis: 'Modul Slide', warna: 'bg-[#e8f1fb] text-[#1769b3]' };
+            if (b.tipe_konten === 'Modul PDF') return { ikon: 'fa-book-open', jenis: 'Modul PDF', warna: 'bg-sky-50 text-sky-700' };
+            if (b.tipe_konten === 'Evaluasi Global') return { ikon: 'fa-clipboard-list', jenis: 'Evaluasi Global', warna: 'bg-violet-50 text-violet-700' };
+            return { ikon: 'fa-list-check', jenis: 'Kuis Latihan', warna: 'bg-amber-50 text-amber-700' };
+        }
 
-                tabel.innerHTML += `
-                    <tr class="border-b">
-                        <td class="py-3 px-6">${icon} ${b.tipe_konten}</td>
-                        <td class="py-3 px-6 font-bold">${esc(b.judul)}</td>
-                        <td class="py-3 px-6 text-center">${toggleHtml}</td>
-                        <td class="py-3 px-6 text-center">
-                            ${b.tipe_konten === 'Modul Slide' ? `<button onclick="bukaEditorSlide('${b.id}')" class="text-indigo-600 bg-indigo-50 px-2.5 py-2 rounded mr-1 text-xs font-bold" title="Kelola slide & suara"><i class="fa-solid fa-images mr-1"></i>Slide</button>` : ''}
-                            <button onclick="bukaModalEditModul('${encData(b)}')" class="text-blue-500 bg-blue-50 p-2 rounded mr-1"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="hapusModul('${b.id}')" class="text-red-500 bg-red-50 p-2 rounded"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>`;
-                    
-                ddKuis.innerHTML += `<option value="${b.id}">${icon} Target: ${esc(b.judul)}</option>`;
+        async function fetchDaftarBukuAdmin() {
+            const [{ data }, { data: dSlide }, { data: dKuis }] = await Promise.all([
+                supabaseClient.from('buku').select('*').order('created_at', { ascending: true }),
+                supabaseClient.from('slide').select('id_buku'),
+                supabaseClient.from('kuis').select('id_buku')
+            ]);
+            const hitung = arr => (arr || []).reduce((m, r) => (m[r.id_buku] = (m[r.id_buku] || 0) + 1, m), {});
+            const jmlSlide = hitung(dSlide), jmlSoal = hitung(dKuis);
+            const wadah = document.getElementById('daftarModul');
+            const ddKuis = document.getElementById('formKuisBuku');
+            const ddEditSinkron = document.getElementById('edit-kuisTerkait');
+            const ddSinkron = document.getElementById('kuisTerkait');
+
+            ddKuis.innerHTML = '<option value="">-- Pilih Wadah --</option>';
+            let optTaut = '<option value="">-- Tidak ditautkan --</option>';
+            dbBukuList = (data || []).filter(b => b.tipe_konten !== 'Pengantar Sistem'); // Intro dikelola di Pengaturan
+            const namaBuku = Object.fromEntries(dbBukuList.map(b => [b.id, b.judul]));
+
+            wadah.innerHTML = dbBukuList.length ? dbBukuList.map((b, i) => {
+                const g = gayaModul(b), l = labelModul(b), aktif = b.is_active === true;
+                const meta = [
+                    b.tipe_konten === 'Modul Slide' ? `<span><i class="fa-solid fa-images mr-1"></i>${jmlSlide[b.id] || 0} slide</span>` : '',
+                    b.tipe_konten === 'Modul PDF' ? `<span><i class="fa-solid fa-file-pdf mr-1"></i>${b.file_url ? 'PDF terunggah' : 'PDF belum ada'}</span>` : '',
+                    `<span><i class="fa-solid fa-list-check mr-1"></i>${jmlSoal[b.id] || 0} soal</span>`,
+                    b.id_kuis_terkait && namaBuku[b.id_kuis_terkait] ? `<span class="truncate"><i class="fa-solid fa-link mr-1"></i>${esc(namaBuku[b.id_kuis_terkait])}</span>` : ''
+                ].filter(Boolean).join('');
+                const aksiUtama = b.tipe_konten === 'Modul Slide'
+                    ? `<button onclick="bukaEditorSlide('${b.id}')" class="btn-aksi bg-[#1769b3] text-white hover:bg-[#135a9a]"><i class="fa-solid fa-images"></i> Kelola Slide</button>`
+                    : b.tipe_konten === 'Modul PDF' && b.file_url
+                        ? `<a href="${esc(b.file_url)}" target="_blank" rel="noopener" class="btn-aksi bg-[#e8f1fb] text-[#1769b3] hover:bg-[#d6e7f8]"><i class="fa-solid fa-file-pdf"></i> Buka PDF</a>` : '';
+                return `
+                <div class="kartu-modul ${aktif ? '' : 'nonaktif'} p-4 md:p-5 flex flex-col gap-4">
+                    <div class="flex items-start gap-4">
+                        <span class="app-tile-ikon shrink-0 relative"><i class="fa-solid ${g.ikon}"></i><span class="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-[#0b1d3a] text-white text-[10px] font-black flex items-center justify-center border-2 border-white">${i + 1}</span></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                ${l.atas ? `<span class="text-[10px] font-black uppercase tracking-wide text-[#1769b3]">${esc(l.atas)}</span>` : ''}
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${g.warna}">${g.jenis}</span>
+                            </div>
+                            <h4 class="font-black text-[#0b1d3a] leading-snug mt-0.5 line-clamp-2">${esc(l.bawah)}</h4>
+                            <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] font-semibold text-slate-500">${meta}</div>
+                        </div>
+                        <label class="flex flex-col items-center gap-1 cursor-pointer shrink-0" title="${aktif ? 'Terbuka untuk siswa' : 'Terkunci bagi siswa'}">
+                            <span class="relative">
+                                <input type="checkbox" class="sr-only" ${aktif ? 'checked' : ''} onchange="toggleStatusModul('${b.id}', ${aktif})">
+                                <span class="block w-11 h-6 rounded-full transition ${aktif ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+                                <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow transition ${aktif ? 'translate-x-5' : ''}"></span>
+                            </span>
+                            <span class="text-[10px] font-bold ${aktif ? 'text-emerald-600' : 'text-slate-400'}">${aktif ? 'Aktif' : 'Terkunci'}</span>
+                        </label>
+                    </div>
+                    <div class="flex items-start gap-2 pt-3 border-t border-slate-100">
+                        <div class="flex flex-wrap items-center gap-2 flex-1">
+                        ${aksiUtama}
+                        <a href="buku.html?id=${b.id}" target="_blank" rel="noopener" class="btn-aksi bg-slate-100 text-slate-600 hover:bg-slate-200" title="Buka seperti yang dilihat siswa"><i class="fa-solid fa-eye"></i> Pratinjau</a>
+                        <button onclick="bukaModalEditModul('${encData(b)}')" class="btn-aksi bg-slate-100 text-slate-600 hover:bg-slate-200"><i class="fa-solid fa-pen"></i> Edit</button>
+                        </div>
+                        <button onclick="hapusModul('${b.id}')" class="btn-aksi shrink-0 text-rose-500 hover:bg-rose-50" aria-label="Hapus modul" title="Hapus modul"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('') : `<div class="col-span-full text-center text-slate-400 py-12 bg-white rounded-3xl border border-dashed"><i class="fa-solid fa-box-open text-3xl mb-2 block text-slate-300"></i>Belum ada konten.</div>`;
+
+            dbBukuList.forEach(b => {
+                ddKuis.innerHTML += `<option value="${b.id}">${gayaModul(b).jenis}: ${esc(b.judul)}</option>`;
                 if (b.tipe_konten !== 'Modul PDF' && b.tipe_konten !== 'Modul Slide') optTaut += `<option value="${b.id}">Kuis: ${esc(b.judul)}</option>`;
             });
-            
-            ddEditSinkron.innerHTML = optTaut; 
+            ddEditSinkron.innerHTML = optTaut;
             ddSinkron.innerHTML = optTaut;
         }
 
@@ -622,6 +693,7 @@
         function toggleFormModul(mode) {
             const tipe = document.getElementById(mode === 'tambah' ? 'tipeKonten' : 'edit-tipeKonten').value;
             document.getElementById(mode === 'tambah' ? 'areaFilePDF_tambah' : 'areaFilePDF_edit').classList.toggle('hidden', tipe !== 'Modul PDF');
+            if (mode === 'edit') document.getElementById('areaSlide_edit').classList.toggle('hidden', tipe !== 'Modul Slide');
         }
 
         async function simpanKontenBaru() {
@@ -687,7 +759,7 @@
             document.getElementById('edit-modul-judul').value = m.judul; 
             document.getElementById('edit-tipeKonten').value = m.tipe_konten; 
             document.getElementById('edit-kuisTerkait').value = m.id_kuis_terkait || ''; 
-            document.getElementById('areaFilePDF_edit').classList.toggle('hidden', m.tipe_konten !== 'Modul PDF');
+            toggleFormModul('edit');
             document.getElementById('modalEditModul').classList.remove('hidden'); 
         }
 
@@ -767,9 +839,9 @@
 
         function renderDaftarSlide() {
             esEl('es-daftar').innerHTML = es.slides.map((sl, i) => `
-                <div class="shrink-0 w-44 lg:w-auto rounded-xl border ${i === es.aktif ? 'border-rose-400 bg-white shadow-sm' : 'border-transparent bg-white/60 hover:bg-white'} p-2.5 cursor-pointer" onclick="pilihSlide(${i})">
+                <div class="shrink-0 w-44 lg:w-auto rounded-xl border ${i === es.aktif ? 'border-[#1769b3]/50 bg-white shadow-sm' : 'border-transparent bg-white/60 hover:bg-white'} p-2.5 cursor-pointer" onclick="pilihSlide(${i})">
                     <div class="flex items-center gap-2">
-                        <span class="w-6 h-6 rounded-md ${i === es.aktif ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-600'} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
+                        <span class="w-6 h-6 rounded-md ${i === es.aktif ? 'bg-[#1769b3] text-white' : 'bg-slate-200 text-slate-600'} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
                         <span class="text-sm font-bold text-slate-700 truncate flex-1">${esc(sl.judul || 'Tanpa judul')}</span>
                         <i class="fa-solid fa-volume-high text-xs ${sl.audio_url ? 'text-emerald-500' : 'text-slate-300'}" title="${sl.audio_url ? 'Suara siap' : 'Belum ada suara'}"></i>
                     </div>
