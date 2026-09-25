@@ -23,6 +23,7 @@
     <script>Object.assign(DFLIP.defaults, { webgl: true, soundEnable: true, hideControls: "download,print,more,share,fullscreen,toggle,play" });</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <link rel="stylesheet" href="app.css">
     <style>
         .glass-nav { background: rgba(255, 255, 255, 0.95); border-bottom: 1px solid rgba(226, 232, 240, 0.8); }
@@ -87,7 +88,7 @@
                 </div>
                 <div class="px-3">
                     <p class="text-[10px] text-sky-100">Misi Berikutnya</p>
-                    <button onclick="lanjutBelajar()" class="app-tap mt-1 bg-white text-[#1769b3] text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">Lanjut <i class="fa-solid fa-caret-right"></i></button>
+                    <button onclick="bukaSheetLanjut()" class="app-tap mt-1 bg-white text-[#1769b3] text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">Lanjut <i class="fa-solid fa-caret-right"></i></button>
                 </div>
             </div>
             <div class="p-3">
@@ -108,39 +109,28 @@
 
         <!-- Lembar putih: menu, misi, peringkat -->
         <main class="bg-white rounded-t-[2rem] mt-5 pt-5 pb-2 min-h-[50vh] shadow-[0_-4px_20px_rgba(11,29,58,.04)]">
-            <div class="px-5">
-                <div class="inline-flex bg-slate-100 rounded-full p-1 text-sm font-bold">
-                    <span class="px-5 py-1.5 rounded-full bg-[#1769b3] text-white shadow">Menu Belajar</span>
+            <!-- Menu Belajar: langsung berisi materi & tes, berurutan -->
+            <section id="m-seksi-misi" class="px-5 scroll-mt-4">
+                <div class="flex items-end justify-between gap-2">
+                    <h3 class="font-black text-slate-800 text-lg flex items-center gap-2"><i class="fa-solid fa-book-open-reader text-[#1769b3]"></i> Menu Belajar</h3>
+                    <span id="m-hitung-misi" class="text-[11px] font-bold text-[#1769b3] bg-[#e8f1fb] px-2.5 py-1 rounded-full whitespace-nowrap"></span>
                 </div>
-            </div>
-            <div class="grid grid-cols-4 gap-y-5 gap-x-2 px-4 mt-5 text-center">
-                <button onclick="bukaTesKhusus('pre-test')" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-clipboard-question"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Pre-Test</span></button>
-                <button onclick="saringMisi('Materi', true)" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-book-open-reader"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Materi</span></button>
-                <button onclick="saringMisi('Kuis', true)" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-list-check"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Kuis</span></button>
-                <button onclick="bukaTesKhusus('post-test')" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-clipboard-check"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Post-Test</span></button>
-                <button onclick="gulirKe('m-seksi-peringkat')" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-ranking-star"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Peringkat</span></button>
-                <a href="profil.html" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-chart-line"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Rapor</span></a>
-                <button onclick="saringMisi('Semua', true)" class="app-tap flex flex-col items-center"><span class="app-tile-ikon"><i class="fa-solid fa-layer-group"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Semua Misi</span></button>
-                <button onclick="prosesLogout()" class="app-tap flex flex-col items-center"><span class="app-tile-ikon !bg-rose-50 !text-rose-500"><i class="fa-solid fa-power-off"></i></span><span class="text-[11px] font-semibold text-slate-600 mt-1.5 leading-tight">Keluar</span></button>
-            </div>
-
-            <!-- Misi Belajar -->
-            <section id="m-seksi-misi" class="mt-8">
-                <div class="px-5 flex items-center justify-between">
-                    <h3 class="font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-flag text-[#1769b3]"></i> Misi Belajar</h3>
-                    <div class="flex bg-slate-100 rounded-full p-0.5 text-[11px] font-bold" id="m-filter-misi">
-                        <button onclick="saringMisi('Semua')" data-f="Semua" class="app-tap px-3 py-1 rounded-full bg-white text-[#1769b3] shadow-sm">Semua</button>
-                        <button onclick="saringMisi('Materi')" data-f="Materi" class="app-tap px-3 py-1 rounded-full text-slate-500">Materi</button>
-                        <button onclick="saringMisi('Kuis')" data-f="Kuis" class="app-tap px-3 py-1 rounded-full text-slate-500">Kuis</button>
-                    </div>
+                <div class="flex bg-slate-100 rounded-full p-1 text-[13px] font-bold mt-3 w-full" id="m-filter-misi" role="tablist">
+                    <button onclick="saringMisi('Semua')" data-f="Semua" class="app-tap flex-1 py-1.5 rounded-full bg-[#1769b3] text-white shadow">Semua</button>
+                    <button onclick="saringMisi('Materi')" data-f="Materi" class="app-tap flex-1 py-1.5 rounded-full text-slate-500">Materi</button>
+                    <button onclick="saringMisi('Kuis')" data-f="Kuis" class="app-tap flex-1 py-1.5 rounded-full text-slate-500">Tes &amp; Kuis</button>
                 </div>
-                <div id="m-daftar-misi" class="app-scroll-x flex gap-3 px-5 pt-4 pb-2 snap-x snap-mandatory">
-                    <div class="w-full text-center text-sm text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                <div id="m-daftar-misi" class="grid grid-cols-4 gap-y-5 gap-x-2 mt-5 text-center">
+                    <div class="col-span-4 text-center text-sm text-slate-400 py-8"><i class="fa-solid fa-spinner fa-spin"></i></div>
                 </div>
+                <p class="mt-5 text-[11px] text-slate-400 flex items-center justify-center gap-3">
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> Selesai</span>
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-lock text-slate-400"></i> Belum dibuka peneliti</span>
+                </p>
             </section>
 
             <!-- Papan Peringkat -->
-            <section id="m-seksi-peringkat" class="mt-6 px-5 scroll-mt-4">
+            <section id="m-seksi-peringkat" class="mt-8 px-5 scroll-mt-4">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-black text-slate-800 flex items-center gap-2"><i class="fa-solid fa-crown text-amber-500"></i> Papan Peringkat</h3>
                     <span class="text-[11px] font-bold text-slate-400">Top 5</span>
@@ -155,12 +145,21 @@
             <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
                 <a href="dashboard.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
                 <div class="flex flex-col items-center">
-                    <button onclick="lanjutBelajar()" class="app-fab app-tap" aria-label="Lanjut belajar"><img src="assets/logo-sirasa.svg" alt="" class="w-9 h-9 object-contain brightness-0 invert"></button>
-                    <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Belajar</span>
+                    <button onclick="bukaSheetLanjut()" class="app-fab app-tap" aria-label="Lanjutkan belajar"><img src="assets/logo-sirasa.svg" alt="" class="w-9 h-9 object-contain brightness-0 invert"></button>
+                    <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Lanjut</span>
                 </div>
                 <a href="profil.html" class="nav-item app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-chart-simple text-lg"></i>Rapor</a>
             </div>
         </nav>
+
+        <!-- Lembar "Misi Berikutnya" (dibuka dari tombol tengah / kartu Lanjut) -->
+        <div id="m-sheet-lanjut" class="hidden fixed inset-0 z-[80]" role="dialog" aria-modal="true" aria-labelledby="m-sheet-judul">
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]" onclick="tutupSheetLanjut()"></div>
+            <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-[2rem] px-6 pt-3 pb-6 app-sheet shadow-2xl max-h-[85dvh] overflow-y-auto" style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom))">
+                <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5"></div>
+                <div id="m-sheet-isi"></div>
+            </div>
+        </div>
 
         <div id="m-toast" class="hidden fixed left-4 right-4 bottom-28 z-[70] bg-slate-900/95 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-2xl text-center"></div>
     </div>
@@ -248,7 +247,7 @@
                 cekStatusLogin();
             } catch (error) {
                 console.error("Terjadi kesalahan sistem:", error);
-                alert("Sistem gagal memuat konfigurasi. Pastikan file config.js tersedia.");
+                Dialog.alert("Sistem gagal memuat konfigurasi. Pastikan file config.js tersedia.");
             }
         });
 
@@ -304,7 +303,7 @@
         }
         
         async function prosesLogout() { 
-            if(confirm("Yakin ingin mengakhiri sesi belajar?")) { 
+            if(await Dialog.confirm("Yakin ingin keluar dari akun? Progres belajarmu tetap tersimpan.", { judul: "Keluar Akun", teksOk: "Ya, Keluar", tipe: "peringatan" })) { 
                 await supabaseClient.auth.signOut(); 
                 sessionStorage.removeItem('introSudahDilihat'); 
                 window.location.href = 'index.html'; 
@@ -329,7 +328,7 @@
 
         function toast(pesan) {
             const el = document.getElementById('m-toast');
-            if (!el || getComputedStyle(el.parentElement).display === 'none') return alert(pesan);
+            if (!el || getComputedStyle(el.parentElement).display === 'none') return Dialog.alert(pesan);
             el.textContent = pesan; el.classList.remove('hidden');
             clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add('hidden'), 2600);
         }
@@ -386,47 +385,91 @@
             filterMisiAktif = jenis;
             document.querySelectorAll('#m-filter-misi button').forEach(b => {
                 const aktif = b.dataset.f === jenis;
-                b.classList.toggle('bg-white', aktif); b.classList.toggle('text-[#1769b3]', aktif); b.classList.toggle('shadow-sm', aktif); b.classList.toggle('text-slate-500', !aktif);
+                b.classList.toggle('bg-[#1769b3]', aktif); b.classList.toggle('text-white', aktif); b.classList.toggle('shadow', aktif); b.classList.toggle('text-slate-500', !aktif);
             });
             renderMisiMobile();
             if (gulir) gulirKe('m-seksi-misi');
         }
 
+        // Pecah judul "Minggu 2 - HIV/AIDS" menjadi label minggu & nama materi
+        function labelMisi(b) {
+            const m = String(b.judul || '').match(/^\s*(minggu|pekan|week|sesi|bab)\s*(\d+)\s*[-–:.]?\s*(.*)$/i);
+            if (m) return { atas: `${m[1][0].toUpperCase()}${m[1].slice(1).toLowerCase()} ${m[2]}`, bawah: m[3].trim() || b.judul };
+            return { atas: adalahMateri(b) ? 'Materi' : 'Tes', bawah: b.judul };
+        }
+        // Ikon, warna & deskripsi per jenis konten
+        function gayaMisi(b) {
+            const j = String(b.judul || '').toLowerCase();
+            if (/pre[- ]?test/.test(j)) return { ikon: 'fa-clipboard-question', warna: '!bg-indigo-50 !text-indigo-600', jenis: 'Pre-Test', ket: 'Ukur pemahaman awalmu sebelum belajar (tanpa XP).' };
+            if (/post[- ]?test/.test(j)) return { ikon: 'fa-clipboard-check', warna: '!bg-emerald-50 !text-emerald-600', jenis: 'Post-Test', ket: 'Ukur pemahamanmu setelah menyelesaikan semua materi.' };
+            if (b.tipe_konten === 'Modul Slide') return { ikon: 'fa-images', warna: '', jenis: 'Materi Slide', ket: 'Baca materi per slide, bisa dengarkan narasinya.' };
+            if (b.tipe_konten === 'Modul PDF') return { ikon: 'fa-book-open', warna: '', jenis: 'Materi Bacaan', ket: 'Baca modul materi dalam bentuk buku digital.' };
+            return { ikon: 'fa-list-check', warna: '!bg-amber-50 !text-amber-600', jenis: 'Kuis Latihan', ket: 'Kerjakan kuis dan kumpulkan XP.' };
+        }
+
         function renderMisiMobile() {
             const wadah = document.getElementById('m-daftar-misi');
             const daftar = saringBuku(semuaBuku, filterMisiAktif);
-            if (!daftar.length) { wadah.innerHTML = `<div class="w-full text-center text-sm text-slate-400 py-8 bg-slate-50 rounded-2xl"><i class="fa-solid fa-box-open text-2xl mb-2 block text-slate-300"></i>Belum ada misi di sini.</div>`; return; }
+            const selesai = semuaBuku.filter(b => modulSelesai.has(b.id)).length;
+            document.getElementById('m-hitung-misi').textContent = semuaBuku.length ? `${selesai}/${semuaBuku.length} selesai` : '';
+            if (!daftar.length) { wadah.innerHTML = `<div class="col-span-4 text-center text-sm text-slate-400 py-8 bg-slate-50 rounded-2xl"><i class="fa-solid fa-box-open text-2xl mb-2 block text-slate-300"></i>Belum ada materi di sini.</div>`; return; }
             wadah.innerHTML = daftar.map(b => {
-                const kunci = bukuTerkunci(b), selesai = modulSelesai.has(b.id);
-                const judulKecil = b.judul.toLowerCase();
-                const [ikon, warna, label] = b.tipe_konten === 'Modul Slide' ? ['fa-images', 'from-[#1769b3] to-[#0b1d3a]', 'MATERI']
-                    : b.tipe_konten === 'Modul PDF' ? ['fa-book-open', 'from-[#1769b3] to-[#0b1d3a]', 'MATERI']
-                    : judulKecil.includes('pre-test') ? ['fa-clipboard-question', 'from-indigo-500 to-indigo-700', 'PRE-TEST']
-                    : judulKecil.includes('post-test') ? ['fa-clipboard-check', 'from-emerald-500 to-teal-600', 'POST-TEST']
-                    : ['fa-list-check', 'from-amber-400 to-orange-500', 'KUIS'];
-                const sampul = b.cover_url ? `<img src="${esc(b.cover_url)}" loading="lazy" alt="" class="w-full h-full object-cover">`
-                    : `<div class="w-full h-full bg-gradient-to-br ${warna} flex items-center justify-center text-white/60 text-4xl"><i class="fa-solid ${ikon}"></i></div>`;
-                const status = kunci ? `<span class="absolute inset-0 bg-slate-900/50 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-lock"></i></span>`
-                    : selesai ? `<span class="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> SELESAI</span>` : '';
-                return `<button onclick="${kunci ? 'alertTerkunci()' : `arahkanMembaca('${b.id}')`}" class="app-tap snap-start shrink-0 w-32 text-left ${kunci ? 'opacity-70' : ''}">
-                    <div class="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md bg-slate-100">${sampul}${status}
-                        <span class="absolute bottom-2 right-2 bg-white/90 text-slate-700 text-[8px] font-black px-1.5 py-0.5 rounded">${label}</span></div>
-                    <p class="text-xs font-bold text-slate-700 mt-2 line-clamp-2 leading-snug">${esc(b.judul)}</p>
+                const kunci = bukuTerkunci(b), sudah = modulSelesai.has(b.id), g = gayaMisi(b), l = labelMisi(b);
+                const lencana = kunci ? '<span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-slate-500 text-white text-[10px] flex items-center justify-center border-2 border-white"><i class="fa-solid fa-lock"></i></span>'
+                    : sudah ? '<span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-500 text-white text-[10px] flex items-center justify-center border-2 border-white"><i class="fa-solid fa-check"></i></span>' : '';
+                return `<button onclick="${kunci ? 'alertTerkunci()' : `arahkanMembaca('${b.id}')`}" class="app-tap flex flex-col items-center ${kunci ? 'opacity-50 grayscale' : ''}" aria-label="${esc(b.judul)}${kunci ? ' (terkunci)' : sudah ? ' (selesai)' : ''}">
+                    <span class="app-tile-ikon relative ${g.warna}"><i class="fa-solid ${g.ikon}"></i>${lencana}</span>
+                    <span class="text-[9.5px] font-black uppercase tracking-wide text-[#1769b3] mt-1.5">${esc(l.atas)}</span>
+                    <span class="text-[11px] font-semibold text-slate-600 leading-tight line-clamp-2 px-0.5">${esc(l.bawah)}</span>
                 </button>`;
             }).join('');
         }
 
-        function bukaTesKhusus(kata) {
-            const tes = semuaBuku.find(b => b.judul.toLowerCase().includes(kata) && !bukuTerkunci(b));
-            if (tes) return arahkanMembaca(tes.id);
-            toast(semuaBuku.some(b => b.judul.toLowerCase().includes(kata)) ? '🔒 ' + (kata === 'pre-test' ? 'Pre-Test' : 'Post-Test') + ' belum dibuka oleh peneliti.' : 'Belum tersedia untuk saat ini.');
+        // ---------- Lembar "Misi Berikutnya" (tombol tengah) ----------
+        function bukaSheetLanjut() {
+            const terbuka = semuaBuku.filter(b => !bukuTerkunci(b));
+            const berikut = terbuka.find(b => !modulSelesai.has(b.id));
+            const total = semuaBuku.length, selesai = semuaBuku.filter(b => modulSelesai.has(b.id)).length;
+            const persen = total ? Math.round(selesai / total * 100) : 0;
+            const progres = `<div class="mt-5 p-4 rounded-2xl bg-slate-50">
+                    <div class="flex justify-between text-xs font-bold mb-2"><span class="text-slate-500">Progres belajarmu</span><span class="text-[#1769b3]">${selesai}/${total} misi · ${persen}%</span></div>
+                    <div class="h-2 bg-slate-200 rounded-full overflow-hidden"><div class="h-full bg-[#1769b3] rounded-full" style="width:${persen}%"></div></div>
+                </div>`;
+            let isi;
+            if (!total) {
+                isi = `<p id="m-sheet-judul" class="text-center text-slate-500 py-6">Belum ada misi yang tersedia. Tunggu instruksi peneliti ya.</p>`;
+            } else if (!berikut) {
+                const adaTerkunci = semuaBuku.some(b => bukuTerkunci(b) && !modulSelesai.has(b.id));
+                isi = `<div class="text-center">
+                        <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 text-4xl flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-trophy"></i></div>
+                        <h3 id="m-sheet-judul" class="text-xl font-black text-slate-800">${adaTerkunci ? 'Semua misi yang terbuka sudah selesai!' : 'Semua misi selesai! 🎉'}</h3>
+                        <p class="text-sm text-slate-500 mt-1">${adaTerkunci ? 'Misi berikutnya akan dibuka oleh peneliti. Pantau terus ya.' : 'Hebat! Kamu sudah menyelesaikan seluruh program SIRASA.'}</p>
+                    </div>${progres}
+                    <a href="profil.html" class="app-tap mt-5 w-full bg-[#1769b3] text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2"><i class="fa-solid fa-chart-simple"></i> Lihat Rapor Belajarku</a>`;
+            } else {
+                const g = gayaMisi(berikut), l = labelMisi(berikut);
+                const setelahnya = terbuka.filter(b => !modulSelesai.has(b.id) && b.id !== berikut.id).slice(0, 2);
+                isi = `<p class="text-[11px] font-black uppercase tracking-widest text-slate-400">Misi Berikutnya</p>
+                    <div class="flex items-center gap-4 mt-3">
+                        <span class="app-tile-ikon shrink-0 ${g.warna}"><i class="fa-solid ${g.ikon}"></i></span>
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-black uppercase tracking-wide text-[#1769b3]">${esc(l.atas)} · ${g.jenis}</p>
+                            <h3 id="m-sheet-judul" class="text-lg font-black text-slate-800 leading-snug">${esc(l.bawah)}</h3>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-3 leading-relaxed">${g.ket}</p>
+                    ${progres}
+                    ${setelahnya.length ? `<p class="text-[11px] font-bold text-slate-400 mt-5 mb-2">Setelah ini</p>
+                        <div class="space-y-2">${setelahnya.map(b => { const gg = gayaMisi(b), ll = labelMisi(b); return `<div class="flex items-center gap-3 text-sm"><span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center text-xs shrink-0"><i class="fa-solid ${gg.ikon}"></i></span><span class="font-semibold text-slate-600 truncate">${esc(ll.atas)} · ${esc(ll.bawah)}</span></div>`; }).join('')}</div>` : ''}
+                    <button onclick="arahkanMembaca('${berikut.id}')" class="app-tap mt-6 w-full bg-[#1769b3] text-white font-bold py-4 rounded-2xl shadow-lg shadow-sky-900/20 flex items-center justify-center gap-2">Mulai Sekarang <i class="fa-solid fa-arrow-right"></i></button>
+                    <button onclick="tutupSheetLanjut(); gulirKe('m-seksi-misi')" class="app-tap mt-2 w-full text-[#1769b3] font-bold py-3 rounded-2xl">Pilih dari Menu Belajar</button>`;
+            }
+            document.getElementById('m-sheet-isi').innerHTML = isi;
+            document.getElementById('m-sheet-lanjut').classList.remove('hidden');
         }
+        function tutupSheetLanjut() { document.getElementById('m-sheet-lanjut').classList.add('hidden'); }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') tutupSheetLanjut(); });
 
-        function lanjutBelajar() {
-            const berikut = semuaBuku.find(b => !bukuTerkunci(b) && !modulSelesai.has(b.id));
-            if (berikut) return arahkanMembaca(berikut.id);
-            toast(semuaBuku.length ? '🎉 Semua misi yang terbuka sudah kamu selesaikan!' : 'Belum ada misi yang tersedia.');
-        }
 
         function arahkanMembaca(idBuku, urlFile) { 
             window.location.href = `buku.html?id=${idBuku}&file=${encodeURIComponent(urlFile || '')}`; 
@@ -452,7 +495,8 @@
             try {
                 const { data } = await supabaseClient.from('buku').select('*').neq('tipe_konten', 'Pengantar Sistem').order('created_at', { ascending: true });
                 semuaBuku = data || [];
-                renderMisiMobile(); pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
+                renderMisiMobile();
+                if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(bukaSheetLanjut, 400); } pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
                 if (!data || data.length === 0) { 
                     document.getElementById('bookList').innerHTML = `<div class="col-span-full text-center text-slate-400 py-10 bg-white rounded-2xl border border-dashed border-slate-300"><i class="fa-solid fa-box-open text-4xl mb-3 text-slate-300"></i><p class="font-medium">Belum ada modul di galeri.</p></div>`; 
                     return; 

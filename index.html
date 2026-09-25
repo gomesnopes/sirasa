@@ -18,6 +18,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <link rel="stylesheet" href="app.css">
 
     <style>
@@ -320,14 +321,14 @@
 
         async function prosesLogin() { 
             const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const btn = document.getElementById('btn-login'); 
-            if(!email || !password) return alert("Isi email & password!"); 
+            if(!email || !password) return Dialog.alert("Isi email & password!"); 
             btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memverifikasi..."; 
             try { 
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
                 if (error) throw error; 
                 window.location.reload(); 
             } catch (e) { 
-                alert("Gagal Masuk: Email atau kata sandi salah."); 
+                Dialog.alert("Gagal Masuk: Email atau kata sandi salah."); 
                 btn.disabled = false; btn.innerHTML = `Masuk Sekarang`; 
             } 
         }
@@ -337,10 +338,10 @@
             const email = val('reg-email'), password = document.getElementById('reg-password').value, nama = val('reg-nama');
             const gender = val('reg-gender'), tanggalLahir = val('reg-tgl'), sekolah = val('reg-sekolah'), kelas = val('reg-kelas');
             const btn = document.getElementById('btn-daftar'); 
-            if (!email || !password || !nama || !tanggalLahir || !sekolah || !kelas) return alert("Mohon lengkapi semua kolom: nama, tanggal lahir, sekolah, kelas, email, dan kata sandi.");
-            if (password.length < 6) return alert("Kata sandi minimal 6 karakter.");
+            if (!email || !password || !nama || !tanggalLahir || !sekolah || !kelas) return Dialog.alert("Mohon lengkapi semua kolom: nama, tanggal lahir, sekolah, kelas, email, dan kata sandi.");
+            if (password.length < 6) return Dialog.alert("Kata sandi minimal 6 karakter.");
             const umur = hitungUmurDari(tanggalLahir);
-            if (umur === null || umur < 5 || umur > 100) return alert("Tanggal lahir tidak valid.");
+            if (umur === null || umur < 5 || umur > 100) return Dialog.alert("Tanggal lahir tidak valid.");
 
             const dataProfil = { nama_lengkap: nama, jenis_kelamin: gender, tanggal_lahir: tanggalLahir, sekolah, kelas };
             btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses..."; 
@@ -352,10 +353,10 @@
                     // Cadangan bila trigger belum diperbarui: simpan langsung (hanya bisa saat sudah punya sesi).
                     await supabaseClient.from('profiles').upsert([{ id: data.user.id, ...dataProfil }]); 
                 } 
-                alert(data.session ? "Pendaftaran Berhasil! Silakan masuk." : "Pendaftaran Berhasil! Jika diminta, buka email Anda untuk konfirmasi akun, lalu masuk."); 
+                Dialog.alert(data.session ? "Pendaftaran Berhasil! Silakan masuk." : "Pendaftaran Berhasil! Jika diminta, buka email Anda untuk konfirmasi akun, lalu masuk."); 
                 switchTabAuth('login'); document.getElementById('login-email').value = email; 
             } catch (e) { 
-                alert("Gagal mendaftar: " + e.message); 
+                Dialog.alert("Gagal mendaftar: " + e.message); 
             } finally { 
                 btn.disabled = false; btn.innerHTML = "Daftar Akun Baru"; 
             } 

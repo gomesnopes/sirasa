@@ -22,6 +22,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <link rel="stylesheet" href="slide.css">
     <script src="slide-render.js"></script>
 
@@ -127,18 +128,51 @@
         </footer>
     </div>
 
-    <div id="wadah-ujian" class="w-full h-full bg-[#f8fafc] flex items-start justify-center p-4 md:p-8 absolute inset-0 z-20 hidden overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-xl w-full max-w-4xl quiz-enter overflow-hidden flex flex-col mt-12 mb-12">
-            <div class="bg-indigo-700 text-white px-6 py-4 flex justify-between items-center">
-                <h2 class="font-black text-lg" id="header-judul-kuis"><i class="fa-solid fa-pen-clip mr-2"></i> Lembar Evaluasi</h2>
-            </div>
-            <div class="p-6 md:p-8 flex-1">
-                <div id="quiz-content" class="space-y-6">
-                    <div class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-rose-500 mb-4"></i><p class="text-slate-500">Memuat instrumen...</p></div>
+    <div id="wadah-ujian" class="hidden fixed inset-0 z-20 bg-[#f4f7fb] overflow-y-auto flex flex-col">
+        <!-- Kepala kuis -->
+        <header class="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200" style="padding-top: env(safe-area-inset-top)">
+            <div class="max-w-5xl mx-auto px-4 md:px-6 py-3 flex items-center gap-3">
+                <button onclick="keluarDariKuis()" class="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center shrink-0" aria-label="Keluar dari kuis"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="min-w-0 flex-1">
+                    <h2 id="header-judul-kuis" class="font-black text-slate-800 truncate text-[15px] md:text-lg">Lembar Evaluasi</h2>
+                    <p id="kuis-subjudul" class="text-[11px] md:text-xs font-semibold text-slate-400 truncate">Memuat soal...</p>
                 </div>
+                <span id="kuis-terjawab" class="shrink-0 text-[11px] md:text-xs font-black text-[#1769b3] bg-[#e8f1fb] px-3 py-1.5 rounded-full">0/0 terjawab</span>
             </div>
-            <div id="quiz-footer" class="p-6 bg-slate-50 border-t border-slate-200"></div>
+            <div class="h-1.5 bg-slate-100"><div id="kuis-progres" class="h-full bg-gradient-to-r from-[#1769b3] to-[#1f86d6] transition-all duration-300" style="width:0%"></div></div>
+        </header>
+
+        <div class="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-5 md:py-8 grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-5 items-start content-start">
+            <!-- Kartu soal -->
+            <section id="kuis-kartu" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 md:p-8 quiz-enter">
+                <div class="text-center py-10"><i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#1769b3] mb-4"></i><p class="text-slate-500">Memuat instrumen...</p></div>
+            </section>
+
+            <!-- Navigasi soal -->
+            <aside class="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 lg:sticky lg:top-24">
+                <button onclick="toggleNavSoal()" class="w-full flex items-center justify-between lg:cursor-default" aria-controls="kuis-nav">
+                    <h3 class="font-black text-slate-800 text-sm">Navigasi Soal</h3>
+                    <i id="kuis-nav-ikon" class="fa-solid fa-chevron-down text-slate-400 lg:hidden transition-transform"></i>
+                </button>
+                <div id="kuis-nav-wadah" class="hidden lg:block">
+                    <div id="kuis-nav" class="grid grid-cols-5 gap-2 mt-4"></div>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-[11px] font-semibold text-slate-500">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300"></span>Terjawab</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#1769b3]"></span>Aktif</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-100 border border-slate-200"></span>Belum</span>
+                    </div>
+                </div>
+                <button onclick="kirimKuis()" id="kuis-btn-kirim-samping" class="hidden lg:flex w-full mt-5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl items-center justify-center gap-2 text-sm"><i class="fa-solid fa-paper-plane"></i> Kirim Jawaban</button>
+            </aside>
         </div>
+
+        <!-- Tombol sebelumnya / berikutnya -->
+        <footer class="sticky bottom-0 bg-white/95 backdrop-blur border-t border-slate-200" style="padding-bottom: env(safe-area-inset-bottom)">
+            <div class="max-w-5xl mx-auto px-4 md:px-6 py-3 flex gap-3">
+                <button onclick="pindahSoal(-1)" id="kuis-prev" class="flex-1 md:flex-none md:w-44 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold disabled:opacity-40 flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-left"></i> Sebelumnya</button>
+                <button onclick="pindahSoal(1)" id="kuis-next" class="flex-1 md:flex-none md:w-52 md:ml-auto py-3.5 rounded-2xl bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold flex items-center justify-center gap-2">Berikutnya <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </footer>
     </div>
 
     <div id="modalSelesai" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -155,12 +189,12 @@
     </div>
 
     <script>
-        let supabaseClient; let loggedInUser = null; let dataBuku = null; let bookId = null; 
+        let supabaseClient; let loggedInUser = null; let dataBuku = null; let bookId = null; let bukuKuis = null; 
         let kuisSudahDipicu = false; let adaKuisInternal = false;
         let waktuMulaiMembaca = Date.now(); let waktuMulaiKuis = 0; let currentQuizData = []; let dimGroups = {}; let idKuisAktif = null;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            if (typeof CONFIG === 'undefined') return alert("config.js tidak terbaca!");
+            if (typeof CONFIG === 'undefined') return Dialog.alert("config.js tidak terbaca!");
             supabaseClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) return window.location.href = 'dashboard.html';
@@ -188,7 +222,7 @@
 let pdfBersih = dataBuku.file_url;
 
 if (!pdfBersih) {
-    alert("Modul PDF belum diunggah atau kosong!");
+    await Dialog.alert("Modul PDF belum diunggah atau kosong!");
     return keluarKeBeranda();
 }
                 document.getElementById('wadah-buku').innerHTML = `<div class="_df_book" id="df_container" source="${pdfBersih}"></div>`;
@@ -206,7 +240,7 @@ if (!pdfBersih) {
                 };
                 // Tunggu jQuery ready agar DearFlip sudah menyetel lokasi asetnya.
                 if(window.DFLIP && window.DFLIP.parseBooks) jQuery(() => window.DFLIP.parseBooks());
-            } catch (err) { alert("Gagal memuat modul."); keluarKeBeranda(); }
+            } catch (err) { await Dialog.alert("Gagal memuat modul."); keluarKeBeranda(); }
         });
 
         function tampilkanKonfirmasiSelesai() { 
@@ -226,7 +260,11 @@ if (!pdfBersih) {
         
         function tutupModalSelesai() { document.getElementById('modalSelesai').classList.add('hidden'); kuisSudahDipicu = false; }
 
+        let durasiSudahDisimpan = false;
         async function simpanDurasiBaca() {
+            // Hanya modul bacaan (PDF/Slide) yang dicatat durasi bacanya, dan cukup sekali per kunjungan
+            if (durasiSudahDisimpan || !dataBuku || !['Modul PDF', 'Modul Slide'].includes(dataBuku.tipe_konten)) return;
+            durasiSudahDisimpan = true;
             try { await supabaseClient.from('riwayat_kuis').insert([{ id_user: loggedInUser.id, id_buku: bookId, poin_didapat: 0, durasi_baca_detik: Math.floor((Date.now() - waktuMulaiMembaca) / 1000), jenis_tes: dataBuku && dataBuku.tipe_konten === 'Modul Slide' ? "Membaca Modul Slide" : "Membaca Modul PDF", dimensi: "Aktivitas" }]); } catch(e) {}
         }
 
@@ -248,106 +286,204 @@ if (!pdfBersih) {
 
         async function panggilKuisSekarang(targetId, judulKuis) {
             idKuisAktif = targetId;
-            document.getElementById('header-judul-kuis').innerHTML = `<i class="fa-solid fa-pen-clip mr-2"></i> ${judulKuis}`;
+            document.getElementById('header-judul-kuis').textContent = judulKuis;
             document.getElementById('wadah-ujian').classList.remove('hidden');
-            
+
             try {
-                const { data } = await supabaseClient.from('kuis').select('*').eq('id_buku', targetId).order('id', { ascending: true });
-                if(!data || data.length === 0) { alert("Tidak ada soal pada modul ini."); return keluarKeBeranda(); }
-                
-                currentQuizData = data; waktuMulaiKuis = Date.now(); renderSoalKeseluruhan();
-            } catch(e) { alert("Gagal mengambil soal."); keluarKeBeranda(); }
+                // Info wadah kuis (bisa berbeda dari modul bacaan bila kuis ditautkan)
+                const [{ data: infoKuis }, { data }] = await Promise.all([
+                    supabaseClient.from('buku').select('id, judul, tipe_konten').eq('id', targetId).maybeSingle(),
+                    supabaseClient.from('kuis').select('*').eq('id_buku', targetId).order('id', { ascending: true })
+                ]);
+                if(!data || data.length === 0) { await Dialog.alert("Tidak ada soal pada modul ini."); return keluarKeBeranda(); }
+                bukuKuis = infoKuis || { id: targetId, judul: judulKuis, tipe_konten: dataBuku.tipe_konten };
+                if (infoKuis) document.getElementById('header-judul-kuis').textContent = infoKuis.judul;
+
+                currentQuizData = data; waktuMulaiKuis = Date.now();
+                siapkanKuis();
+            } catch(e) { console.error(e); await Dialog.alert("Gagal mengambil soal."); keluarKeBeranda(); }
         }
 
-        function renderSoalKeseluruhan() {
-            const container = document.getElementById('quiz-content'); dimGroups = {};
-            currentQuizData.forEach(q => { const dim = q.dimensi || 'Umum'; if(!dimGroups[dim]) dimGroups[dim] = []; dimGroups[dim].push(q); });
+        // ================= KUIS PER SOAL DENGAN NAVIGASI =================
+        const kuis = { urutan: [], jawaban: {}, idx: 0, terkirim: false };
+        const HURUF = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const kunciSimpanKuis = () => `jawabanKuis:${loggedInUser.id}:${idKuisAktif}`;
 
-            let htmlKuis = `<form id="form-evaluasi" onsubmit="event.preventDefault(); prosesKirimEvaluasi();">`;
-            let nomorGlobal = 1;
+        function siapkanKuis() {
+            // Kelompokkan per dimensi (urutan soal = urutan dimensi seperti sebelumnya)
+            dimGroups = {};
+            currentQuizData.forEach(q => { const dim = q.dimensi || 'Umum'; (dimGroups[dim] = dimGroups[dim] || []).push(q); });
+            kuis.urutan = Object.values(dimGroups).flat();
+            kuis.idx = 0;
+            try { kuis.jawaban = JSON.parse(sessionStorage.getItem(kunciSimpanKuis()) || '{}'); } catch (e) { kuis.jawaban = {}; }
+            // Mulai dari soal pertama yang belum dijawab (jika melanjutkan)
+            const belum = kuis.urutan.findIndex(q => !kuis.jawaban[q.id]);
+            if (belum > 0) kuis.idx = belum;
+            tampilSoal();
+        }
 
-            Object.keys(dimGroups).forEach((namaDimensi) => {
-                htmlKuis += `<div class="mb-8 border-2 border-slate-100 bg-white rounded-2xl shadow-sm overflow-hidden quiz-enter"><div class="bg-indigo-50 px-5 py-4 border-b border-indigo-100 flex items-center gap-3"><i class="fa-solid fa-tags text-indigo-500"></i><h3 class="font-black text-indigo-800 uppercase tracking-wide text-sm md:text-base">Dimensi: ${namaDimensi}</h3></div><div class="p-5 md:p-8 space-y-10">`;
-                dimGroups[namaDimensi].forEach(soal => {
-                    let htmlOpsi = '';
-                    if (soal.opsi_jawaban) {
-                        const keys = Object.keys(soal.opsi_jawaban); htmlOpsi = `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">`;
-                        keys.forEach(k => {
-                            const opt = soal.opsi_jawaban[k]; const teks = typeof opt === 'string' ? opt : opt.teks;
-                            const poinVal = typeof opt === 'string' ? (k === soal.jawaban_benar ? (soal.poin_reward||1) : 0) : parseInt(opt.poin || 0);
-                            htmlOpsi += `<label class="radio-card flex items-start gap-3 p-4 border-2 border-slate-100 rounded-xl cursor-pointer transition hover:bg-slate-50"><input type="radio" name="jawaban_${soal.id}" value="${k}" data-poin="${poinVal}" class="mt-1 w-4 h-4 accent-rose-600 shrink-0" required><span class="text-slate-600 font-medium text-sm leading-snug">${teks}</span></label>`;
-                        }); htmlOpsi += `</div>`;
-                    }
-                    htmlKuis += `<div><p class="font-bold text-slate-800 text-base md:text-lg leading-relaxed"><span class="text-rose-500 mr-2">${nomorGlobal}.</span>${soal.pertanyaan}</p>${htmlOpsi}</div>`;
-                    nomorGlobal++;
-                }); htmlKuis += `</div></div>`;
+        function opsiSoal(q) {
+            return Object.keys(q.opsi_jawaban || {}).map(k => {
+                const opt = q.opsi_jawaban[k];
+                return { kunci: k, teks: typeof opt === 'string' ? opt : opt.teks };
             });
+        }
 
-            htmlKuis += `</form>`; container.innerHTML = htmlKuis;
-            document.getElementById('quiz-footer').innerHTML = `<button type="submit" form="form-evaluasi" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-lg"><i class="fa-solid fa-paper-plane"></i> Kirim Jawaban Evaluasi</button>`;
+        function tampilSoal() {
+            const total = kuis.urutan.length, q = kuis.urutan[kuis.idx];
+            const dimensiBanyak = Object.keys(dimGroups).length > 1 || (q.dimensi && q.dimensi !== 'Umum');
+            document.getElementById('kuis-subjudul').textContent = `Soal ${kuis.idx + 1} dari ${total}` + (dimensiBanyak ? ` · ${q.dimensi || 'Umum'}` : '');
+
+            const pilihan = kuis.jawaban[q.id];
+            document.getElementById('kuis-kartu').innerHTML = `
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <span class="text-xs font-black uppercase tracking-widest text-[#1769b3] bg-[#e8f1fb] px-3 py-1.5 rounded-full">Soal ${kuis.idx + 1}</span>
+                    ${dimensiBanyak ? `<span class="text-[11px] font-bold text-slate-400 truncate">${escapeHtml(q.dimensi || 'Umum')}</span>` : ''}
+                </div>
+                <p class="font-bold text-slate-800 text-lg md:text-xl leading-relaxed mb-6">${escapeHtml(q.pertanyaan)}</p>
+                <div class="space-y-3" role="radiogroup">
+                    ${opsiSoal(q).map((o, i) => {
+                        const aktif = pilihan === o.kunci;
+                        return `<button type="button" role="radio" aria-checked="${aktif}" onclick="pilihJawaban('${q.id}', '${o.kunci}')"
+                            class="w-full text-left flex items-center gap-4 p-4 rounded-2xl border-2 transition ${aktif ? 'border-[#1769b3] bg-[#e8f1fb]' : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50'}">
+                            <span class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-black text-sm ${aktif ? 'bg-[#1769b3] text-white' : 'bg-slate-100 text-slate-500'}">${HURUF[i] || o.kunci}</span>
+                            <span class="font-semibold ${aktif ? 'text-[#0b1d3a]' : 'text-slate-600'} leading-snug">${escapeHtml(o.teks)}</span>
+                            ${aktif ? '<i class="fa-solid fa-circle-check text-[#1769b3] ml-auto text-lg"></i>' : ''}
+                        </button>`;
+                    }).join('')}
+                </div>`;
+
+            document.getElementById('kuis-prev').disabled = kuis.idx === 0;
+            const terakhir = kuis.idx === total - 1, btnNext = document.getElementById('kuis-next');
+            btnNext.innerHTML = terakhir ? '<i class="fa-solid fa-paper-plane"></i> Kirim Jawaban' : 'Berikutnya <i class="fa-solid fa-arrow-right"></i>';
+            btnNext.classList.toggle('!bg-emerald-600', terakhir);
+            perbaruiNavSoal();
+            document.getElementById('wadah-ujian').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function perbaruiNavSoal() {
+            const total = kuis.urutan.length, terjawab = kuis.urutan.filter(q => kuis.jawaban[q.id]).length;
+            document.getElementById('kuis-terjawab').textContent = `${terjawab}/${total} terjawab`;
+            document.getElementById('kuis-progres').style.width = (total ? terjawab / total * 100 : 0) + '%';
+            document.getElementById('kuis-nav').innerHTML = kuis.urutan.map((q, i) => {
+                const gaya = i === kuis.idx ? 'bg-[#1769b3] text-white border-[#1769b3] shadow-md'
+                    : kuis.jawaban[q.id] ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 text-slate-500 border-slate-200';
+                return `<button type="button" onclick="lompatSoal(${i})" class="aspect-square rounded-xl border text-sm font-black transition hover:scale-105 ${gaya}" aria-label="Soal ${i + 1}">${i + 1}</button>`;
+            }).join('');
+        }
+
+        function pilihJawaban(idSoal, kunci) {
+            kuis.jawaban[idSoal] = kunci;
+            try { sessionStorage.setItem(kunciSimpanKuis(), JSON.stringify(kuis.jawaban)); } catch (e) {}
+            tampilSoal();
+        }
+        function lompatSoal(i) { kuis.idx = i; tampilSoal(); if (window.innerWidth < 1024) toggleNavSoal(false); }
+        function pindahSoal(arah) {
+            if (arah > 0 && kuis.idx === kuis.urutan.length - 1) return kirimKuis();
+            kuis.idx = Math.max(0, Math.min(kuis.urutan.length - 1, kuis.idx + arah));
+            tampilSoal();
+        }
+        function toggleNavSoal(paksa) {
+            const w = document.getElementById('kuis-nav-wadah');
+            const buka = typeof paksa === 'boolean' ? paksa : w.classList.contains('hidden');
+            w.classList.toggle('hidden', !buka);
+            document.getElementById('kuis-nav-ikon').classList.toggle('rotate-180', buka);
+        }
+
+        async function keluarDariKuis() {
+            const adaJawaban = Object.keys(kuis.jawaban).length > 0;
+            const ok = await Dialog.confirm(adaJawaban
+                ? 'Jawabanmu belum dikirim. Jawaban yang sudah dipilih tetap tersimpan sementara di perangkat ini, jadi kamu bisa melanjutkannya nanti.'
+                : 'Keluar dari kuis dan kembali ke menu utama?', { judul: 'Keluar dari Kuis?', teksOk: 'Keluar', tipe: 'peringatan' });
+            if (ok) keluarKeBeranda();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (document.getElementById('wadah-ujian').classList.contains('hidden') || kuis.terkirim || document.querySelector('.sd-latar')) return;
+            if (e.key === 'ArrowRight') { e.preventDefault(); pindahSoal(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); pindahSoal(-1); }
+            else if (/^[1-6]$/.test(e.key) || /^[a-fA-F]$/.test(e.key)) {
+                const q = kuis.urutan[kuis.idx], o = opsiSoal(q)[/^\d$/.test(e.key) ? +e.key - 1 : HURUF.indexOf(e.key.toUpperCase())];
+                if (o) pilihJawaban(q.id, o.kunci);
+            }
+        });
+
+        async function kirimKuis() {
+            if (kuis.terkirim) return;
+            const belum = kuis.urutan.map((q, i) => kuis.jawaban[q.id] ? null : i + 1).filter(Boolean);
+            if (belum.length) {
+                await Dialog.alert(`Masih ada ${belum.length} soal yang belum dijawab: nomor ${belum.slice(0, 12).join(', ')}${belum.length > 12 ? ', ...' : ''}.`, { judul: 'Belum Lengkap', tipe: 'peringatan', teksOk: 'Ke Soal ' + belum[0] });
+                return lompatSoal(belum[0] - 1);
+            }
+            if (!(await Dialog.confirm('Setelah dikirim, jawaban tidak bisa diubah lagi.', { judul: 'Kirim Jawaban?', teksOk: 'Kirim Sekarang', teksBatal: 'Periksa Lagi', tipe: 'info' }))) return;
+            prosesKirimEvaluasi();
         }
 
         async function prosesKirimEvaluasi() {
-            const form = document.getElementById('form-evaluasi');
-            if(!form.checkValidity()) { form.reportValidity(); return; }
-            if(!confirm("Yakin ingin mengirim evaluasi?")) return;
+            const btn = document.getElementById('kuis-next'), btnSamping = document.getElementById('kuis-btn-kirim-samping');
+            [btn, btnSamping].forEach(b => { b.disabled = true; });
+            btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menyimpan...";
+            kuis.terkirim = true;
 
-            const btn = document.querySelector('#quiz-footer button'); btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Menyimpan...";
-
-            const formData = new FormData(form); let totalPoinDiDapat = 0; const payloadRiwayat = [];
+            const info = bukuKuis || dataBuku;
+            let totalPoinDiDapat = 0; const payloadRiwayat = [];
             const durasiKuisReal = Math.floor((Date.now() - waktuMulaiKuis) / 1000);
 
             Object.keys(dimGroups).forEach(namaDimensi => {
-                let skorDimensi = 0; let rekamanJawaban = {}; 
+                let skorDimensi = 0; const rekamanJawaban = {};
                 dimGroups[namaDimensi].forEach(q => {
-                    const jwbUser = formData.get(`jawaban_${q.id}`);
+                    const jwbUser = kuis.jawaban[q.id];
                     if (q.opsi_jawaban && q.opsi_jawaban[jwbUser]) {
-                        const opt = q.opsi_jawaban[jwbUser]; skorDimensi += (typeof opt === 'string' ? (jwbUser === q.jawaban_benar ? (q.poin_reward||1) : 0) : parseInt(opt.poin || 0));
-                        rekamanJawaban[q.id] = jwbUser; 
+                        const opt = q.opsi_jawaban[jwbUser];
+                        skorDimensi += (typeof opt === 'string' ? (jwbUser === q.jawaban_benar ? (q.poin_reward||1) : 0) : parseInt(opt.poin || 0));
+                        rekamanJawaban[q.id] = jwbUser;
                     }
                 });
                 totalPoinDiDapat += skorDimensi;
-                
                 payloadRiwayat.push({
                     id_user: loggedInUser.id, id_buku: idKuisAktif, poin_didapat: skorDimensi, durasi_baca_detik: durasiKuisReal,
-                    jenis_tes: dataBuku.tipe_konten === 'Evaluasi Global' ? `${dataBuku.judul} - ${namaDimensi}` : dataBuku.judul,
+                    jenis_tes: info.tipe_konten === 'Evaluasi Global' ? `${info.judul} - ${namaDimensi}` : info.judul,
                     dimensi: namaDimensi, detail_jawaban: rekamanJawaban
                 });
             });
 
             try {
-                // LOGIKA PRE-TEST: Jika judul mengandung "Pre-Test", jangan beri XP
-                const isPreTest = dataBuku.judul.toLowerCase().includes('pre-test') || dataBuku.judul.toLowerCase().includes('pre test');
+                // Pre-Test tidak memberi XP
+                const isPreTest = /pre[- ]?test/i.test(info.judul || '');
                 const xpYangDitambahkan = isPreTest ? 0 : totalPoinDiDapat;
 
-                if (xpYangDitambahkan > 0) {
-                    const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
-                    await supabaseClient.from('profiles').update({ total_poin: (profil.total_poin || 0) + xpYangDitambahkan }).eq('id', loggedInUser.id);
-                }
-                
+                // 1) Simpan riwayat DULU. XP hanya ditambahkan jika riwayat berhasil tersimpan,
+                //    agar tidak ada XP "yatim" tanpa catatan jawaban.
                 const { error: errRiwayat } = await supabaseClient.from('riwayat_kuis').insert(payloadRiwayat);
                 if (errRiwayat) throw errRiwayat;
 
-                document.getElementById('wadah-ujian').classList.add('hidden'); 
-                
-                // Tampilan Selesai berdasarkan tipe tes
-                let uiPoin = isPreTest 
-                    ? `<div class="bg-indigo-50 border border-indigo-200 px-6 py-4 rounded-xl mb-6"><span class="text-indigo-700 font-bold text-sm">Terima kasih! Tahap evaluasi awal telah selesai direkam.</span></div>`
-                    : `<div class="inline-block bg-rose-50 border border-rose-200 px-8 py-4 rounded-2xl mb-8 shadow-sm"><span class="text-rose-600 font-black text-xl">+ ${xpYangDitambahkan} XP!</span></div>`;
+                // 2) Tambah XP
+                if (xpYangDitambahkan > 0) {
+                    const { data: profil } = await supabaseClient.from('profiles').select('total_poin').eq('id', loggedInUser.id).single();
+                    await supabaseClient.from('profiles').update({ total_poin: ((profil && profil.total_poin) || 0) + xpYangDitambahkan }).eq('id', loggedInUser.id);
+                }
+                try { sessionStorage.removeItem(kunciSimpanKuis()); } catch (e) {}
 
-                const htmlSukses = `
-                    <div class="w-full h-full bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-6 absolute inset-0 z-50">
-                        <div class="text-center py-10 bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full quiz-enter border border-slate-200">
-                            <div class="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-trophy text-rose-500 text-5xl"></i></div>
-                            <h3 class="text-2xl font-black text-slate-800 mb-2">Penyelesaian Berhasil!</h3>
-                            <p class="text-slate-500 mb-6 text-sm">Respon Anda telah tercatat di dalam sistem.</p>
+                document.getElementById('wadah-ujian').classList.add('hidden');
+                const uiPoin = isPreTest
+                    ? `<div class="bg-[#e8f1fb] border border-[#1769b3]/20 px-6 py-4 rounded-xl mb-6"><span class="text-[#1769b3] font-bold text-sm">Terima kasih! Tahap evaluasi awal telah selesai direkam.</span></div>`
+                    : `<div class="inline-block bg-amber-50 border border-amber-200 px-8 py-4 rounded-2xl mb-8 shadow-sm"><span class="text-amber-600 font-black text-xl"><i class="fa-solid fa-star mr-1"></i> + ${xpYangDitambahkan} XP!</span></div>`;
+                document.body.insertAdjacentHTML('beforeend', `
+                    <div class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-6">
+                        <div class="text-center bg-white p-8 rounded-3xl shadow-xl max-w-sm w-full quiz-enter">
+                            <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6"><i class="fa-solid fa-trophy text-emerald-500 text-5xl"></i></div>
+                            <h3 class="text-2xl font-black text-slate-800 mb-2">Jawaban Terkirim!</h3>
+                            <p class="text-slate-500 mb-6 text-sm">Semua ${kuis.urutan.length} jawabanmu sudah tercatat.</p>
                             ${uiPoin}
-                            <button onclick="window.location.href='dashboard.html'" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition shadow-md"><i class="fa-solid fa-house mr-2"></i> Kembali ke Menu Utama</button>
+                            <button onclick="window.location.href='dashboard.html'" class="w-full bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold py-3.5 rounded-xl transition shadow-md"><i class="fa-solid fa-house mr-2"></i> Kembali ke Menu Utama</button>
                         </div>
-                    </div>`;
-                    
-                document.body.insertAdjacentHTML('beforeend', htmlSukses);
-            } catch (err) { alert("Gagal mengirim data: " + err.message); btn.disabled = false; btn.innerHTML = `Coba Kirim Ulang`; }
+                    </div>`);
+            } catch (err) {
+                kuis.terkirim = false;
+                [btn, btnSamping].forEach(b => { b.disabled = false; });
+                tampilSoal();
+                Dialog.alert("Gagal mengirim jawaban: " + err.message + "\n\nJawabanmu masih tersimpan, silakan coba kirim lagi.");
+            }
         }
 
         // =====================================================
@@ -648,7 +784,7 @@ if (!pdfBersih) {
         async function mulaiModeSlide() {
             document.getElementById('wadah-buku').classList.add('hidden');
             const { data, error } = await supabaseClient.from('slide').select('*').eq('id_buku', bookId).order('urutan', { ascending: true });
-            if (error || !data || !data.length) { alert('Modul slide ini belum memiliki isi.'); return keluarKeBeranda(); }
+            if (error || !data || !data.length) { await Dialog.alert('Modul slide ini belum memiliki isi.'); return keluarKeBeranda(); }
             sl.daftar = data;
             document.getElementById('wadah-slide').classList.remove('hidden');
             tampilSlide(0);

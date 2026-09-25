@@ -18,6 +18,7 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <link rel="stylesheet" href="app.css">
 
     <style>
@@ -73,6 +74,9 @@
 
                 <button onclick="bukaModalEdit()" class="relative z-10 w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-slate-200 shadow-sm mt-auto">
                     <i class="fa-solid fa-pen-to-square"></i> Edit Profil
+                </button>
+                <button onclick="prosesLogout()" class="relative z-10 w-full mt-2 bg-white hover:bg-rose-50 text-rose-600 font-bold py-2.5 rounded-xl transition flex items-center justify-center gap-2 text-sm border border-rose-100">
+                    <i class="fa-solid fa-power-off"></i> Keluar Akun
                 </button>
             </div>
 
@@ -134,8 +138,8 @@
         <div class="grid grid-cols-3 items-end h-16 max-w-md mx-auto">
             <a href="dashboard.html" class="nav-item app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-house text-lg"></i>Beranda</a>
             <div class="flex flex-col items-center">
-                <a href="dashboard.html" class="app-fab app-tap" aria-label="Kembali belajar"><img src="assets/logo-sirasa.svg" alt="" class="w-9 h-9 object-contain brightness-0 invert"></a>
-                <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Belajar</span>
+                <a href="dashboard.html#lanjut" class="app-fab app-tap" aria-label="Lanjutkan belajar"><img src="assets/logo-sirasa.svg" alt="" class="w-9 h-9 object-contain brightness-0 invert"></a>
+                <span class="text-[10px] font-bold text-[#1769b3] mt-0.5 pb-1.5">Lanjut</span>
             </div>
             <a href="profil.html" class="nav-item aktif app-tap flex flex-col items-center justify-center gap-1 pb-2 text-[11px] font-bold"><i class="fa-solid fa-chart-simple text-lg"></i>Rapor</a>
         </div>
@@ -267,6 +271,13 @@
         // ==========================================
         // FUNGSI MODAL EDIT PROFIL
         // ==========================================
+        async function prosesLogout() {
+            if (!(await Dialog.confirm('Yakin ingin keluar dari akun? Progres belajarmu tetap tersimpan.', { judul: 'Keluar Akun', teksOk: 'Ya, Keluar', tipe: 'peringatan' }))) return;
+            await supabaseClient.auth.signOut();
+            try { sessionStorage.removeItem('introSudahDilihat'); } catch (e) {}
+            window.location.href = 'index.html';
+        }
+
         function bukaModalEdit() {
             document.getElementById('modalEditProfil').classList.remove('hidden');
         }
@@ -287,8 +298,8 @@
             const tanggalLahir = document.getElementById('input-tgl').value || null;
             const gender = document.getElementById('input-gender').value;
 
-            if(!nama) return alert("Nama tidak boleh kosong!");
-            if(!sekolah || !kelas) return alert("Sekolah dan kelas wajib dipilih!");
+            if(!nama) return Dialog.alert("Nama tidak boleh kosong!");
+            if(!sekolah || !kelas) return Dialog.alert("Sekolah dan kelas wajib dipilih!");
 
             btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
             try {
@@ -297,7 +308,7 @@
                 loadDataProfil(); 
                 tutupModalEdit(); // Modal otomatis tertutup saat sukses
             } catch(e) {
-                alert("Gagal memperbarui profil.");
+                Dialog.alert("Gagal memperbarui profil.");
             } finally {
                 btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-save"></i> Simpan`;
             }
@@ -328,9 +339,12 @@
                     totalSkor += (r.poin_didapat || 0);
                 });
 
-                document.getElementById('stat-tes').innerText = riwayat.length;
+                // Catatan "Membaca Modul ..." adalah aktivitas baca, bukan tes
+                const riwayatTes = riwayat.filter(r => !String(r.jenis_tes || '').startsWith('Membaca Modul'));
+                const skorTes = riwayatTes.reduce((a, r) => a + (r.poin_didapat || 0), 0);
+                document.getElementById('stat-tes').innerText = new Set(riwayatTes.map(r => r.id_buku)).size;
                 document.getElementById('stat-waktu').innerText = Math.round(totalDurasiDetik / 60) + 'm';
-                document.getElementById('stat-akurasi').innerText = Math.round(totalSkor / riwayat.length);
+                document.getElementById('stat-akurasi').innerText = riwayatTes.length ? Math.round(skorTes / riwayatTes.length) : 0;
 
 
                 // --- 2. Data Tren N-Gain (EKSKLUSIF UNTUK PRE-TEST VS POST-TEST) ---
