@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <script src="admin-auth.js"></script>
     <script>const adminSiap = AdminAuth.requireAdmin();</script>
     
@@ -546,7 +547,7 @@
         }
 
         function exportMasterExcel() { 
-            if(!globalMasterExportData.length) return alert("Tidak ada data untuk diekspor!"); 
+            if(!globalMasterExportData.length) return Dialog.alert("Tidak ada data untuk diekspor!"); 
             const ws = XLSX.utils.json_to_sheet(globalMasterExportData); 
             const wb = XLSX.utils.book_new(); 
             XLSX.utils.book_append_sheet(wb, ws, "SPSS_Master_Data"); 

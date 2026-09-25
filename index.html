@@ -11,13 +11,14 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" href="assets/icon-192.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-    <title>SIRASA - Edukasi Pencegahan HIV/AIDS</title>
+    <title>SIRASA - Kenali HIV, Lindungi Diri, Rangkul Sesama</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <link rel="stylesheet" href="app.css">
 
     <style>
@@ -44,26 +45,29 @@
             <button onclick="bukaModalAuth('login')" class="app-tap mt-3 text-xs font-bold bg-white/10 border border-white/20 backdrop-blur px-4 py-2 rounded-full">Masuk</button>
         </div>
 
-        <div class="relative z-10 flex-1 flex items-end justify-center px-6 pt-4 min-h-[220px]">
-            <div class="absolute bottom-6 w-60 h-60 rounded-full bg-white/10 border border-white/10"></div>
-            <img src="assets/hero-mobile.png" alt="Ilustrasi belajar" class="relative w-52 max-h-[38vh] object-contain object-bottom drop-shadow-2xl -mb-1">
-            <div class="absolute left-5 bottom-16 bg-white text-slate-800 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2 text-xs font-bold animate-float"><span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-star"></i></span>+50 XP</div>
-            <div class="absolute right-5 bottom-28 bg-white text-slate-800 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2 text-xs font-bold animate-float" style="animation-delay:1.5s"><span class="w-7 h-7 rounded-lg bg-[#e8f1fb] text-[#1769b3] flex items-center justify-center"><i class="fa-solid fa-book-open"></i></span>Modul 3D</div>
+        <div class="relative z-10 flex-1 flex items-end justify-center px-6 pt-4 min-h-[240px]" aria-hidden="true">
+            <div class="absolute bottom-3 w-64 h-64 rounded-full bg-gradient-to-b from-white/15 to-white/5 border border-white/10"></div>
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Woman%20student/Medium/3D/woman_student_3d_medium.png" alt="" class="relative w-48 max-h-[34vh] object-contain drop-shadow-2xl -mb-1">
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Red%20heart/3D/red_heart_3d.png" alt="" class="absolute left-7 top-6 w-14 -rotate-12 animate-float drop-shadow-xl">
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Speaker%20high%20volume/3D/speaker_high_volume_3d.png" alt="" class="absolute right-7 top-10 w-12 rotate-6 animate-float drop-shadow-xl" style="animation-delay:1.2s">
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Books/3D/books_3d.png" alt="" class="absolute left-4 bottom-8 w-16 animate-float drop-shadow-xl" style="animation-delay:.6s">
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Trophy/3D/trophy_3d.png" alt="" class="absolute right-5 bottom-10 w-14 animate-float drop-shadow-xl" style="animation-delay:1.8s">
+            <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Star/3D/star_3d.png" alt="" class="absolute right-24 top-1 w-8 animate-float" style="animation-delay:2.4s">
         </div>
 
         <div class="relative z-10 bg-white text-slate-800 rounded-t-[2rem] px-6 pt-7 pb-8 app-safe-bottom shadow-[0_-10px_30px_rgba(0,0,0,.15)]">
-            <span class="inline-flex items-center gap-2 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full"><i class="fa-solid fa-ribbon"></i> Edukasi Pencegahan HIV/AIDS</span>
-            <h1 class="text-[1.65rem] font-black leading-tight mt-3 tracking-tight">Kenali Virusnya, Jauhi Penyakitnya, <span class="text-[#1769b3]">Jadilah Agen Peduli!</span></h1>
-            <p class="text-sm text-slate-500 mt-2 leading-relaxed">Kerjakan Pre-Test, baca modul interaktif, dan kumpulkan XP untuk jadi yang teratas.</p>
+            <span class="inline-flex items-center gap-2 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full"><i class="fa-solid fa-ribbon"></i> Edukasi HIV/AIDS untuk Pelajar</span>
+            <h1 class="text-[1.75rem] font-black leading-tight mt-3 tracking-tight">Kenali HIV, Lindungi Diri, <span class="text-[#1769b3]">Rangkul Sesama.</span></h1>
+            <p class="text-sm text-slate-500 mt-2 leading-relaxed">Materi singkat bergambar dan bersuara, kuis seru, dan papan peringkat bareng teman sekolahmu. Belajar kesehatan jadi seru, bukan canggung.</p>
 
             <div class="grid grid-cols-3 gap-3 my-6 text-center">
-                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-book-open-reader"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Modul 3D</p></div>
-                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-clipboard-check"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Kuis &amp; XP</p></div>
-                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-chart-line"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Rapor</p></div>
+                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-headphones"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Materi Bersuara</p></div>
+                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-trophy"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Kuis &amp; XP</p></div>
+                <div><div class="app-tile-ikon mx-auto !w-12 !h-12 !text-lg"><i class="fa-solid fa-chart-line"></i></div><p class="text-[11px] font-bold text-slate-600 mt-1.5">Rapor Pribadi</p></div>
             </div>
 
             <button onclick="bukaModalAuth('login')" class="app-tap w-full bg-[#1769b3] text-white font-bold py-4 rounded-2xl shadow-lg shadow-sky-900/20 flex items-center justify-center gap-2">Masuk ke Akun <i class="fa-solid fa-arrow-right"></i></button>
-            <button onclick="bukaModalAuth('daftar')" class="app-tap w-full mt-3 bg-[#e8f1fb] text-[#1769b3] font-bold py-4 rounded-2xl">Buat Akun Baru</button>
+            <button onclick="bukaModalAuth('daftar')" class="app-tap w-full mt-3 bg-[#e8f1fb] text-[#1769b3] font-bold py-4 rounded-2xl">Belum punya akun? Daftar Gratis</button>
         </div>
     </div>
 
@@ -72,84 +76,101 @@
     <nav class="glass-nav px-6 md:px-10 py-4 flex justify-between items-center sticky top-0 z-40">
         <div class="flex items-center gap-6">
             <div class="flex items-center gap-3 cursor-pointer group" onclick="window.location.reload()">
-                <div class="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-700 text-white rounded-full flex items-center justify-center text-xl shadow-md group-hover:rotate-12 transition-all duration-300">
-                    <i class="fa-solid fa-ribbon"></i>
+                <div class="w-11 h-11 bg-white rounded-xl p-1 shadow-md border border-slate-100 group-hover:-rotate-6 transition-all duration-300">
+                    <img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain">
                 </div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight font-sans">SI<span class="text-teal-600">RASA</span></h1>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight font-sans">SI<span class="text-[#1769b3]">RASA</span></h1>
             </div>
         </div>
         <div>
-            <button onclick="bukaModalAuth()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2.5 rounded-full font-bold transition-all duration-300 flex items-center gap-2 shadow-lg shadow-slate-900/20 hover:-translate-y-0.5">
-                <i class="fa-solid fa-user-astronaut"></i> Ruang Agen
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="bukaModalAuth('login')" class="text-slate-600 hover:text-[#1769b3] px-4 py-2.5 rounded-full font-bold transition">Masuk</button>
+                <button onclick="bukaModalAuth('daftar')" class="bg-[#1769b3] hover:bg-[#135a9a] text-white px-6 py-2.5 rounded-full font-bold transition-all duration-300 flex items-center gap-2 shadow-lg shadow-sky-900/20 hover:-translate-y-0.5">Daftar Gratis</button>
+            </div>
         </div>
     </nav>
 
-    <div class="relative bg-slate-50 overflow-hidden">
-        <!-- Dekorasi Background Baru -->
-        <div class="absolute inset-0 z-0 opacity-[0.03]" style="background-image: linear-gradient(#0f172a 1px, transparent 1px), linear-gradient(90deg, #0f172a 1px, transparent 1px); background-size: 40px 40px;"></div>
-        <div class="absolute -top-20 -right-20 w-96 h-96 bg-sky-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-duration: 10s;"></div>
-        <div class="absolute top-40 -left-20 w-80 h-80 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style="animation-duration: 8s; animation-delay: 2s;"></div>
+    <div class="relative bg-gradient-to-b from-[#f4f8fd] to-white overflow-hidden">
+        <div class="absolute inset-0 z-0 opacity-[0.035]" style="background-image: radial-gradient(#0b1d3a 1px, transparent 1px); background-size: 26px 26px;"></div>
+        <div class="absolute -top-32 -right-24 w-[32rem] h-[32rem] bg-sky-200 rounded-full filter blur-3xl opacity-40"></div>
+        <div class="absolute top-56 -left-32 w-96 h-96 bg-rose-100 rounded-full filter blur-3xl opacity-50"></div>
 
-        <div class="max-w-[1300px] mx-auto px-6 py-20 md:py-32 relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
-            <div class="flex-1 w-full text-center md:text-left">
-                <div class="inline-flex items-center gap-2 bg-white text-teal-700 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-teal-100 mb-6 shadow-sm">
-                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span></span>
-                    Modul Interaktif 3D
+        <div class="max-w-[1240px] mx-auto px-8 py-16 lg:py-24 relative z-10 grid md:grid-cols-2 items-center gap-12">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-white text-rose-600 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full border border-rose-100 mb-6 shadow-sm">
+                    <i class="fa-solid fa-ribbon"></i> Edukasi HIV/AIDS untuk Pelajar
                 </div>
-                <h2 class="text-4xl md:text-6xl font-black mb-6 leading-tight tracking-tight text-slate-800">
-                    Kenali Virusnya,<br>Jauhi Penyakitnya,<br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-sky-500">Jadilah Agen Peduli!</span>
+                <h2 class="text-5xl lg:text-6xl font-black mb-6 leading-[1.08] tracking-tight text-[#0b1d3a]">
+                    Kenali HIV,<br>Lindungi Diri,<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#1769b3] to-sky-500">Rangkul Sesama.</span>
                 </h2>
-                <p class="text-slate-500 text-base md:text-lg max-w-xl mx-auto md:mx-0 mb-10 leading-relaxed font-medium">
-                    Platform edukasi pencegahan HIV/AIDS terpadu. Taklukkan tantangan Pre-Test, baca modul interaktif, dan buktikan wawasanmu untuk meraih skor tertinggi!
-                </p>
-                <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-4">
-                    <button onclick="bukaModalAuth()" class="bg-teal-600 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-teal-600/30 transition-all hover:-translate-y-1 hover:bg-teal-700 flex items-center justify-center gap-2">
-                        Mulai Misi Sekarang <i class="fa-solid fa-arrow-right"></i>
+                <p class="text-slate-500 text-lg max-w-xl mb-9 leading-relaxed font-medium">Materi singkat bergambar dan bersuara, kuis seru, dan papan peringkat bareng teman sekolahmu. Belajar kesehatan jadi seru, bukan canggung.</p>
+                <div class="flex flex-wrap gap-4 items-center">
+                    <button onclick="bukaModalAuth('daftar')" class="bg-[#1769b3] text-white font-bold px-8 py-4 rounded-2xl shadow-lg shadow-sky-900/20 transition-all hover:-translate-y-1 hover:bg-[#135a9a] flex items-center gap-2">
+                        Mulai Belajar Sekarang <i class="fa-solid fa-arrow-right"></i>
                     </button>
+                    <button onclick="bukaModalAuth('login')" class="font-bold px-6 py-4 rounded-2xl text-[#1769b3] bg-white border border-[#1769b3]/15 hover:bg-[#e8f1fb] transition">Saya sudah punya akun</button>
+                </div>
+                <div class="flex flex-wrap gap-x-6 gap-y-2 mt-9 text-sm font-semibold text-slate-500">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Gratis untuk pelajar</span>
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Bisa dari HP</span>
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Materi bersuara</span>
                 </div>
             </div>
-            
-            <div class="flex-1 w-full relative hidden md:block">
-                <!-- Background Blob Image Baru -->
-                <div class="absolute inset-0 bg-gradient-to-tr from-teal-100 to-sky-50 rounded-full scale-90 blur-xl opacity-70"></div>
-                <img src="assets/hero.png" loading="lazy" alt="Ilustrasi Belajar" class="relative z-10 w-full max-w-lg mx-auto animate-float drop-shadow-xl object-contain">
+
+            <!-- Adegan ilustrasi 3D -->
+            <div class="relative h-[480px] lg:h-[540px]" aria-hidden="true">
+                <div class="absolute inset-x-8 bottom-6 top-10 rounded-full bg-gradient-to-br from-[#dbeafb] via-white to-[#fde7ec] border border-white shadow-inner"></div>
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Man%20student/Medium/3D/man_student_3d_medium.png" alt="" class="absolute left-[10%] bottom-10 w-56 lg:w-60 drop-shadow-2xl animate-float" style="animation-delay:.9s">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Woman%20student/Medium/3D/woman_student_3d_medium.png" alt="" class="absolute right-[10%] bottom-8 w-64 lg:w-72 drop-shadow-2xl animate-float">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Red%20heart/3D/red_heart_3d.png" alt="" class="absolute left-[44%] top-4 w-24 -rotate-6 drop-shadow-xl animate-float" style="animation-delay:.4s">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Speaker%20high%20volume/3D/speaker_high_volume_3d.png" alt="" class="absolute left-2 top-20 w-16 -rotate-12 drop-shadow-xl animate-float" style="animation-delay:1.6s">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Trophy/3D/trophy_3d.png" alt="" class="absolute right-2 top-16 w-20 rotate-6 drop-shadow-xl animate-float" style="animation-delay:2.2s">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Books/3D/books_3d.png" alt="" class="absolute left-[40%] bottom-0 w-24 drop-shadow-xl animate-float" style="animation-delay:1.1s">
+                <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Star/3D/star_3d.png" alt="" class="absolute right-[30%] top-2 w-10 animate-float" style="animation-delay:2.8s">
+                <div class="absolute left-0 bottom-28 bg-white rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float" style="animation-delay:.2s">
+                    <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-star"></i></span>
+                    <div><p class="text-[11px] font-bold text-slate-400 leading-none">Kuis selesai</p><p class="text-sm font-black text-slate-800">+50 XP</p></div>
+                </div>
+                <div class="absolute right-0 bottom-32 bg-white rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 animate-float" style="animation-delay:1.4s">
+                    <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                    <div><p class="text-[11px] font-bold text-slate-400 leading-none">Post-Test</p><p class="text-sm font-black text-slate-800">Makin paham!</p></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <section class="bg-white border-y border-slate-100 py-20 md:py-28 relative z-20">
-        <div class="max-w-[1200px] mx-auto px-6">
-            <h2 class="text-3xl md:text-4xl font-black text-center text-slate-800 mb-16 tracking-tight">Kenapa Harus <span class="text-teal-600">SIRASA?</span></h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-teal-200 transition-colors group">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-teal-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-book-open-reader text-xl"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">Visual 3D Interaktif</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Pengalaman membaca materi dengan teknologi flipbook 3D yang nyata dan tidak membosankan.</p>
+    <section class="bg-white border-t border-slate-100 py-20 lg:py-24 relative z-20">
+        <div class="max-w-[1200px] mx-auto px-8">
+            <p class="text-center text-xs font-black uppercase tracking-[.2em] text-rose-500 mb-3">Kenapa SIRASA?</p>
+            <h2 class="text-3xl lg:text-4xl font-black text-center text-[#0b1d3a] mb-14 tracking-tight">Belajar dengan Cara yang <span class="text-[#1769b3]">Kamu Suka</span></h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-[#f4f8fd] p-6 rounded-3xl border border-[#1769b3]/5 hover:-translate-y-1 hover:shadow-lg transition">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Speaker%20high%20volume/3D/speaker_high_volume_3d.png" alt="" class="w-14 h-14 mb-4 drop-shadow">
+                    <h3 class="text-lg font-black text-slate-800 mb-2">Materi Bergambar &amp; Bersuara</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Setiap materi disajikan per slide, lengkap dengan narasi suara. Tinggal dengarkan, seperti menonton video.</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-sky-200 transition-colors group">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-sky-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-ranking-star text-xl"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">Sistem Gamifikasi</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Kumpulkan Experience Points (XP) dari kuis dan rebut posisi teratas di papan peringkat global.</p>
+                <div class="bg-[#f4f8fd] p-6 rounded-3xl border border-[#1769b3]/5 hover:-translate-y-1 hover:shadow-lg transition">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Trophy/3D/trophy_3d.png" alt="" class="w-14 h-14 mb-4 drop-shadow">
+                    <h3 class="text-lg font-black text-slate-800 mb-2">Kuis Seru, Kumpulkan XP</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Jawab kuis, raih XP, dan bersaing sehat di papan peringkat bersama teman sekolahmu.</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-clipboard-check text-xl"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">Uji Evaluasi Akurat</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Dilengkapi dengan instrumen Pre-Test dan Post-Test yang terstandarisasi untuk mengukur pemahaman.</p>
+                <div class="bg-[#f4f8fd] p-6 rounded-3xl border border-[#1769b3]/5 hover:-translate-y-1 hover:shadow-lg transition">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Light%20bulb/3D/light_bulb_3d.png" alt="" class="w-14 h-14 mb-4 drop-shadow">
+                    <h3 class="text-lg font-black text-slate-800 mb-2">Pre-Test &amp; Post-Test</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Lihat sendiri seberapa jauh pemahamanmu berkembang, sebelum dan sesudah belajar.</p>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 hover:border-amber-200 transition-colors group">
-                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-amber-500 mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-chart-line text-xl"></i></div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">Rapor Personal</h3>
-                    <p class="text-slate-500 text-sm leading-relaxed">Pantau grafik pertumbuhan wawasan Anda secara langsung melalui Dasbor Analitik pengguna.</p>
+                <div class="bg-[#f4f8fd] p-6 rounded-3xl border border-[#1769b3]/5 hover:-translate-y-1 hover:shadow-lg transition">
+                    <img src="https://cdn.jsdelivr.net/gh/microsoft/fluentui-emoji@1ffb34c752ecf5d402f04cfb4b392c77f57c54bc/assets/Graduation%20cap/3D/graduation_cap_3d.png" alt="" class="w-14 h-14 mb-4 drop-shadow">
+                    <h3 class="text-lg font-black text-slate-800 mb-2">Rapor Pribadi</h3>
+                    <p class="text-slate-500 text-sm leading-relaxed">Pantau waktu belajar, skor, dan progresmu kapan saja dalam satu halaman.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-slate-900 py-8 text-center mt-auto">
-        <p class="text-slate-400 text-sm font-medium">© 2026 SIRASA. Dibangun untuk mengedukasi generasi peduli kesehatan.</p>
+    <footer class="bg-[#0b1d3a] py-8 text-center mt-auto">
+        <p class="text-slate-400 text-sm font-medium">© 2026 SIRASA · Pelajar paham, pelajar peduli.</p>
+        <p class="text-slate-500 text-[11px] mt-2">Ilustrasi 3D: Microsoft Fluent Emoji (lisensi MIT)</p>
     </footer>
     </div>
 
@@ -320,14 +341,14 @@
 
         async function prosesLogin() { 
             const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; const btn = document.getElementById('btn-login'); 
-            if(!email || !password) return alert("Isi email & password!"); 
+            if(!email || !password) return Dialog.alert("Isi email & password!"); 
             btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memverifikasi..."; 
             try { 
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password }); 
                 if (error) throw error; 
                 window.location.reload(); 
             } catch (e) { 
-                alert("Gagal Masuk: Email atau kata sandi salah."); 
+                Dialog.alert("Gagal Masuk: Email atau kata sandi salah."); 
                 btn.disabled = false; btn.innerHTML = `Masuk Sekarang`; 
             } 
         }
@@ -337,10 +358,10 @@
             const email = val('reg-email'), password = document.getElementById('reg-password').value, nama = val('reg-nama');
             const gender = val('reg-gender'), tanggalLahir = val('reg-tgl'), sekolah = val('reg-sekolah'), kelas = val('reg-kelas');
             const btn = document.getElementById('btn-daftar'); 
-            if (!email || !password || !nama || !tanggalLahir || !sekolah || !kelas) return alert("Mohon lengkapi semua kolom: nama, tanggal lahir, sekolah, kelas, email, dan kata sandi.");
-            if (password.length < 6) return alert("Kata sandi minimal 6 karakter.");
+            if (!email || !password || !nama || !tanggalLahir || !sekolah || !kelas) return Dialog.alert("Mohon lengkapi semua kolom: nama, tanggal lahir, sekolah, kelas, email, dan kata sandi.");
+            if (password.length < 6) return Dialog.alert("Kata sandi minimal 6 karakter.");
             const umur = hitungUmurDari(tanggalLahir);
-            if (umur === null || umur < 5 || umur > 100) return alert("Tanggal lahir tidak valid.");
+            if (umur === null || umur < 5 || umur > 100) return Dialog.alert("Tanggal lahir tidak valid.");
 
             const dataProfil = { nama_lengkap: nama, jenis_kelamin: gender, tanggal_lahir: tanggalLahir, sekolah, kelas };
             btn.disabled = true; btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Memproses..."; 
@@ -352,10 +373,10 @@
                     // Cadangan bila trigger belum diperbarui: simpan langsung (hanya bisa saat sudah punya sesi).
                     await supabaseClient.from('profiles').upsert([{ id: data.user.id, ...dataProfil }]); 
                 } 
-                alert(data.session ? "Pendaftaran Berhasil! Silakan masuk." : "Pendaftaran Berhasil! Jika diminta, buka email Anda untuk konfirmasi akun, lalu masuk."); 
+                Dialog.alert(data.session ? "Pendaftaran Berhasil! Silakan masuk." : "Pendaftaran Berhasil! Jika diminta, buka email Anda untuk konfirmasi akun, lalu masuk."); 
                 switchTabAuth('login'); document.getElementById('login-email').value = email; 
             } catch (e) { 
-                alert("Gagal mendaftar: " + e.message); 
+                Dialog.alert("Gagal mendaftar: " + e.message); 
             } finally { 
                 btn.disabled = false; btn.innerHTML = "Daftar Akun Baru"; 
             } 

@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <script src="admin-auth.js"></script>
     <link rel="stylesheet" href="slide.css">
     <script src="slide-render.js"></script>
@@ -444,20 +445,20 @@
             
             // Jika ada error dari response API
             if (result.error || result.code) {
-                alert("Data profil tersimpan, namun Gagal ubah kredensial: " + (result.msg || result.message || "Error Supabase"));
+                Dialog.alert("Data profil tersimpan, namun Gagal ubah kredensial: " + (result.msg || result.message || "Error Supabase"));
             }
         }
 
         tutupModal('modalDetailUser'); 
         fetchPengguna(); 
     } catch (err) {
-        alert("Terjadi kesalahan: " + err.message);
+        Dialog.alert("Terjadi kesalahan: " + err.message);
     } finally {
         btn.innerHTML = teksAsli;
         btn.disabled = false;
     }
 }
-        async function hapusUser(id) { if(confirm("Hapus pengguna ini beserta datanya?")) { await supabaseClient.from('profiles').delete().eq('id', id); fetchPengguna(); } }
+        async function hapusUser(id) { if(await Dialog.confirm("Hapus responden ini beserta datanya? Tindakan ini tidak bisa dibatalkan.", { judul: "Hapus Responden", teksOk: "Hapus", tipe: "bahaya" })) { await supabaseClient.from('profiles').delete().eq('id', id); fetchPengguna(); } }
 
         // ===================================
         // 2. MANAJEMEN PENGATURAN INTRO SYSTEM (FITUR BARU)
@@ -532,7 +533,7 @@
                 });
             }
             await supabaseClient.from('buku').update({ deskripsi: JSON.stringify(slides) }).eq('id', introSlideId);
-            alert("✅ Pengaturan Slide Intro berhasil diperbarui!");
+            Dialog.alert("✅ Pengaturan Slide Intro berhasil diperbarui!");
         }
 
         // ===================================
@@ -596,7 +597,7 @@
             const fileInput = document.getElementById('filePdf'); 
             const sinkron = document.getElementById('kuisTerkait').value;
             
-            if(!judul) return alert("Judul wajib diisi!"); 
+            if(!judul) return Dialog.alert("Judul wajib diisi!"); 
             const btn = document.getElementById('btnUpload');
             document.getElementById('statusUpload').classList.remove('hidden'); 
             document.getElementById('statusUpload').innerText = "Memproses Upload...";
@@ -643,7 +644,7 @@
                 }
                 window.location.reload();
             } catch (err) { 
-                alert(err.message); btn.disabled = false; document.getElementById('statusUpload').innerText = "Gagal Upload!";
+                Dialog.alert(err.message); btn.disabled = false; document.getElementById('statusUpload').innerText = "Gagal Upload!";
             }
         }
 
@@ -673,18 +674,18 @@
                     payload.file_url = supabaseClient.storage.from('pdf-buku').getPublicUrl(fn + ".pdf").data.publicUrl;
                 }
                 await supabaseClient.from('buku').update(payload).eq('id', id); window.location.reload();
-            } catch (err) { alert("Gagal: " + err.message); btn.innerHTML = "Simpan Perubahan"; btn.disabled = false; }
+            } catch (err) { Dialog.alert("Gagal: " + err.message); btn.innerHTML = "Simpan Perubahan"; btn.disabled = false; }
         }
 
-        async function hapusModul(id) { if(confirm("Hapus?")) { await supabaseClient.from('buku').delete().eq('id', id); window.location.reload(); } }
+        async function hapusModul(id) { if(await Dialog.confirm("Hapus modul ini beserta isinya (slide/soal terkait)? Tindakan ini tidak bisa dibatalkan.", { judul: "Hapus Modul", teksOk: "Hapus", tipe: "bahaya" })) { await supabaseClient.from('buku').delete().eq('id', id); window.location.reload(); } }
 
         // ===================================
         // 4. MANAJEMEN KUIS & SPPS (SAMA SEPERTI SEBELUMNYA)
         // ===================================
         function bukaModalKuisTambah() { document.getElementById('modalTambahKuis').classList.remove('hidden'); renderDynamicOptions(); }
         function renderDynamicOptions() { const j=document.getElementById('formKuisJumlahOpsi').value; const w=document.getElementById('wadahDynamicOptions'); w.innerHTML=''; for(let i=0;i<j;i++){ w.innerHTML+=`<div class="flex gap-2 mb-2"><span class="w-8 bg-slate-200 text-center font-bold p-2">${LABELS[i]}</span><input type="text" id="opt_${LABELS[i]}" class="w-full p-2 border" placeholder="Teks"><input type="number" id="poin_${LABELS[i]}" class="w-20 p-2 border" value="${i===0?1:0}"></div>`; } }
-        function tambahKeDraft() { const p=document.getElementById('formKuisPertanyaan').value, d=document.getElementById('formKuisDimensi').value, j=document.getElementById('formKuisJumlahOpsi').value; if(!p)return alert("Isi soal!"); let opsi={}, maxP=0, jwb='A'; for(let i=0;i<j;i++){ let t=document.getElementById(`opt_${LABELS[i]}`).value, po=parseInt(document.getElementById(`poin_${LABELS[i]}`).value); opsi[LABELS[i]]={teks:t, poin:po}; if(po>maxP){maxP=po; jwb=LABELS[i];} } draftKuisArray.push({pertanyaan:p, opsi_jawaban:opsi, jawaban_benar:jwb, poin_reward:maxP, dimensi:d, jenis_kuis:'Pilihan Ganda'}); document.getElementById('draftCount').innerText=draftKuisArray.length; document.getElementById('draftList').innerHTML+=`<p class="truncate border-b py-1">${esc(p)}</p>`; document.getElementById('formKuisPertanyaan').value=''; }
-        async function simpanKuisKeDatabase() { const b=document.getElementById('formKuisBuku').value; if(!b)return alert("Pilih wadah"); await supabaseClient.from('kuis').insert(draftKuisArray.map(s=>({...s, id_buku:b}))); window.location.reload(); }
+        function tambahKeDraft() { const p=document.getElementById('formKuisPertanyaan').value, d=document.getElementById('formKuisDimensi').value, j=document.getElementById('formKuisJumlahOpsi').value; if(!p)return Dialog.alert("Isi soal!"); let opsi={}, maxP=0, jwb='A'; for(let i=0;i<j;i++){ let t=document.getElementById(`opt_${LABELS[i]}`).value, po=parseInt(document.getElementById(`poin_${LABELS[i]}`).value); opsi[LABELS[i]]={teks:t, poin:po}; if(po>maxP){maxP=po; jwb=LABELS[i];} } draftKuisArray.push({pertanyaan:p, opsi_jawaban:opsi, jawaban_benar:jwb, poin_reward:maxP, dimensi:d, jenis_kuis:'Pilihan Ganda'}); document.getElementById('draftCount').innerText=draftKuisArray.length; document.getElementById('draftList').innerHTML+=`<p class="truncate border-b py-1">${esc(p)}</p>`; document.getElementById('formKuisPertanyaan').value=''; }
+        async function simpanKuisKeDatabase() { const b=document.getElementById('formKuisBuku').value; if(!b)return Dialog.alert("Pilih wadah"); await supabaseClient.from('kuis').insert(draftKuisArray.map(s=>({...s, id_buku:b}))); window.location.reload(); }
         
         async function fetchDaftarKuis() {
             const {data} = await supabaseClient.from('kuis').select('id_buku'); let m={}; if(data) data.forEach(q => m[q.id_buku]=(m[q.id_buku]||0)+1);
@@ -696,8 +697,8 @@
         let currentEditSoalOpsi = null; 
         function bukaModalEditSoal(qStr) { const q = JSON.parse(decodeURIComponent(qStr)); document.getElementById('edit-soal-id').value = q.id; document.getElementById('edit-soal-dimensi').value = q.dimensi || 'Umum'; document.getElementById('edit-soal-teks').value = q.pertanyaan; currentEditSoalOpsi = q.opsi_jawaban || {}; document.getElementById('edit-soal-jumlah-opsi').value = Object.keys(currentEditSoalOpsi).length || 3; renderEditDynamicOptions(q.jawaban_benar); document.getElementById('modalEditSoal').classList.remove('hidden'); }
         function renderEditDynamicOptions(kunciJawabanAsli = 'A') { const j = document.getElementById('edit-soal-jumlah-opsi').value; const w = document.getElementById('edit-wadahDynamicOptions'); w.innerHTML = ''; for(let i=0; i<j; i++) { const abjad = LABELS[i]; let teks = ''; let poin = 0; if (currentEditSoalOpsi && currentEditSoalOpsi[abjad]) { const opt = currentEditSoalOpsi[abjad]; teks = typeof opt === 'string' ? opt : opt.teks; poin = typeof opt === 'string' ? (abjad === kunciJawabanAsli ? 10 : 0) : parseInt(opt.poin || 0); } else if (i === 0) { poin = 1; } w.innerHTML += `<div class="flex gap-2 mb-2"><span class="w-8 bg-slate-200 text-center font-bold p-2">${abjad}</span><input type="text" id="edit-opt_${abjad}" class="w-full p-2 border rounded" placeholder="Teks opsi" value="${esc(teks)}"><input type="number" id="edit-poin_${abjad}" class="w-20 p-2 border rounded" value="${poin}"></div>`; } }
-        async function simpanEditSoal() { const id = document.getElementById('edit-soal-id').value; const p = document.getElementById('edit-soal-teks').value; const d = document.getElementById('edit-soal-dimensi').value; const j = document.getElementById('edit-soal-jumlah-opsi').value; if(!p) return alert("Kosong!"); let opsi = {}; let maxP=0; let jwb='A'; for(let i=0; i<j; i++) { const t = document.getElementById(`edit-opt_${LABELS[i]}`).value; const po = parseInt(document.getElementById(`edit-poin_${LABELS[i]}`).value); if(!t) return alert(`Teks opsi ${LABELS[i]} kosong!`); opsi[LABELS[i]] = {teks: t, poin: po}; if(po > maxP) { maxP=po; jwb=LABELS[i]; } } await supabaseClient.from('kuis').update({ pertanyaan: p, dimensi: d, opsi_jawaban: opsi, jawaban_benar: jwb, poin_reward: maxP }).eq('id', id); tutupModal('modalEditSoal'); tutupModal('modalListSoal'); fetchDaftarKuis(); }
-        async function hapusSemuaKuisModul(id) { if(confirm("Kosongkan soal?")) { await supabaseClient.from('kuis').delete().eq('id_buku', id); window.location.reload(); } }
+        async function simpanEditSoal() { const id = document.getElementById('edit-soal-id').value; const p = document.getElementById('edit-soal-teks').value; const d = document.getElementById('edit-soal-dimensi').value; const j = document.getElementById('edit-soal-jumlah-opsi').value; if(!p) return Dialog.alert("Kosong!"); let opsi = {}; let maxP=0; let jwb='A'; for(let i=0; i<j; i++) { const t = document.getElementById(`edit-opt_${LABELS[i]}`).value; const po = parseInt(document.getElementById(`edit-poin_${LABELS[i]}`).value); if(!t) return Dialog.alert(`Teks opsi ${LABELS[i]} kosong!`); opsi[LABELS[i]] = {teks: t, poin: po}; if(po > maxP) { maxP=po; jwb=LABELS[i]; } } await supabaseClient.from('kuis').update({ pertanyaan: p, dimensi: d, opsi_jawaban: opsi, jawaban_benar: jwb, poin_reward: maxP }).eq('id', id); tutupModal('modalEditSoal'); tutupModal('modalListSoal'); fetchDaftarKuis(); }
+        async function hapusSemuaKuisModul(id) { if(await Dialog.confirm("Kosongkan semua soal pada wadah ini? Tindakan ini tidak bisa dibatalkan.", { judul: "Kosongkan Soal", teksOk: "Kosongkan", tipe: "bahaya" })) { await supabaseClient.from('kuis').delete().eq('id_buku', id); window.location.reload(); } }
 
         
 
@@ -714,7 +715,7 @@
                 supabaseClient.from('buku').select('id, judul, cover_url').eq('id', idBuku).single(),
                 supabaseClient.from('slide').select('*').eq('id_buku', idBuku).order('urutan', { ascending: true })
             ]);
-            if (e1 || e2) return alert('Gagal memuat slide: ' + (e1 || e2).message);
+            if (e1 || e2) return Dialog.alert('Gagal memuat slide: ' + (e1 || e2).message);
             Object.assign(es, { buku, slides: slides || [], aktif: -1, berubah: false });
             esEl('es-judul-modul').textContent = buku.judul;
             esEl('es-lihat').href = `buku.html?id=${buku.id}`;
@@ -725,7 +726,7 @@
         }
 
         async function tutupEditorSlide() {
-            if (es.berubah && !confirm('Ada perubahan slide yang belum disimpan. Tutup tanpa menyimpan?')) return;
+            if (es.berubah && !(await Dialog.confirm('Ada perubahan slide yang belum disimpan. Tutup tanpa menyimpan?', { judul: 'Perubahan Belum Disimpan', teksOk: 'Tutup Saja', tipe: 'peringatan' }))) return;
             es.berubah = false;
             esEl('es-audio').pause();
             tutupModal('modalEditorSlide');
@@ -821,7 +822,7 @@
             const btn = esEl('es-btn-simpan'); btn.disabled = true; tandaiSimpan('Menyimpan...');
             const { data, error } = await supabaseClient.from('slide').update(payload).eq('id', sl.id).select().single();
             btn.disabled = false;
-            if (error) { tandaiSimpan('Gagal menyimpan', 'text-red-600'); alert('Gagal menyimpan slide: ' + error.message); return false; }
+            if (error) { tandaiSimpan('Gagal menyimpan', 'text-red-600'); Dialog.alert('Gagal menyimpan slide: ' + error.message); return false; }
             es.slides[es.aktif] = data; es.berubah = false;
             tandaiSimpan(teksBerubah && sl.audio_url ? 'Tersimpan · suara perlu dibuat ulang' : 'Tersimpan ✓', teksBerubah && sl.audio_url ? 'text-amber-600' : 'text-emerald-600');
             // Gambar slide pertama menjadi sampul modul bila belum ada sampul
@@ -837,16 +838,16 @@
             if (es.berubah && es.aktif >= 0) { const ok = await simpanSlideAktif(); if (!ok) return; }
             const urutan = es.slides.reduce((m, s) => Math.max(m, s.urutan || 0), 0) + 1;
             const { data, error } = await supabaseClient.from('slide').insert([{ id_buku: es.buku.id, urutan, judul: '', isi: '' }]).select().single();
-            if (error) return alert('Gagal menambah slide: ' + error.message);
+            if (error) return Dialog.alert('Gagal menambah slide: ' + error.message);
             es.slides.push(data);
             await pilihSlide(es.slides.length - 1, true);
             esEl('es-in-judul').focus();
         }
 
         async function hapusSlide(i) {
-            if (!confirm(`Hapus slide ${i + 1}${es.slides[i].judul ? ' "' + es.slides[i].judul + '"' : ''}?`)) return;
+            if (!(await Dialog.confirm(`Hapus slide ${i + 1}${es.slides[i].judul ? ' "' + es.slides[i].judul + '"' : ''}?`, { judul: 'Hapus Slide', teksOk: 'Hapus', tipe: 'bahaya' }))) return;
             const { error } = await supabaseClient.from('slide').delete().eq('id', es.slides[i].id);
-            if (error) return alert('Gagal menghapus: ' + error.message);
+            if (error) return Dialog.alert('Gagal menghapus: ' + error.message);
             es.slides.splice(i, 1);
             await simpanUrutan();
             es.berubah = false;
@@ -890,7 +891,7 @@
         async function unggahGambarSlide(input) {
             const file = input.files[0]; input.value = '';
             if (!file) return;
-            if (!file.type.startsWith('image/')) return alert('File harus berupa gambar.');
+            if (!file.type.startsWith('image/')) return Dialog.alert('File harus berupa gambar.');
             esEl('es-label-gambar').textContent = 'Mengunggah...';
             try {
                 const blob = await perkecilGambar(file);
@@ -900,7 +901,7 @@
                 if (error) throw error;
                 es.gambarForm = supabaseClient.storage.from('pdf-buku').getPublicUrl(path).data.publicUrl;
                 tampilkanGambarForm(); formBerubah();
-            } catch (err) { alert('Gagal mengunggah gambar: ' + err.message); tampilkanGambarForm(); }
+            } catch (err) { Dialog.alert('Gagal mengunggah gambar: ' + err.message); tampilkanGambarForm(); }
         }
 
         function hapusGambarSlide() { es.gambarForm = null; tampilkanGambarForm(); formBerubah(); }
@@ -919,32 +920,32 @@
             const sl = es.slides[es.aktif];
             if (!sl) return;
             if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
-            if (!(es.slides[es.aktif].judul || es.slides[es.aktif].isi)) return alert('Isi judul atau teks slide dulu sebelum membuat suara.');
+            if (!(es.slides[es.aktif].judul || es.slides[es.aktif].isi)) return Dialog.alert('Isi judul atau teks slide dulu sebelum membuat suara.');
             const btn = esEl('es-btn-suara'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membuat suara...';
             try {
                 const hasil = await panggilTTS(es.slides[es.aktif]);
                 Object.assign(es.slides[es.aktif], { audio_url: hasil.audio_url, audio_suara: hasil.suara });
                 renderDaftarSlide(); tampilkanStatusAudio();
                 esEl('es-audio').play().catch(() => {});
-            } catch (err) { alert('Gagal membuat suara: ' + err.message); tampilkanStatusAudio(); }
+            } catch (err) { Dialog.alert('Gagal membuat suara: ' + err.message); tampilkanStatusAudio(); }
             finally { btn.disabled = false; }
         }
 
         async function buatSuaraSemua() {
             if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
             const target = es.slides.filter(sl => !sl.audio_url && (sl.judul || sl.isi));
-            if (!target.length) return alert('Semua slide yang berisi teks sudah memiliki suara.');
-            if (!confirm(`Buat suara untuk ${target.length} slide yang belum punya suara?`)) return;
+            if (!target.length) return Dialog.alert('Semua slide yang berisi teks sudah memiliki suara.');
+            if (!(await Dialog.confirm(`Buat suara untuk ${target.length} slide yang belum punya suara?`, { judul: 'Buat Suara Narasi', teksOk: 'Buat Suara', tipe: 'info' }))) return;
             const btn = esEl('es-btn-suara-semua'); btn.disabled = true;
             let sukses = 0;
             for (const [n, sl] of target.entries()) {
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${n + 1}/${target.length}`;
                 try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); }
-                catch (err) { alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}`); break; }
+                catch (err) { Dialog.alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}`); break; }
             }
             btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua';
             tampilkanStatusAudio();
-            if (sukses) alert(`✅ Suara berhasil dibuat untuk ${sukses} slide.`);
+            if (sukses) Dialog.alert(`✅ Suara berhasil dibuat untuk ${sukses} slide.`);
         }
     </script>
 </body>

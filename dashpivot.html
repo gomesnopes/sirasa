@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    <script src="dialog.js"></script>
     <script src="admin-auth.js"></script>
     <script>const adminSiap = AdminAuth.requireAdmin();</script>
     <style>
@@ -370,7 +371,7 @@
         // 3. Download Excel
         function downloadExcel(mode) {
             if (!currentBukuTitle || Object.keys(dataTabs).length === 0) {
-                alert("Pilih buku dan pastikan data tersedia sebelum mengunduh.");
+                Dialog.alert("Pilih buku dan pastikan data tersedia sebelum mengunduh.");
                 return;
             }
 
@@ -411,7 +412,7 @@
             });
             
             if (!adaData) {
-                alert("Tidak ada data untuk diunduh pada tab ini.");
+                Dialog.alert("Tidak ada data untuk diunduh pada tab ini.");
                 return;
             }
 
