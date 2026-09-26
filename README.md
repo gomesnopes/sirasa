@@ -90,6 +90,12 @@ Pratinjau bisa diganti *Desktop* / *HP* dan dirender pada ukuran layar sungguhan
 sekali saja lalu menyimpannya di Storage (`pdf-buku/slide-audio/`); siswa hanya memutar file itu.
 Jika teks slide diubah, audionya otomatis dikosongkan dan perlu dibuat ulang.
 
+**Suara manual (aplikasi TTS sendiri) — disarankan agar suara seragam.** Di editor slide pilih *Sumber suara: Unggah manual*.
+Tiap slide otomatis punya **prompt** (arahan gaya bicara, konteks slide, catatan ejaan, naskah siap baca, dan saran nama
+file). Kartu Mitos/Fakta punya dua prompt: narasi & penjelasan. *Unduh Semua Naskah* menyimpan semua prompt dalam satu
+`.txt`; setelah audio dibuat di aplikasi lain, *Unggah Banyak Audio* mencocokkan file ke slide dari nomornya
+(`slide-03.mp3`, `slide-08-jawaban.mp3`, `09.wav`). Bisa juga unggah per slide. Format: MP3/WAV/M4A/OGG, maks. 25 MB.
+
 **Kamus ejaan suara** — Admin → *Pengaturan Sistem* → *Kamus Ejaan Suara* (tabel `kamus_ucapan`).
 Singkatan dibaca sesuai kamus, mis. `HIV` → "ha i ve", `AIDS` → "eids", `ARV` → "a er ve". Berlaku untuk suara
 neural (Edge Function) maupun suara perangkat. Di editor slide, buka *Lihat teks yang akan dibacakan* untuk mengecek.

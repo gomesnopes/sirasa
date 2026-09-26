@@ -234,12 +234,21 @@
                     <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Editor Modul Slide</p>
                     <h3 id="es-judul-modul" class="font-bold text-lg truncate">-</h3>
                 </div>
-                <label class="text-xs font-bold text-slate-500 flex items-center gap-2">Suara narasi
+                <label class="text-xs font-bold text-slate-500 flex items-center gap-2">Sumber suara
+                    <select id="es-mode" onchange="aturModeSuara(this.value)" class="border rounded-lg p-2 text-sm font-bold text-slate-700 bg-white">
+                        <option value="manual">Unggah manual (aplikasi TTS sendiri)</option><option value="ai">Otomatis (AI Gemini)</option>
+                    </select>
+                </label>
+                <button onclick="unduhSemuaNaskah()" class="mode-manual bg-white border hover:bg-slate-100 px-3 py-2 rounded-lg text-sm font-bold text-slate-700"><i class="fa-solid fa-file-lines mr-1"></i> Unduh Semua Naskah</button>
+                <label class="mode-manual cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold" id="es-label-banyak"><i class="fa-solid fa-file-audio mr-1"></i> <span>Unggah Banyak Audio</span>
+                    <input type="file" accept="audio/*" multiple class="hidden" onchange="unggahBanyakAudio(this)">
+                </label>
+                <label class="mode-ai text-xs font-bold text-slate-500 flex items-center gap-2">Suara
                     <select id="es-suara" onchange="simpanPilihanSuara(this.value)" class="border rounded-lg p-2 text-sm font-bold text-slate-700 bg-white">
                         <option value="wanita">Wanita</option><option value="pria">Pria</option>
                     </select>
                 </label>
-                <button onclick="buatSuaraSemua()" id="es-btn-suara-semua" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua</button>
+                <button onclick="buatSuaraSemua()" id="es-btn-suara-semua" class="mode-ai bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua</button>
                 <a id="es-lihat" target="_blank" rel="noopener" class="bg-white border hover:bg-slate-100 px-3 py-2 rounded-lg text-sm font-bold text-slate-700"><i class="fa-solid fa-eye mr-1"></i> Lihat sbg Siswa</a>
                 <button onclick="tutupEditorSlide()" class="text-slate-400 hover:text-red-500 px-2" title="Tutup"><i class="fa-solid fa-xmark text-xl"></i></button>
             </header>
@@ -316,14 +325,42 @@
                                 <span class="font-bold text-sm text-slate-700"><i class="fa-solid fa-volume-high text-indigo-500 mr-1"></i> Suara Narasi</span>
                                 <span id="es-audio-status" class="text-xs font-bold"></span>
                             </div>
-                            <details class="text-xs">
+                            <!-- Mode manual: prompt otomatis + unggah hasil dari aplikasi TTS lain -->
+                            <div class="mode-manual space-y-3">
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-slate-600">1. Salin prompt ke aplikasi TTS Anda</span>
+                                        <button onclick="salinPrompt('es-prompt')" class="text-xs font-bold text-indigo-600 hover:underline"><i class="fa-regular fa-copy mr-1"></i>Salin</button>
+                                    </div>
+                                    <textarea id="es-prompt" readonly rows="8" class="w-full p-3 border rounded-lg text-[12px] leading-relaxed bg-white text-slate-700 font-mono"></textarea>
+                                </div>
+                                <div id="es-prompt-jwb-wadah" class="hidden">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-bold text-slate-600">Prompt penjelasan (diputar setelah kartu dibalik)</span>
+                                        <button onclick="salinPrompt('es-prompt-jwb')" class="text-xs font-bold text-indigo-600 hover:underline"><i class="fa-regular fa-copy mr-1"></i>Salin</button>
+                                    </div>
+                                    <textarea id="es-prompt-jwb" readonly rows="6" class="w-full p-3 border rounded-lg text-[12px] leading-relaxed bg-white text-slate-700 font-mono"></textarea>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-600 mb-1">2. Unggah hasil audionya <span id="es-saran-nama" class="font-normal text-slate-400"></span></span>
+                                    <div class="flex flex-wrap gap-2">
+                                        <label class="cursor-pointer bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-upload mr-1"></i> <span id="es-label-up">Unggah Audio Narasi</span>
+                                            <input type="file" accept="audio/*" class="hidden" onchange="unggahAudioManual(this, 'utama')">
+                                        </label>
+                                        <label id="es-up-jwb-wadah" class="hidden cursor-pointer bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 px-3 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-upload mr-1"></i> <span id="es-label-up-jwb">Unggah Audio Penjelasan</span>
+                                            <input type="file" accept="audio/*" class="hidden" onchange="unggahAudioManual(this, 'jawaban')">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <details class="mode-ai text-xs">
                                 <summary class="cursor-pointer font-bold text-indigo-600">Lihat teks yang akan dibacakan</summary>
                                 <p id="es-teks-ucapan" class="mt-2 p-3 bg-white border rounded-lg text-slate-600 leading-relaxed"></p>
                                 <p id="es-teks-jawaban" class="hidden mt-2 p-3 bg-white border rounded-lg text-slate-600 leading-relaxed"></p>
                             </details>
                             <audio id="es-audio" controls preload="none" class="w-full hidden"></audio>
                             <div id="es-audio-jawaban-wadah" class="hidden"><p class="text-[11px] font-bold text-slate-500 mb-1">Suara penjelasan (setelah kartu dibalik)</p><audio id="es-audio-jawaban" controls preload="none" class="w-full"></audio></div>
-                            <button onclick="buatSuaraSlide()" id="es-btn-suara" class="w-full bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini</button>
+                            <button onclick="buatSuaraSlide()" id="es-btn-suara" class="mode-ai w-full bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Slide Ini</button>
                         </div>
                         <button onclick="simpanSlideAktif()" id="es-btn-simpan" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold disabled:opacity-50"><i class="fa-solid fa-floppy-disk mr-2"></i>Simpan Slide</button>
                     </div>
@@ -845,7 +882,7 @@
             const { data, error } = await supabaseClient.from('kamus_ucapan').select('*').order('kata');
             const wadah = document.getElementById('daftar-kamus');
             if (error) { wadah.innerHTML = `<p class="p-4 text-sm text-rose-600">Gagal memuat kamus: ${esc(error.message)}</p>`; return; }
-            SlideRender.aturKamus(data);
+            SlideRender.aturKamus(data); kamusAdmin = data || [];
             wadah.innerHTML = (data || []).length ? data.map(k => `
                 <div class="flex items-center gap-3 px-4 py-2.5 bg-white">
                     <span class="font-black text-[#0b1d3a] w-28 truncate">${esc(k.kata)}</span>
@@ -879,6 +916,7 @@
         // ===================================
         // 5. EDITOR MODUL SLIDE
         // ===================================
+        let kamusAdmin = [];
         const es = { buku: null, slides: [], aktif: -1, berubah: false, orientasi: 'lanskap', sibuk: false };
         const esEl = id => document.getElementById(id);
 
@@ -894,6 +932,8 @@
             esEl('es-judul-modul').textContent = buku.judul;
             esEl('es-lihat').href = `buku.html?id=${buku.id}`;
             try { esEl('es-suara').value = localStorage.getItem('esSuara') || 'wanita'; } catch (e) {}
+            let mode = 'manual'; try { mode = localStorage.getItem('esModeSuara') || 'manual'; } catch (e) {}
+            aturModeSuara(mode);
             esEl('modalEditorSlide').classList.remove('hidden');
             aturPratinjau(es.orientasi);
             pilihSlide(es.slides.length ? 0 : -1, true);
@@ -912,7 +952,8 @@
                     <div class="flex items-center gap-2">
                         <span class="w-6 h-6 rounded-md ${i === es.aktif ? 'bg-[#1769b3] text-white' : 'bg-slate-200 text-slate-600'} text-xs font-black flex items-center justify-center shrink-0">${i + 1}</span>
                         <span class="text-sm font-bold text-slate-700 truncate flex-1">${esc(sl.judul || 'Tanpa judul')}</span>
-                        <i class="fa-solid fa-volume-high text-xs ${sl.audio_url ? 'text-emerald-500' : 'text-slate-300'}" title="${sl.audio_url ? 'Suara siap' : 'Belum ada suara'}"></i>
+                        ${(() => { const lengkap = sl.audio_url && (sl.jenis !== 'mitos-fakta' || sl.audio_jawaban_url), sebagian = !lengkap && (sl.audio_url || sl.audio_jawaban_url);
+                            return `<i class="fa-solid fa-volume-high text-xs ${lengkap ? 'text-emerald-500' : sebagian ? 'text-amber-500' : 'text-slate-300'}" title="${lengkap ? 'Suara lengkap' : sebagian ? 'Audio penjelasan/narasi belum lengkap' : 'Belum ada suara'}"></i>`; })()}
                     </div>
                     <div class="flex gap-1 mt-2 justify-end">
                         <button onclick="event.stopPropagation(); pindahSlide(${i}, -1)" ${i === 0 ? 'disabled' : ''} class="w-7 h-7 rounded bg-slate-100 text-slate-500 text-xs disabled:opacity-30" title="Naikkan"><i class="fa-solid fa-arrow-up"></i></button>
@@ -982,6 +1023,8 @@
             const wadahJwb = esEl('es-audio-jawaban-wadah');
             wadahJwb.classList.toggle('hidden', !(sl && sl.audio_jawaban_url));
             if (sl && sl.audio_jawaban_url) esEl('es-audio-jawaban').src = sl.audio_jawaban_url; else esEl('es-audio-jawaban').removeAttribute('src');
+            esEl('es-label-up').textContent = sl && sl.audio_url ? 'Ganti Audio Narasi' : 'Unggah Audio Narasi';
+            esEl('es-label-up-jwb').textContent = sl && sl.audio_jawaban_url ? 'Ganti Audio Penjelasan' : 'Unggah Audio Penjelasan';
             if (sl && sl.audio_url) {
                 audio.src = sl.audio_url; audio.classList.remove('hidden');
                 st.textContent = '✓ Siap' + (sl.audio_suara ? ' · ' + sl.audio_suara.replace(/^id-ID-/, '').replace(/Neural$/, '') : '');
@@ -1026,6 +1069,7 @@
             const jwb = SlideRender.teksJawaban(data);
             esEl('es-teks-jawaban').textContent = jwb ? 'Setelah kartu dibalik: ' + jwb : '';
             esEl('es-teks-jawaban').classList.toggle('hidden', !jwb);
+            perbaruiPrompt(data);
         }
 
         async function simpanSlideAktif() {
@@ -1128,6 +1172,135 @@
         }
 
         function hapusGambarSlide() { es.gambarForm = null; tampilkanGambarForm(); formBerubah(); }
+
+        // ===================================
+        // SUARA MANUAL: prompt otomatis per slide + unggah audio dari aplikasi TTS lain
+        // ===================================
+        function aturModeSuara(mode) {
+            esEl('es-mode').value = mode;
+            try { localStorage.setItem('esModeSuara', mode); } catch (e) {}
+            document.querySelectorAll('#modalEditorSlide .mode-manual').forEach(el => el.classList.toggle('hidden', mode !== 'manual'));
+            document.querySelectorAll('#modalEditorSlide .mode-ai').forEach(el => el.classList.toggle('hidden', mode !== 'ai'));
+        }
+
+        const pad2 = n => String(n).padStart(2, '0');
+        const namaFileAudio = (nomor, bagian) => `slide-${pad2(nomor)}${bagian === 'jawaban' ? '-jawaban' : ''}.mp3`;
+        const NAMA_JENIS = { sampul: 'Sampul pembuka', materi: 'Materi', 'mitos-fakta': 'Kartu Mitos/Fakta', penutup: 'Penutup' };
+
+        // Kata di kamus ejaan yang muncul pada teks asli slide (ditampilkan sebagai catatan pengucapan)
+        function catatanEjaan(teksAsli) {
+            return (kamusAdmin || []).filter(k => new RegExp(`(?<![\\p{L}\\p{N}])${k.kata.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\p{L}\\p{N}])`, 'u').test(teksAsli))
+                .map(k => `- ${k.kata} dibaca "${k.ucapan}"`);
+        }
+
+        function buatPrompt(slide, nomor, total, bagian = 'utama') {
+            const jenis = slide.jenis || 'materi';
+            const naskah = bagian === 'jawaban' ? SlideRender.teksJawaban(slide) : SlideRender.teksUcapan(slide);
+            if (!naskah) return '';
+            const gaya = [
+                '- Bahasa Indonesia baku dengan aksen Indonesia yang natural (bukan logat asing).',
+                '- Gaya ramah, jelas, dan hangat seperti kakak pembimbing yang menjelaskan kepada remaja SMA.',
+                '- Tempo sedang, jeda wajar di setiap tanda baca; jeda sedikit lebih panjang setelah judul.',
+                jenis === 'sampul' ? '- Nada menyambut dan bersemangat, seperti membuka kelas.' : '',
+                jenis === 'penutup' ? '- Nada hangat dan memotivasi, seperti menutup kelas.' : '',
+                jenis === 'mitos-fakta' && bagian === 'utama' ? '- Bacakan pernyataan dengan nada netral, lalu ajukan pertanyaan terakhir dengan nada mengajak berpikir.' : '',
+                bagian === 'jawaban' ? '- Sebutkan jawabannya dengan tegas, lalu jelaskan dengan nada menenangkan.' : '',
+                '- Gunakan suara yang sama untuk semua slide agar konsisten.'
+            ].filter(Boolean);
+            const ejaan = catatanEjaan([slide.judul, slide.isi, bagian === 'jawaban' ? slide.penjelasan : ''].join(' '));
+            return [
+                'ARAHAN SUARA', ...gaya, '',
+                'KONTEKS',
+                `Modul "${es.buku?.judul || '-'}" · Slide ${nomor} dari ${total} · ${NAMA_JENIS[jenis] || 'Materi'}${bagian === 'jawaban' ? ' (penjelasan setelah kartu dibalik)' : ''}`,
+                `Judul slide: ${slide.judul || '-'}`, '',
+                ...(ejaan.length ? ['CATATAN PENGUCAPAN (sudah diterapkan di naskah)', ...ejaan, ''] : []),
+                'NASKAH (bacakan persis seperti ini)', naskah, '',
+                `Simpan sebagai: ${namaFileAudio(nomor, bagian)}`
+            ].join('\n');
+        }
+
+        function perbaruiPrompt(data) {
+            const nomor = es.aktif + 1, total = es.slides.length, mf = data.jenis === 'mitos-fakta';
+            esEl('es-prompt').value = buatPrompt(data, nomor, total) || 'Isi judul/teks slide dulu.';
+            esEl('es-prompt-jwb').value = mf ? (buatPrompt(data, nomor, total, 'jawaban') || 'Pilih kunci & tulis penjelasan dulu.') : '';
+            esEl('es-prompt-jwb-wadah').classList.toggle('hidden', !mf);
+            esEl('es-up-jwb-wadah').classList.toggle('hidden', !mf);
+            esEl('es-saran-nama').textContent = `— nama file: ${namaFileAudio(nomor, 'utama')}${mf ? ' & ' + namaFileAudio(nomor, 'jawaban') : ''}`;
+        }
+
+        async function salinPrompt(id) {
+            const t = esEl(id).value;
+            try { await navigator.clipboard.writeText(t); } catch (e) { esEl(id).select(); document.execCommand('copy'); }
+            tandaiSimpan('Prompt disalin ✓', 'text-indigo-600');
+        }
+
+        function unduhSemuaNaskah() {
+            if (!es.slides.length) return Dialog.alert('Belum ada slide.');
+            const total = es.slides.length, garis = '='.repeat(60);
+            const isi = es.slides.flatMap((sl, i) => {
+                const blok = [`${garis}\nSLIDE ${i + 1} — ${namaFileAudio(i + 1, 'utama')}\n${garis}\n${buatPrompt(sl, i + 1, total)}`];
+                if (sl.jenis === 'mitos-fakta') blok.push(`${garis}\nSLIDE ${i + 1} (PENJELASAN) — ${namaFileAudio(i + 1, 'jawaban')}\n${garis}\n${buatPrompt(sl, i + 1, total, 'jawaban')}`);
+                return blok;
+            }).join('\n\n');
+            const kepala = `NASKAH NARASI — ${es.buku?.judul || ''}\nBuat audio tiap bagian di aplikasi TTS, simpan dengan nama file yang disarankan,\nlalu unggah sekaligus lewat tombol "Unggah Banyak Audio" di editor slide.\n\n`;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([kepala + isi], { type: 'text/plain;charset=utf-8' }));
+            a.download = `naskah-${(es.buku?.judul || 'modul').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}.txt`;
+            a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+        }
+
+        async function simpanAudioManual(sl, file, bagian) {
+            if (!file.type.startsWith('audio/') && !/\.(mp3|wav|m4a|ogg|aac|webm)$/i.test(file.name)) throw new Error(`"${file.name}" bukan file audio.`);
+            if (file.size > 25 * 1024 * 1024) throw new Error(`"${file.name}" terlalu besar (maks. 25 MB).`);
+            const ext = (file.name.match(/\.([a-z0-9]+)$/i) || [, 'mp3'])[1].toLowerCase();
+            const path = `slide-audio/${sl.id}${bagian === 'jawaban' ? '-jawaban' : ''}-manual-${Date.now()}.${ext}`;
+            const { error } = await supabaseClient.storage.from('pdf-buku').upload(path, file, { contentType: file.type || 'audio/mpeg' });
+            if (error) throw error;
+            const url = supabaseClient.storage.from('pdf-buku').getPublicUrl(path).data.publicUrl;
+            const payload = bagian === 'jawaban' ? { audio_jawaban_url: url } : { audio_url: url, audio_suara: 'Manual', audio_hash: null };
+            const { data, error: e2 } = await supabaseClient.from('slide').update(payload).eq('id', sl.id).select().single();
+            if (e2) throw e2;
+            Object.assign(sl, data);
+        }
+
+        async function unggahAudioManual(input, bagian) {
+            const file = input.files[0]; input.value = '';
+            const sl = es.slides[es.aktif];
+            if (!file || !sl) return;
+            if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            const label = esEl(bagian === 'jawaban' ? 'es-label-up-jwb' : 'es-label-up'); label.textContent = 'Mengunggah...';
+            try {
+                await simpanAudioManual(es.slides[es.aktif], file, bagian);
+                renderDaftarSlide(); tampilkanStatusAudio(); tandaiSimpan('Audio tersimpan ✓', 'text-emerald-600');
+            } catch (err) { Dialog.alert('Gagal mengunggah audio: ' + err.message); tampilkanStatusAudio(); }
+        }
+
+        // Nama file "slide-03.mp3", "03.mp3", "slide 8 jawaban.wav" dicocokkan ke nomor slide
+        async function unggahBanyakAudio(input) {
+            const files = [...input.files]; input.value = '';
+            if (!files.length) return;
+            if (es.berubah) { const ok = await simpanSlideAktif(); if (!ok) return; }
+            const cocok = [], gagal = [];
+            files.forEach(f => {
+                const m = f.name.match(/(\d+)/), nomor = m ? parseInt(m[1], 10) : NaN;
+                const bagian = /jawab|penjelasan|expl|[-_ ]b\b/i.test(f.name) ? 'jawaban' : 'utama';
+                const sl = es.slides[nomor - 1];
+                if (!sl) gagal.push(`${f.name}: nomor slide tidak ditemukan`);
+                else if (bagian === 'jawaban' && sl.jenis !== 'mitos-fakta') gagal.push(`${f.name}: slide ${nomor} bukan kartu Mitos/Fakta`);
+                else cocok.push({ f, sl, nomor, bagian });
+            });
+            if (!cocok.length) return Dialog.alert('Tidak ada file yang cocok.\n\n' + gagal.join('\n') + '\n\nGunakan nama seperti slide-03.mp3 atau slide-08-jawaban.mp3.');
+            const ringkas = cocok.sort((a, b) => a.nomor - b.nomor || (a.bagian > b.bagian ? 1 : -1)).map(c => `Slide ${c.nomor}${c.bagian === 'jawaban' ? ' (penjelasan)' : ''} ← ${c.f.name}`).join('\n');
+            if (!(await Dialog.confirm(`Unggah ${cocok.length} audio?\n\n${ringkas}${gagal.length ? '\n\nDilewati:\n' + gagal.join('\n') : ''}`, { judul: 'Unggah Banyak Audio', teksOk: 'Unggah', tipe: 'info' }))) return;
+            const label = esEl('es-label-banyak').querySelector('span'); let sukses = 0;
+            for (const [n, c] of cocok.entries()) {
+                label.textContent = `Mengunggah ${n + 1}/${cocok.length}...`;
+                try { await simpanAudioManual(c.sl, c.f, c.bagian); sukses++; } catch (err) { gagal.push(`${c.f.name}: ${err.message}`); }
+            }
+            label.textContent = 'Unggah Banyak Audio';
+            renderDaftarSlide(); tampilkanStatusAudio();
+            Dialog.alert(`${sukses} audio berhasil diunggah.${gagal.length ? '\n\nBermasalah:\n' + gagal.join('\n') : ''}`, { tipe: gagal.length ? 'peringatan' : 'sukses' });
+        }
 
         async function panggilTTS(slide) {
             const { data, error } = await supabaseClient.functions.invoke('tts-slide', { body: { slide_id: slide.id, suara: esEl('es-suara').value } });
