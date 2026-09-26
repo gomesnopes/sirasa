@@ -51,11 +51,10 @@
             <a href="dashboard.html" class="flex items-center gap-2.5 shrink-0">
                 <img src="assets/macaya-wordmark-gelap.png" alt="Macaya" class="h-9 w-auto">
             </a>
-            <nav class="d-tabs" aria-label="Navigasi utama">
-                <a href="dashboard.html" class="d-tab"><i class="fa-solid fa-house"></i> Beranda</a>
-                <a href="profil.html" class="d-tab aktif" aria-current="page"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
-            </nav>
-            <a href="dashboard.html" class="shrink-0 inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-4 py-2.5 rounded-full text-sm shadow-md transition"><i class="fa-solid fa-play text-xs"></i> Lanjut Belajar</a>
+            <div class="flex items-center gap-2.5 shrink-0">
+                <a href="dashboard.html" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-full text-sm transition"><i class="fa-solid fa-arrow-left text-xs"></i> Beranda</a>
+                <a href="dashboard.html#lanjut" class="inline-flex items-center gap-2 bg-[#1769b3] hover:bg-[#135a9a] text-white font-bold px-4 py-2.5 rounded-full text-sm shadow-md transition"><i class="fa-solid fa-play text-xs"></i> Lanjut Belajar</a>
+            </div>
         </div>
     </header>
 
@@ -402,7 +401,7 @@
                 // Catatan "Membaca Modul ..." adalah aktivitas baca, bukan tes
                 const riwayatTes = riwayat.filter(r => !String(r.jenis_tes || '').startsWith('Membaca Modul'));
                 const skorTes = riwayatTes.reduce((a, r) => a + (r.poin_didapat || 0), 0);
-                document.getElementById('stat-tes').innerText = new Set(riwayatTes.map(r => r.id_buku)).size;
+                document.getElementById('stat-tes').innerText = new Set(riwayatTes.map(r => r.id_buku).filter(Boolean)).size;
                 document.getElementById('stat-waktu').innerText = Math.round(totalDurasiDetik / 60) + 'm';
                 document.getElementById('stat-akurasi').innerText = riwayatTes.length ? Math.round(skorTes / riwayatTes.length) : 0;
 

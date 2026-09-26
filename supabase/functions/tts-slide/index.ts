@@ -6,7 +6,7 @@
 // Hanya admin (tabel public.admins) yang boleh memanggil.
 // Penyedia suara dipilih dari secret yang tersedia (Dashboard > Edge Functions > Secrets), urut prioritas:
 //   - Gemini : GEMINI_API_KEY (Google AI Studio, ada kuota gratis) -> suara Leda (wanita) / Puck (pria), berkas WAV
-//              opsional: GEMINI_TTS_MODEL, GEMINI_SUARA_WANITA, GEMINI_SUARA_PRIA
+//              opsional: GEMINI_TTS_MODEL (daftar dipisah koma, dicoba berurutan), GEMINI_SUARA_WANITA, GEMINI_SUARA_PRIA
 //   - Azure  : AZURE_TTS_KEY + AZURE_TTS_REGION   -> id-ID-GadisNeural / id-ID-ArdiNeural
 //   - Google : GOOGLE_TTS_API_KEY                 -> suara id-ID terbaik (Chirp3-HD > Neural2 > WaveNet > Standard)
 //
@@ -129,11 +129,23 @@ function bungkusWav(pcm: Uint8Array, rate = 24000): Uint8Array {
   return gabung([new Uint8Array(h.buffer), pcm]);
 }
 
+// Tiap model punya kuota gratis sendiri: bila satu habis (429), otomatis pindah ke model berikutnya.
+const MODEL_GEMINI = (Deno.env.get("GEMINI_TTS_MODEL") || "gemini-3.8-flash-tts,gemini-3.8-flash-lite-tts,gemini-3.1-flash-tts-preview,gemini-2.5-pro-preview-tts")
+  .split(",").map((m) => m.trim()).filter(Boolean);
+const modelHabis = new Set<string>(); // diingat selama instance fungsi hidup
+
 async function suaraGemini(teks: string, pria: boolean, key: string) {
-  const model = Deno.env.get("GEMINI_TTS_MODEL") || "gemini-3.8-flash-tts";
   const nama = pria ? (Deno.env.get("GEMINI_SUARA_PRIA") || "Puck") : (Deno.env.get("GEMINI_SUARA_WANITA") || "Leda");
   const bagian: Uint8Array[] = [];
   for (const potongan of potong(teks, 2500)) {
+    bagian.push(await potonganGemini(potongan, nama, key));
+  }
+  return { mp3: bungkusWav(gabung(bagian)), nama: `Gemini-${nama}`, tipe: "audio/wav", ekstensi: "wav" };
+}
+
+async function potonganGemini(potongan: string, nama: string, key: string): Promise<Uint8Array> {
+  let pesanTerakhir = "";
+  for (const model of MODEL_GEMINI.filter((m) => !modelHabis.has(m)).concat(MODEL_GEMINI.filter((m) => modelHabis.has(m)))) {
     const r = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
       method: "POST",
       headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
@@ -144,17 +156,18 @@ async function suaraGemini(teks: string, pria: boolean, key: string) {
         generation_config: { speech_config: [{ voice: nama }] },
       }),
     });
-    if (!r.ok) {
-      const pesan = (await r.text()).slice(0, 300);
-      throw new Error(r.status === 429 ? "Kuota gratis Gemini sedang penuh, coba lagi beberapa menit lagi." : `Gemini TTS gagal (${r.status}): ${pesan}`);
+    if (r.status === 429 || r.status === 404) { // kuota model ini habis / model tidak tersedia -> coba model lain
+      modelHabis.add(model); pesanTerakhir = `${model}: ${(await r.text()).slice(0, 120)}`; continue;
     }
+    if (!r.ok) throw new Error(`Gemini TTS gagal (${r.status}, ${model}): ${(await r.text()).slice(0, 300)}`);
     const j = await r.json();
     const audio = (j.steps || []).filter((st: { type: string }) => st.type === "model_output")
       .flatMap((st: { content?: { type: string; data?: string }[] }) => st.content || []).filter((c: { type: string }) => c.type === "audio").pop();
     if (!audio?.data) throw new Error("Gemini tidak mengembalikan audio.");
-    bagian.push(pcmDariWav(Uint8Array.from(atob(audio.data), (c) => c.charCodeAt(0))));
+    modelHabis.delete(model);
+    return pcmDariWav(Uint8Array.from(atob(audio.data), (c) => c.charCodeAt(0)));
   }
-  return { mp3: bungkusWav(gabung(bagian)), nama: `Gemini-${nama}`, tipe: "audio/wav", ekstensi: "wav" };
+  throw new Error("Kuota gratis semua model suara Gemini hari ini sudah habis. Slide yang sudah bersuara tetap tersimpan; lanjutkan besok dengan klik \"Buat Suara Semua\" lagi. (" + pesanTerakhir + ")");
 }
 
 async function suaraAzure(teks: string, pria: boolean, key: string, region: string) {

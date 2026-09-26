@@ -74,7 +74,7 @@
                     </div>
                     <p class="text-[11px] leading-snug text-sky-50/90">Satu materi hari ini, satu langkah lebih paham. Yuk lanjutkan misimu!</p>
                 </div>
-                <img src="assets/hero-mobile.png" alt="" class="w-28 h-36 object-contain object-bottom drop-shadow-2xl -mb-24 relative z-0">
+                <img src="assets/hero-mobile.png" alt="" class="w-32 h-40 object-contain object-bottom drop-shadow-2xl -mb-14 relative z-0">
             </div>
         </header>
 
@@ -172,13 +172,9 @@
                 <a href="dashboard.html" class="flex items-center gap-2.5 shrink-0">
                     <img src="assets/macaya-wordmark-gelap.png" alt="Macaya" class="h-9 w-auto">
                 </a>
-                <nav class="d-tabs" aria-label="Navigasi utama">
-                    <a href="dashboard.html" class="d-tab aktif" aria-current="page"><i class="fa-solid fa-house"></i> Beranda</a>
-                    <a href="profil.html" class="d-tab"><i class="fa-solid fa-chart-simple"></i> Rapor</a>
-                </nav>
                 <div class="flex items-center gap-2.5 shrink-0">
                     <span id="d-level-chip" class="flex items-center gap-2 bg-amber-50 rounded-full pl-1.5 pr-3.5 py-1 font-bold text-sm text-amber-600"><span class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs"><i class="fa-solid fa-star"></i></span><span id="d-level">Bronze</span></span>
-                    <a href="profil.html" id="d-avatar" class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center shadow-md hover:scale-105 transition" title="Rapor & profil">?</a>
+                    <a href="profil.html" class="flex items-center gap-2.5 pl-1 pr-4 py-1 rounded-full border border-[#e8eef5] bg-white hover:border-[#1769b3]/40 hover:shadow-md transition" title="Buka rapor & profil"><span id="d-avatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-[#0b1d3a] to-[#1769b3] text-white font-black flex items-center justify-center">?</span><span class="text-sm font-bold text-[#0b1d3a]">Rapor Saya</span></a>
                     <button onclick="prosesLogout()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition flex items-center justify-center" title="Keluar akun" aria-label="Keluar akun"><i class="fa-solid fa-power-off"></i></button>
                 </div>
             </div>
@@ -198,8 +194,8 @@
                     <section id="d-lanjut" class="lg:col-span-2 relative overflow-hidden rounded-[2rem] text-white p-8 xl:p-10 min-h-[260px] d-hero">
                         <span class="d-gumpal" style="width:22rem;height:22rem;right:-5rem;top:-8rem;background:rgba(56,189,248,.25)"></span>
                         <span class="d-gumpal" style="width:16rem;height:16rem;left:30%;bottom:-9rem;background:rgba(225,29,72,.22)"></span>
-                        <img src="assets/hero.png" alt="" class="hidden xl:block absolute right-6 bottom-0 h-[92%] max-h-[300px] object-contain object-bottom drop-shadow-2xl pointer-events-none">
-                        <div id="d-lanjut-isi" class="relative z-10 xl:max-w-[58%]">
+                        <img src="assets/hero.png" alt="" class="absolute right-2 lg:right-6 bottom-0 h-[88%] max-h-[300px] max-w-[38%] object-contain object-bottom drop-shadow-2xl pointer-events-none">
+                        <div id="d-lanjut-isi" class="relative z-10 max-w-[60%]">
                             <div class="h-40 flex items-center text-sky-100/70"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Memuat misi...</div>
                         </div>
                     </section>
@@ -552,7 +548,7 @@
                 renderDesktop();
                 pilihTabRingkas(document.querySelector('.tab-ringkas.bg-white')?.dataset.tab || 'progres');
                 if (location.hash === '#materi') setTimeout(() => document.getElementById(getComputedStyle(document.querySelector('.d-font')).display === 'none' ? 'm-seksi-misi' : 'd-seksi-materi').scrollIntoView({ behavior: 'smooth' }), 300);
-                if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(bukaSheetLanjut, 400); }
+                if (location.hash === '#lanjut') { history.replaceState(null, '', location.pathname); setTimeout(() => getComputedStyle(document.querySelector('.d-font')).display === 'none' ? bukaSheetLanjut() : document.getElementById('d-lanjut').scrollIntoView({ behavior: 'smooth', block: 'center' }), 400); }
             } catch (err) {
                 console.error("Gagal memuat buku:", err);
             }

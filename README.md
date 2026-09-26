@@ -99,7 +99,9 @@ Setelah kamus diubah, buat ulang suara slide terkait.
 (urutan prioritas bila lebih dari satu terisi):
 - **Gemini (disarankan, paling mudah)**: `GEMINI_API_KEY` dari https://aistudio.google.com/apikey (login akun Google,
   tanpa kartu kredit, ada kuota gratis). Model `gemini-3.8-flash-tts`, suara *Leda* (wanita) / *Puck* (pria), berkas WAV.
-  Opsional: `GEMINI_TTS_MODEL`, `GEMINI_SUARA_WANITA`, `GEMINI_SUARA_PRIA`.
+  Bila kuota satu model habis, otomatis pindah ke model Gemini TTS lain (tiap model punya kuota sendiri); tombol
+  *Buat Suara Semua* menunggu 60 dtk lalu mencoba lagi saat kuota per menit penuh, dan bisa dilanjutkan esok hari.
+  Opsional: `GEMINI_TTS_MODEL` (daftar model dipisah koma), `GEMINI_SUARA_WANITA`, `GEMINI_SUARA_PRIA`.
 - **Azure**: `AZURE_TTS_KEY` + `AZURE_TTS_REGION` (mis. `southeastasia`) — suara Gadis / Ardi, MP3.
 - **Google Cloud TTS**: `GOOGLE_TTS_API_KEY` (butuh akun billing Google Cloud).
 

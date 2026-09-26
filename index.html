@@ -23,6 +23,8 @@
 
     <style>
         .glass-nav { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(226, 232, 240, 0.6); }
+        .modal-pop { animation: pop .28s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
         .modal-enter { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .animate-float { animation: float 7s ease-in-out infinite; }
@@ -165,12 +167,11 @@
     </div>
 
     <!-- MODAL AUTHENTICATION -->
-    <div id="modalAuth" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end md:items-center justify-center p-0 md:p-4">
-        <div class="bg-white rounded-t-[2rem] md:rounded-[2rem] shadow-2xl w-full md:max-w-md modal-enter app-sheet max-h-[92dvh] overflow-y-auto flex flex-col relative border border-slate-100">
-            <div class="md:hidden w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-3"></div>
+    <div id="modalAuth" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md modal-pop max-h-[90dvh] overflow-y-auto flex flex-col relative border border-slate-100">
             <button onclick="tutupModalAuth()" class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition z-20"><i class="fa-solid fa-xmark"></i></button>
             
-            <div class="p-6 md:p-8 pb-8 app-safe-bottom relative z-10">
+            <div class="p-6 md:p-8 relative z-10">
                 <div class="text-left mb-6 md:mb-8">
                     <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-shield-halved"></i></div>
                     <h2 class="text-2xl font-black text-slate-800">Akses Masuk</h2>
