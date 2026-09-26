@@ -55,6 +55,11 @@ Tidak ada proses build — semua halaman adalah HTML + Tailwind CDN + JavaScript
 Edit `DAFTAR_SEKOLAH` dan `DAFTAR_KELAS` di `config.js`. Form daftar, edit profil, edit responden di admin,
 dan filter analitik otomatis mengikuti.
 
+## Logo & ikon
+Wordmark `assets/macaya-wordmark-putih.png` (latar gelap) / `-gelap.png` (latar terang), brandmark
+`assets/macaya-brandmark-*.png`, ikon aplikasi `icon-192/512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`,
+favicon `favicon.png`.
+
 ## Tampilan HP & desktop
 - **HP (< 768px)** — `dashboard.html` & `profil.html` bergaya aplikasi native: header gradasi, kartu ringkasan
   XP/peringkat (tab Progres/Waktu/Tes), grid ikon Menu Belajar, bottom navigation dengan tombol tengah "Lanjut".
@@ -90,11 +95,13 @@ Singkatan dibaca sesuai kamus, mis. `HIV` → "ha i ve", `AIDS` → "eids", `ARV
 neural (Edge Function) maupun suara perangkat. Di editor slide, buka *Lihat teks yang akan dibacakan* untuk mengecek.
 Setelah kamus diubah, buat ulang suara slide terkait.
 
-**Memasang penyedia suara (wajib sekali)** — Supabase Dashboard → *Edge Functions* → *Secrets*, isi salah satu:
-- **Azure (disarankan untuk Bahasa Indonesia)**: `AZURE_TTS_KEY` dan `AZURE_TTS_REGION` (mis. `southeastasia`)
-  dari resource *Speech* di Azure Portal. Suara: Gadis (wanita) / Ardi (pria).
-- **Google Cloud**: `GOOGLE_TTS_API_KEY` (aktifkan *Cloud Text-to-Speech API*). Suara id-ID terbaik dipilih otomatis.
-Keduanya punya kuota gratis bulanan; di atas kuota dikenai biaya per karakter — cek harga terbaru di situs penyedia.
+**Memasang penyedia suara (wajib sekali)** — Supabase Dashboard → *Edge Functions* → *Secrets*, isi salah satu
+(urutan prioritas bila lebih dari satu terisi):
+- **Gemini (disarankan, paling mudah)**: `GEMINI_API_KEY` dari https://aistudio.google.com/apikey (login akun Google,
+  tanpa kartu kredit, ada kuota gratis). Model `gemini-3.8-flash-tts`, suara *Leda* (wanita) / *Puck* (pria), berkas WAV.
+  Opsional: `GEMINI_TTS_MODEL`, `GEMINI_SUARA_WANITA`, `GEMINI_SUARA_PRIA`.
+- **Azure**: `AZURE_TTS_KEY` + `AZURE_TTS_REGION` (mis. `southeastasia`) — suara Gadis / Ardi, MP3.
+- **Google Cloud TTS**: `GOOGLE_TTS_API_KEY` (butuh akun billing Google Cloud).
 
 **Membaca (siswa):** kartu kaca (glassmorphism) di atas latar animasi ringan, efek balik halaman antarslide,
 progres ala *Story* di atas layar. Layar awal meminta *Mulai dengan Suara* (browser hanya mengizinkan suara setelah

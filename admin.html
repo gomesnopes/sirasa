@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Macaya Edukasi</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,8 +53,7 @@
     <aside id="sidebar" class="admin-sidebar w-64 md:w-64 text-slate-300 flex flex-col absolute md:relative z-50 h-full flex-shrink-0 overflow-hidden -translate-x-full md:translate-x-0 transition-all duration-300 shadow-xl md:shadow-none">
         <div class="h-20 flex items-center justify-between px-5 text-white border-b border-white/10 min-w-[256px]">
             <div class="flex items-center gap-2.5">
-                <span class="w-10 h-10 bg-white rounded-xl p-1.5 shadow shrink-0"><img src="assets/logo-sirasa.svg" alt="" class="w-full h-full object-contain"></span>
-                <div class="leading-tight"><p class="font-black text-xl tracking-tight">Maca<span class="text-sky-300">ya</span></p><p class="text-[10px] font-bold uppercase tracking-widest text-sky-100/70">Panel Peneliti</p></div>
+                <div class="leading-tight"><img src="assets/macaya-wordmark-putih.png" alt="Macaya" class="h-8 w-auto"><p class="text-[10px] font-bold uppercase tracking-widest text-sky-100/70 mt-1">Panel Peneliti</p></div>
             </div>
             <button onclick="toggleSidebar()" class="md:hidden text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -235,7 +236,7 @@
                 </div>
                 <label class="text-xs font-bold text-slate-500 flex items-center gap-2">Suara narasi
                     <select id="es-suara" onchange="simpanPilihanSuara(this.value)" class="border rounded-lg p-2 text-sm font-bold text-slate-700 bg-white">
-                        <option value="wanita">Wanita (Gadis)</option><option value="pria">Pria (Ardi)</option>
+                        <option value="wanita">Wanita</option><option value="pria">Pria</option>
                     </select>
                 </label>
                 <button onclick="buatSuaraSemua()" id="es-btn-suara-semua" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-sm font-bold disabled:opacity-50"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua</button>
