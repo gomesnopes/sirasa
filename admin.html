@@ -806,7 +806,14 @@
             } catch (err) { Dialog.alert("Gagal: " + err.message); btn.innerHTML = "Simpan Perubahan"; btn.disabled = false; }
         }
 
-        async function hapusModul(id) { if(await Dialog.confirm("Hapus modul ini beserta isinya (slide/soal terkait)? Tindakan ini tidak bisa dibatalkan.", { judul: "Hapus Modul", teksOk: "Hapus", tipe: "bahaya" })) { await supabaseClient.from('buku').delete().eq('id', id); window.location.reload(); } }
+        async function hapusModul(id) {
+            const b = dbBukuList.find(x => x.id === id);
+            if (!(await Dialog.confirm(`Hapus "${b ? b.judul : 'modul ini'}" beserta slide & soal kuisnya? Riwayat belajar siswa tetap tersimpan untuk data penelitian. Tindakan ini tidak bisa dibatalkan.`, { judul: "Hapus Modul", teksOk: "Hapus", tipe: "bahaya" }))) return;
+            const { error } = await supabaseClient.from('buku').delete().eq('id', id);
+            if (error) return Dialog.alert('Modul gagal dihapus: ' + error.message, { tipe: 'bahaya' });
+            await fetchDaftarBukuAdmin();
+            Dialog.alert('✅ Modul berhasil dihapus.');
+        }
 
         // ===================================
         // 4. MANAJEMEN KUIS & SPPS (SAMA SEPERTI SEBELUMNYA)
@@ -1154,10 +1161,21 @@
             if (!(await Dialog.confirm(`Buat suara untuk ${target.length} slide yang belum punya suara?`, { judul: 'Buat Suara Narasi', teksOk: 'Buat Suara', tipe: 'info' }))) return;
             const btn = esEl('es-btn-suara-semua'); btn.disabled = true;
             let sukses = 0;
-            for (const [n, sl] of target.entries()) {
-                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${n + 1}/${target.length}`;
-                try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_jawaban_url: h.audio_jawaban_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); }
-                catch (err) { Dialog.alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}`); break; }
+            const tunggu = async (detik, n) => {
+                for (let d = detik; d > 0; d--) { btn.innerHTML = `<i class="fa-solid fa-hourglass-half mr-1"></i> Kuota penuh, lanjut ${d} dtk (${n + 1}/${target.length})`; await new Promise(r => setTimeout(r, 1000)); }
+            };
+            berhenti: for (const [n, sl] of target.entries()) {
+                // Kuota gratis per menit penuh -> tunggu lalu coba lagi (maks. 3x); kuota harian habis -> berhenti
+                for (let coba = 0; ; coba++) {
+                    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${n + 1}/${target.length}`;
+                    try { const h = await panggilTTS(sl); Object.assign(sl, { audio_url: h.audio_url, audio_jawaban_url: h.audio_jawaban_url, audio_suara: h.suara }); sukses++; renderDaftarSlide(); break; }
+                    catch (err) {
+                        const kuota = /kuota|quota|429|rate/i.test(err.message);
+                        if (kuota && coba < 3) { await tunggu(60, n); continue; }
+                        Dialog.alert(`Slide ${es.slides.indexOf(sl) + 1} gagal: ${err.message}${sukses ? `\n\n${sukses} slide sudah bersuara dan tersimpan.` : ''}`);
+                        break berhenti;
+                    }
+                }
             }
             btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Buat Suara Semua';
             tampilkanStatusAudio();
